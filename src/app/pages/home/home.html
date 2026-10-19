@@ -1,0 +1,24 @@
+<main class="home">
+  <div class="brand">
+    <span class="logo">?</span>
+    <span class="name">WhoAmI</span>
+  </div>
+
+  <h1>Guess who you are<br>before your friends do</h1>
+  <p class="lead">Everyone gets a secret character. Ask yes or no questions, read the clues, and be the first to guess.</p>
+
+  <div class="actions">
+    <button class="btn btn-primary" disabled>Create room</button>
+    <button class="btn btn-ghost" disabled>Join with a code</button>
+  </div>
+
+  <p class="status">
+    @if (loading()) {
+      Connecting to the game server…
+    } @else if (error()) {
+      <span class="error-text">{{ error() }}</span>
+    } @else {
+      <span class="ok">●</span> Connected · {{ decks().length }} decks ready
+    }
+  </p>
+</main>
