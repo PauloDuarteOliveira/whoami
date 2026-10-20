@@ -1,0 +1,114 @@
+<app-page-header title="Create a room" />
+
+<form class="layout" [formGroup]="form" (ngSubmit)="submit()">
+  <section class="settings" aria-label="Room settings">
+    <div>
+      <h2>How will you talk?</h2>
+      <p class="hint">Can't be changed once the game starts.</p>
+      <div class="pair">
+        <button type="button" class="choice" [class.on]="form.value.mode === 'voice'" [attr.aria-pressed]="form.value.mode === 'voice'" (click)="pick('mode', 'voice')">
+          <span class="choice-title">Voice mode</span>
+          <span class="choice-text">You're together or on a call. Questions are asked out loud; the app tracks turns.</span>
+        </button>
+        <button type="button" class="choice" [class.on]="form.value.mode === 'novoice'" [attr.aria-pressed]="form.value.mode === 'novoice'" (click)="pick('mode', 'novoice')">
+          <span class="choice-title">No-Voice mode</span>
+          <span class="choice-text">No talking. Questions are typed and everyone answers with buttons.</span>
+        </button>
+      </div>
+    </div>
+
+    <div>
+      <h2>Where do characters come from?</h2>
+      <p class="hint">Players write them, or pick a ready-made deck.</p>
+      <div class="pair">
+        <button type="button" class="choice" [class.on]="form.value.characterSource === 'custom'" [attr.aria-pressed]="form.value.characterSource === 'custom'" (click)="pick('characterSource', 'custom')">
+          <span class="choice-title">Custom Pool</span>
+          <span class="choice-text">Everyone writes one character. Nobody gets their own.</span>
+        </button>
+        <button type="button" class="choice" [class.on]="form.value.characterSource === 'deck'" [attr.aria-pressed]="form.value.characterSource === 'deck'" (click)="pick('characterSource', 'deck')">
+          <span class="choice-title">Pre-made deck</span>
+          <span class="choice-text">Characters are drawn from a themed deck.</span>
+        </button>
+      </div>
+
+      @if (form.value.characterSource === 'deck') {
+        <div class="decks" role="group" aria-label="Deck">
+          @if (decksLoading()) {
+            <span class="hint">Loading decks…</span>
+          } @else if (decksError()) {
+            <span class="error-text">Couldn't load the decks. Try again later or use Custom Pool.</span>
+          } @else {
+            @for (deck of deckList(); track deck.id) {
+              <button type="button" class="chip" [class.on]="form.value.deckId === deck.id" [attr.aria-pressed]="form.value.deckId === deck.id" [title]="deck.description" (click)="pick('deckId', deck.id)">
+                {{ deck.name }}
+              </button>
+            }
+          }
+        </div>
+        @if (form.hasError('deckRequired') && form.touched) {
+          <span class="error-text">Pick a deck.</span>
+        }
+      }
+    </div>
+
+    <div class="pair">
+      <div class="card">
+        <div class="card-title">Give up allowed after</div>
+        <p class="hint">Questions a player must ask first.</p>
+        <div class="stepper">
+          <button type="button" class="step" aria-label="Fewer questions" (click)="stepGiveUp(-1)" [disabled]="form.value.giveUpAfter === 1">−</button>
+          <strong>{{ form.value.giveUpAfter }}</strong>
+          <button type="button" class="step" aria-label="More questions" (click)="stepGiveUp(1)" [disabled]="form.value.giveUpAfter === 99">+</button>
+          <span class="hint">questions</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Turn timer</div>
+        <p class="hint">Time for each turn. When it runs out, the turn passes on.</p>
+        <div class="segments">
+          @for (sec of turnTimers; track sec) {
+            <button type="button" class="seg" [class.on]="form.value.turnTimer === sec" [attr.aria-pressed]="form.value.turnTimer === sec" (click)="pick('turnTimer', sec)">
+              {{ sec ? sec / 60 + ' min' : 'No timer' }}
+            </button>
+          }
+        </div>
+      </div>
+    </div>
+
+    @if (form.value.characterSource === 'custom') {
+      <div class="card row">
+        <div class="grow">
+          <div class="card-title">Writing timer <span class="hint">· Custom Pool only</span></div>
+          <p class="hint">With no timer, the game starts as soon as everyone has submitted a character.</p>
+        </div>
+        <div class="segments">
+          @for (sec of writingTimers; track sec) {
+            <button type="button" class="seg" [class.on]="form.value.writingTimer === sec" [attr.aria-pressed]="form.value.writingTimer === sec" (click)="pick('writingTimer', sec)">
+              {{ sec ? sec + ' s' : 'No timer' }}
+            </button>
+          }
+        </div>
+      </div>
+    }
+  </section>
+
+  <aside class="summary" aria-label="Summary">
+    <h2>Your room</h2>
+
+    <app-settings-summary [settings]="settings()" [deckName]="deckName()" />
+
+    <div class="divider"></div>
+    <p class="hint">
+      You'll be the <strong class="accent">Admin</strong>, {{ profile.name() }}. You can skip turns, kick or mute players, and name Helpers.
+      <a routerLink="/">Not you?</a>
+    </p>
+
+    @if (submitError()) {
+      <span class="error-text" role="alert">{{ submitError() }}</span>
+    }
+    <button type="submit" class="btn btn-primary create" [disabled]="form.invalid || submitting()">
+      {{ submitting() ? 'Creating…' : 'Create room' }}
+    </button>
+  </aside>
+</form>
