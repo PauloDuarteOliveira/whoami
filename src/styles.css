@@ -1,30 +1,34 @@
 :root {
-  --bg: #17181C;
-  --surface: #1E1F24;
-  --surface-2: #26272E;
-  --surface-3: #2F3139;
-  --border: #2A2C33;
-  --border-strong: #3A3C45;
+  --bg: #0A3440;
+  --surface: #0F4553;
+  --surface-2: #135260;
+  --surface-3: #186070;
+  --border: #1E5A68;
+  --border-strong: #2C7383;
 
-  --text: #ECECEF;
-  --text-2: #C5C6CE;
-  --muted: #8B8D98;
-  --faint: #5E606B;
+  --text: #F4FBF9;
+  --text-2: #BFE3E3;
+  --text-3: #A3D2D2;
+  --muted: #86BABB;
+  --faint: #5A9AA0;
 
-  --accent: #F5A524;
-  --accent-hover: #FFC866;
-  --accent-soft: #3A2E14;
+  --accent: #FFC93C;
+  --accent-hover: #FFDA75;
+  --accent-soft: #4D5124;
+  --accent-tint: #3A4B2C;
+  --accent-deep: #B8861C;
 
-  --yes: #4FD1A1;
-  --yes-soft: #1D2B26;
-  --no: #F09A80;
-  --no-soft: #33221E;
-  --unsure: #8FA8FF;
-  --unsure-soft: #1E2A4A;
+  --yes: #5CF2C2;
+  --yes-soft: #0F4A42;
+  --no: #FF9A9A;
+  --no-soft: #4A2E3A;
+  --unsure: #A8CBFF;
+  --unsure-soft: #14406A;
 
-  --radius: 10px;
-  --radius-lg: 14px;
-  --font: 'Plus Jakarta Sans', system-ui, sans-serif;
+  --radius: 14px;
+  --radius-lg: 18px;
+  --font: 'Fredoka', system-ui, sans-serif;
+  --font-display: 'Titan One', system-ui, sans-serif;
 }
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -33,14 +37,14 @@ html, body { height: 100%; }
 
 body {
   margin: 0;
-  background: var(--bg);
+    background: linear-gradient(180deg, #082C37 0%, #0A3A47 55%, #0D4A52 100%) fixed;
   color: var(--text);
   font-family: var(--font);
   font-size: 14px;
   -webkit-font-smoothing: antialiased;
 }
 
-h1, h2, h3 { margin: 0; font-weight: 800; letter-spacing: -0.5px; }
+h1, h2, h3 { margin: 0; font-family: var(--font-display); font-weight: 400; letter-spacing: 0.5px; }
 
 a:not(.btn) { color: var(--accent); }
 a:not(.btn):hover { color: var(--accent-hover); }
@@ -69,6 +73,10 @@ a:not(.btn):hover { color: var(--accent-hover); }
 .btn-primary { background: var(--accent); color: var(--bg); font-weight: 800; }
 .btn-ghost { background: transparent; border-color: var(--border-strong); color: var(--text-2); }
 .btn-danger { background: transparent; color: var(--no); }
+
+.btn:not(.btn-ghost):not(.btn-danger) { box-shadow: 0 4px 0 rgba(0, 0, 0, .38); transition: transform .08s; }
+.btn:not(.btn-ghost):not(.btn-danger):active:not(:disabled) { transform: translateY(3px); box-shadow: 0 1px 0 rgba(0, 0, 0, .38); }
+.btn-primary { box-shadow: 0 5px 0 var(--accent-deep) !important; }
 
 /* Form fields ------------------------------------------------------------- */
 

@@ -25,7 +25,7 @@ import { RoomSettings } from '../../core/room.service';
   styles: `
     .rows { margin: 0; display: flex; flex-direction: column; gap: 12px; }
     .rows div { display: flex; justify-content: space-between; gap: 12px; }
-    dt { color: #A9ABB5; }
+    dt { color: var(--text-3); }
     dd { margin: 0; font-weight: 700; color: var(--text); text-align: right; }
   `,
 })

@@ -31,12 +31,12 @@ h2 { font-size: 16px; margin-bottom: 4px; }
 }
 
 .choice:hover { border-color: var(--border-strong); }
-.choice.on { border: 2px solid var(--accent); background: #2B2A22; padding: 15px; }
+.choice.on { border: 2px solid var(--accent); background: var(--accent-tint); padding: 15px; }
 .choice.on .choice-title::after { content: ' ✓'; color: var(--accent); }
 
 .choice-title { font-weight: 800; font-size: 16px; }
 .choice-text { color: var(--muted); line-height: 1.45; }
-.choice.on .choice-text { color: #A9ABB5; }
+.choice.on .choice-text { color: var(--text-3); }
 
 /* Deck chips */
 .decks { margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap; }
