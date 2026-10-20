@@ -1,0 +1,104 @@
+.page {
+  min-height: calc(100vh - 64px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 16px;
+}
+
+.panel {
+  width: 100%;
+  max-width: 520px;
+  border-radius: 24px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.panel .field label { font-size: 13px; font-weight: 600; color: var(--text-2); letter-spacing: 0; }
+
+.code-input {
+  height: 64px;
+  padding: 0 18px;
+  border-radius: 16px;
+  border: 2px solid var(--border-strong);
+  background: var(--bg);
+  color: var(--text);
+  font: 400 32px var(--font-display);
+  letter-spacing: 12px;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.code-input::placeholder { color: var(--faint); }
+.code-input:focus { outline: none; border-color: var(--accent); }
+
+.box {
+  height: 48px;
+  padding: 0 14px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border-strong);
+  background: var(--bg);
+  color: var(--text);
+  font: 600 15px var(--font);
+}
+
+.box::placeholder { color: var(--faint); }
+.box:focus { outline: none; border-color: var(--accent); }
+.box.ng-invalid.ng-touched { border-color: var(--no); }
+
+/* The card under the code: checking / found / not found */
+.room-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px;
+  border-radius: 16px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+}
+
+.room-card.ok { background: var(--yes-soft); border-color: rgba(92, 242, 194, 0.35); }
+.room-card.bad { background: var(--no-soft); border-color: rgba(255, 154, 154, 0.35); color: var(--no); }
+
+.badge {
+  width: 40px;
+  height: 40px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--yes);
+  color: var(--bg);
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.room-card.bad .badge { background: var(--no); }
+
+.grow { flex: 1; min-width: 0; }
+.room-name { font-weight: 700; }
+.room-meta { font-size: 13px; color: var(--text-3); }
+.hint { color: var(--muted); }
+
+.avatars { display: flex; }
+
+.avatars span {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid var(--yes-soft);
+}
+
+.avatars span + span { margin-left: -8px; }
+
+.join { height: 52px; border-radius: 16px; font-size: 16px; }
+
+.note { margin: 0; font-size: 12px; color: var(--muted); text-align: center; }
+
+@media (max-width: 600px) {
+  .panel { padding: 22px; }
+}
