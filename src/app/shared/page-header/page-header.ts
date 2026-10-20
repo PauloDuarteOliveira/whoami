@@ -1,7 +1,6 @@
 import { Component, Input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
-/** Top bar for the screens before the game: Back link, logo and title. */
 @Component({
   selector: 'app-page-header',
   imports: [RouterLink],
