@@ -1,4 +1,5 @@
 import { Injectable, signal } from '@angular/core';
+import { cleanName } from '../shared/validators';
 
 const STORAGE_KEY = 'whoami.name';
 
@@ -7,7 +8,7 @@ export class ProfileService {
     readonly name = signal(this.load());
 
     setName(name: string): void {
-        const clean = name.trim();
+        const clean = cleanName(name);
         this.name.set(clean);
         try {
             localStorage.setItem(STORAGE_KEY, clean);

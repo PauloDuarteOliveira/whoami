@@ -12,14 +12,27 @@ export function isCodeChar(char: string): boolean {
   return (char >= 'A' && char <= 'Z') || isDigit(char);
 }
 
+export function cleanName(name: string): string {
+  return name.split(' ').filter(word => word !== '').join(' ');
+}
+
 export function lettersAndNumbers(control: AbstractControl): ValidationErrors | null {
   const value: string = control.value ?? '';
   if (value === '') {
     return null;
   }
-  const words = value.split(' ');
-  const valid = words.every(word => word.length > 0 && [...word].every(char => isLetter(char) || isDigit(char)));
-  return valid ? null : { lettersAndNumbers: true };
+  const onlyAllowed = [...value].every(char => char === ' ' || isLetter(char) || isDigit(char));
+  if (!onlyAllowed) {
+    return { lettersAndNumbers: true };
+  }
+  const clean = cleanName(value);
+  if (clean === '') {
+    return { required: true };
+  }
+  if (clean.length < 2) {
+    return { minlength: true };
+  }
+  return null;
 }
 
 export function roomCode(control: AbstractControl): ValidationErrors | null {
@@ -30,7 +43,6 @@ export function roomCode(control: AbstractControl): ValidationErrors | null {
 
 export const playerNameValidators: ValidatorFn[] = [
   Validators.required,
-  Validators.minLength(2),
   Validators.maxLength(16),
   lettersAndNumbers,
 ];
