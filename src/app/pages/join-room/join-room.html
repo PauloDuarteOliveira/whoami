@@ -1,0 +1,73 @@
+<app-page-header title="Join a room" />
+
+<main class="page">
+  <form class="panel" [formGroup]="form" (ngSubmit)="submit()" aria-label="Join form">
+    <div class="field">
+      <label for="code">Room code</label>
+      <input id="code" class="code-input" formControlName="code" maxlength="4" autocomplete="off" spellcheck="false" placeholder="K7QX" (input)="upperCaseCode()">
+    </div>
+
+    @switch (lookupState()) {
+      @case ('checking') {
+        <div class="room-card"><span class="hint">Looking for the room…</span></div>
+      }
+      @case ('missing') {
+        <div class="room-card bad" role="alert">
+          <span class="badge">!</span>
+          <div>No room with this code. Check it with your friends.</div>
+        </div>
+      }
+      @case ('error') {
+        <div class="room-card bad" role="alert">
+          <span class="badge">!</span>
+          <div>Couldn't reach the game server. Try again in a moment.</div>
+        </div>
+      }
+      @case ('found') {
+        @if (room(); as found) {
+          <div class="room-card ok">
+            <span class="badge">✓</span>
+            <div class="grow">
+              <div class="room-name">{{ adminName() }}'s room</div>
+              <div class="room-meta">
+                {{ found.mode === 'voice' ? 'Voice' : 'No-Voice' }} mode ·
+                {{ found.character_source === 'custom' ? 'Custom Pool' : 'Pre-made deck' }} ·
+                @if (found.status === 'lobby') {
+                  {{ present().length }} {{ present().length === 1 ? 'player' : 'players' }} waiting
+                } @else {
+                  game in progress
+                }
+              </div>
+            </div>
+            <div class="avatars" aria-hidden="true">
+              @for (p of present().slice(0, 5); track p.id) {
+                <span [style.background]="p.color"></span>
+              }
+            </div>
+          </div>
+        }
+      }
+    }
+
+    <div class="field">
+      <label for="name">Your name</label>
+      <input id="name" class="box" formControlName="name" maxlength="16" autocomplete="nickname" placeholder="How friends know you">
+      @if (name.touched && name.hasError('required')) {
+        <span class="error-text">Enter your name.</span>
+      } @else if (name.touched && name.hasError('minlength')) {
+        <span class="error-text">Use at least 2 characters.</span>
+      } @else if (name.touched && name.hasError('lettersAndNumbers')) {
+        <span class="error-text">Use only letters and numbers.</span>
+      }
+    </div>
+
+    @if (joinError()) {
+      <span class="error-text" role="alert">{{ joinError() }}</span>
+    }
+
+    <button type="submit" class="btn btn-primary join" [disabled]="form.invalid || lookupState() !== 'found' || joining()">
+      {{ joining() ? 'Joining…' : 'Join room' }}
+    </button>
+    <p class="note">If the game already started, the Admin decides whether you play, support someone or watch.</p>
+  </form>
+</main>
