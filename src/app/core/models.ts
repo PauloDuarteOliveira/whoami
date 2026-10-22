@@ -53,3 +53,12 @@ export interface Player {
   last_seen: string;
   joined_at: string;
 }
+
+export interface Character {
+  id: string;
+  room_id: string;
+  name: string;
+  written_by: string | null;
+  assigned_to: string | null;
+  created_at: string;
+}

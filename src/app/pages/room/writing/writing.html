@@ -1,0 +1,114 @@
+<div class="writing">
+  <aside class="side" aria-label="Players">
+    <div class="side-head">
+      <span class="logo">?</span>
+      <span class="brand">WhoAmI</span>
+      <span class="code">{{ room.code }}</span>
+    </div>
+    <div class="list">
+      <div class="group">WRITING — {{ doneCount() }} OF {{ players.length }} DONE</div>
+      @for (p of players; track p.id) {
+        <div class="row" [class.me]="p.id === me.id">
+          <span class="avatar" [style.background]="p.color">{{ p.name.charAt(0) }}</span>
+          <div class="info">
+            <div class="name">{{ p.id === me.id ? 'You' : p.name }}</div>
+            @if (hasWritten(p)) {
+              <div class="state done">Submitted ✓</div>
+            } @else if (p.id === me.id && bounced()) {
+              <div class="state redo">Needs a new one</div>
+            } @else {
+              <div class="state">Writing…</div>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  </aside>
+
+  <div class="content">
+    <header class="top">
+      <span class="strong">Writing phase</span>
+      <span class="muted">Custom Pool · {{ room.mode === 'voice' ? 'Voice' : 'No-Voice' }} mode</span>
+    </header>
+
+    <main class="main">
+      @if (showDecision()) {
+        <!-- Admin decision (W06) -->
+        <section class="card decision" aria-label="Admin decision">
+          <span class="label">ONLY YOU SEE THIS · ADMIN</span>
+          <h1>
+            @if (missing().length === 1) { {{ missing()[0].name }} is still writing }
+            @else { {{ missing().length }} players are still writing }
+          </h1>
+          <p class="muted">
+            You can start now with the {{ doneCount() }} characters already written.
+            Players who haven't written will watch this game.
+          </p>
+          <div class="choices">
+            @if (secondsLeft() === 0) {
+              <button type="button" class="choice" (click)="addTime.emit()" [disabled]="busy">
+                <span class="choice-title">+30 seconds</span>
+                <span class="choice-text">Give them a little more time.</span>
+              </button>
+            } @else {
+              <button type="button" class="choice" (click)="dismissedAt.set(doneCount())">
+                <span class="choice-title">Keep waiting</span>
+                <span class="choice-text">The game starts by itself when everyone has written.</span>
+              </button>
+            }
+            <button type="button" class="choice primary" (click)="startWithout.emit()" [disabled]="busy || doneCount() < 2">
+              <span class="choice-title">Start without them</span>
+              <span class="choice-text">{{ doneCount() }} players, {{ doneCount() }} characters. Shuffle now.</span>
+            </button>
+          </div>
+          @if (doneCount() < 2) {
+            <p class="small">The game needs at least 2 characters to start.</p>
+          }
+        </section>
+      } @else if (!isPlayer()) {
+        <section class="card">
+          <h1>You're watching this game</h1>
+          <p class="muted">The game starts when everyone has written a character.</p>
+        </section>
+      } @else if (mine(); as written) {
+        <section class="card">
+          <span class="badge">✓</span>
+          <h1>Your character is in</h1>
+          <p class="muted">You wrote <strong class="accent">{{ written.name }}</strong>. Someone else will get it.</p>
+          <p class="muted">Waiting for {{ missing().length }} more {{ missing().length === 1 ? 'player' : 'players' }}…</p>
+        </section>
+      } @else {
+        <section class="card" aria-label="Write a character">
+          @if (secondsLeft(); as left) {
+            <div class="timer"><strong>{{ clock(left) }}</strong> left</div>
+          }
+          <h1>Write a character for someone else</h1>
+          <p class="muted">Anyone the group knows: a celebrity, a movie character, a historical figure. It goes into a shared pool, and you'll never get your own.</p>
+
+            <form class="field" (submit)="$event.preventDefault(); submit()">
+            <label for="char-input">Character name</label>
+            <div class="input-row">
+              <input id="char-input" class="box" [formControl]="character" maxlength="40" autocomplete="off" placeholder="Darth Vader">
+              <button type="submit" class="btn btn-primary" [disabled]="busy">Submit</button>
+            </div>
+            @if (character.touched && character.hasError('required')) {
+              <span class="error-text">Write a character.</span>
+            } @else if (character.touched && character.hasError('minlength')) {
+              <span class="error-text">Use at least 2 characters.</span>
+            } @else if (character.touched && character.hasError('characterName')) {
+              <span class="error-text">Use letters, numbers and . ' - &amp; only.</span>
+            }
+          </form>
+
+          @if (bounced() || notice) {
+            <div class="alert" role="alert">
+              <strong>Same as someone else.</strong>
+              Another player also wrote {{ bounced() ?? 'this character' }}, so it leaves the pool. You both need to pick a different one.
+            </div>
+          }
+          <p class="small">Only you can see what you type here.</p>
+        </section>
+      }
+    </main>
+  </div>
+</div>

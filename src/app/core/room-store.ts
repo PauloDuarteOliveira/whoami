@@ -1,6 +1,7 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
-import { Subscription, catchError, map, of, switchMap, timer } from 'rxjs';
-import { Player, Room } from './models';
+import { Subscription, catchError, forkJoin, map, of, switchMap, timer } from 'rxjs';
+import { CharacterService } from './character.service';
+import { Character, Player, Room } from './models';
 import { PlayerService } from './player.service';
 import { RoomService } from './room.service';
 import { SessionService } from './session.service';
@@ -14,10 +15,12 @@ export type LoadState = 'loading' | 'ready' | 'missing' | 'error';
 export class RoomStore {
   private readonly rooms = inject(RoomService);
   private readonly playerService = inject(PlayerService);
+  private readonly characterService = inject(CharacterService);
   private readonly session = inject(SessionService);
 
   readonly room = signal<Room | null>(null);
   readonly players = signal<Player[]>([]);
+  readonly characters = signal<Character[]>([]);
   readonly loadState = signal<LoadState>('loading');
   readonly connectionLost = signal(false);
   readonly now = signal(Date.now());
@@ -38,8 +41,11 @@ export class RoomStore {
             this.rooms.getByCode(code).pipe(
               switchMap(room =>
                 room
-                  ? this.playerService.getPlayers(room.id).pipe(map(players => ({ room, players })))
-                  : of({ room: null, players: [] as Player[] }),
+                  ? forkJoin({
+                      players: this.playerService.getPlayers(room.id),
+                      characters: this.characterService.getCharacters(room.id),
+                    }).pipe(map(data => ({ room, ...data })))
+                  : of({ room: null, players: [] as Player[], characters: [] as Character[] }),
               ),
               catchError(() => of('failed' as const)),
             ),
@@ -55,6 +61,7 @@ export class RoomStore {
           this.connectionLost.set(false);
           this.room.set(result.room);
           this.players.set(result.players);
+          this.characters.set(result.characters);
           this.loadState.set(result.room ? 'ready' : 'missing');
         }),
     );
@@ -78,5 +85,13 @@ export class RoomStore {
 
   patchPlayer(id: string, changes: Partial<Player>): void {
     this.players.update(list => list.map(p => (p.id === id ? { ...p, ...changes } : p)));
+  }
+
+  addCharacter(character: Character): void {
+    this.characters.update(list => [...list, character]);
+  }
+
+  removeCharacter(id: string): void {
+    this.characters.update(list => list.filter(c => c.id !== id));
   }
 }

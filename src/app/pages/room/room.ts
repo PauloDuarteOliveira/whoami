@@ -1,4 +1,7 @@
-import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, computed, effect, inject, signal } from '@angular/core';
+import { CharacterService, sameCharacter } from '../../core/character.service';
+import { GameService } from '../../core/game.service';
+import { Writing } from './writing/writing';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Observable, concat } from 'rxjs';
 import { DeckService } from '../../core/deck.service';
@@ -10,116 +13,187 @@ import { SessionService } from '../../core/session.service';
 import { Lobby } from './lobby/lobby';
 
 @Component({
-  selector: 'app-room',
-  imports: [RouterLink, Lobby],
-  providers: [RoomStore],
-  templateUrl: './room.html',
-  styleUrl: './room.css',
+    selector: 'app-room',
+    imports: [RouterLink, Lobby, Writing],
+    providers: [RoomStore],
+    templateUrl: './room.html',
+    styleUrl: './room.css',
 })
+
 export class RoomPage implements OnInit, OnDestroy {
-  protected readonly store = inject(RoomStore);
-  private readonly roomService = inject(RoomService);
-  private readonly playerService = inject(PlayerService);
-  private readonly decks = inject(DeckService);
-  private readonly session = inject(SessionService);
-  private readonly route = inject(ActivatedRoute);
-  private readonly router = inject(Router);
+    protected readonly store = inject(RoomStore);
+    private readonly roomService = inject(RoomService);
+    private readonly playerService = inject(PlayerService);
+    private readonly decks = inject(DeckService);
+    private readonly session = inject(SessionService);
+    private readonly route = inject(ActivatedRoute);
+    private readonly router = inject(Router);
+    private readonly characterService = inject(CharacterService);
+    private readonly game = inject(GameService);
 
-  protected code = '';
-  private readonly deckList = signal<Deck[]>([]);
-  protected readonly deckName = computed(() => this.deckList().find(d => d.id === this.store.room()?.deck_id)?.name ?? null);
-  protected readonly busy = signal(false);
-  protected readonly actionError = signal<string | null>(null);
+    protected code = '';
+    private readonly deckList = signal<Deck[]>([]);
+    protected readonly deckName = computed(() => this.deckList().find(d => d.id === this.store.room()?.deck_id)?.name ?? null);
+    protected readonly busy = signal(false);
+    protected readonly actionError = signal<string | null>(null);
 
-  protected readonly present = computed(() =>
-    this.store.players().filter(p => p.status !== 'kicked' && p.status !== 'left'),
-  );
+    protected readonly present = computed(() =>
+        this.store.players().filter(p => p.status !== 'kicked' && p.status !== 'left'),
+    );
 
-  protected readonly isOnline = (player: Player) => this.playerService.isOnline(player, this.store.now());
+    protected readonly isOnline = (player: Player) => this.playerService.isOnline(player, this.store.now());
 
-  ngOnInit(): void {
-    this.code = (this.route.snapshot.paramMap.get('code') ?? '').toUpperCase();
+    protected readonly playing = computed(() => this.present().filter(p => p.role !== 'spectator'));
+    protected readonly writeNotice = signal<string | null>(null);
+    private starting = false;
 
-    if (!this.session.getPlayerId(this.code)) {
-      this.router.navigate(['/join', this.code]);
-      return;
+    constructor() {
+
+        effect(() => {
+            const room = this.store.room();
+            const me = this.store.me();
+            const players = this.playing();
+            const characters = this.store.characters();
+            if (!room || room.status !== 'writing' || me?.role !== 'admin' || this.starting) return;
+            const allWritten = players.length >= 2 && players.every(p => characters.some(c => c.written_by === p.id));
+            if (allWritten) {
+                this.starting = true;
+                this.run(this.game.startCustom(room, players, characters));
+            }
+        });
     }
-    this.store.start(this.code);
 
-    this.decks.getDecks().subscribe({
-      next: decks => this.deckList.set(decks),
-      error: () => this.deckList.set([]),
-    });
-  }
+    ngOnInit(): void {
+        this.code = (this.route.snapshot.paramMap.get('code') ?? '').toUpperCase();
 
-  ngOnDestroy(): void {
-    this.store.stop();
-  }
+        if (!this.session.getPlayerId(this.code)) {
+            this.router.navigate(['/join', this.code]);
+            return;
+        }
+        this.store.start(this.code);
 
-  protected start(): void {
-    const room = this.store.room();
-    if (!room) return;
-    const custom = room.character_source === 'custom';
-    const writingEndsAt = custom && room.writing_timer_sec
-      ? new Date(Date.now() + room.writing_timer_sec * 1000).toISOString()
-      : null;
+        this.decks.getDecks().subscribe({
+            next: decks => this.deckList.set(decks),
+            error: () => this.deckList.set([]),
+        });
+    }
 
-    this.run(this.roomService.update(room.id, {
-      status: custom ? 'writing' : 'playing',
-      writing_ends_at: writingEndsAt,
-    }));
-  }
+    ngOnDestroy(): void {
+        this.store.stop();
+    }
 
-  protected kick(player: Player): void {
-    if (!confirm(`Kick ${player.name} from the room?`)) return;
-    this.store.patchPlayer(player.id, { status: 'kicked' });
-    this.run(this.playerService.kick(player.id));
-  }
+    protected start(): void {
+        const room = this.store.room();
+        if (!room) return;
 
-  protected toggleHelper(player: Player): void {
-    const role = player.role === 'helper' ? 'player' : 'helper';
-    this.store.patchPlayer(player.id, { role });
-    this.run(this.playerService.setRole(player.id, role));
-  }
+        if (room.character_source === 'deck') {
+            this.run(this.game.startDeck(room, this.playing()));
+            return;
+        }
+        const writingEndsAt = room.writing_timer_sec
+            ? new Date(Date.now() + room.writing_timer_sec * 1000).toISOString()
+            : null;
+        this.run(this.roomService.update(room.id, { status: 'writing', writing_ends_at: writingEndsAt }));
+    }
 
-  protected leave(): void {
-    const me = this.store.me();
-    const room = this.store.room();
-    if (!me || !room) return;
-    const inLobby = room.status === 'lobby';
+    protected write(name: string): void {
+        const room = this.store.room();
+        const me = this.store.me();
+        if (!room || !me) return;
+        this.writeNotice.set(null);
 
-    const others = this.present().filter(p => p.id !== me.id && p.role !== 'spectator');
-    const successor = me.role === 'admin' ? (others.find(p => p.role === 'helper') ?? others[0]) : undefined;
+        const duplicate = this.store.characters().find(c => c.written_by !== me.id && sameCharacter(c.name, name));
+        if (duplicate) {
+            this.store.removeCharacter(duplicate.id);
+            this.writeNotice.set(name);
+            this.run(this.characterService.remove(duplicate.id));
+            return;
+        }
 
-    const steps: Observable<unknown>[] = [];
-    if (successor) steps.push(this.playerService.setRole(successor.id, 'admin'));
-    steps.push(this.playerService.leave(me, inLobby));
+        this.busy.set(true);
+        this.characterService.write(room.id, me.id, name).subscribe({
+            next: character => {
+                this.store.addCharacter(character);
+                this.busy.set(false);
+            },
+            error: () => {
+                this.busy.set(false);
+                this.actionError.set('Could not save your character. Try again.');
+            },
+        });
+    }
 
-    this.busy.set(true);
-    concat(...steps).subscribe({
-      error: () => {
-        this.busy.set(false);
-        this.actionError.set('Could not leave the room. Try again.');
-      },
-      complete: () => this.goHome(),
-    });
-  }
+    protected startWithout(): void {
+        const room = this.store.room();
+        if (!room) return;
+        const characters = this.store.characters();
+        const writers = this.playing().filter(p => characters.some(c => c.written_by === p.id));
+        const missing = this.playing().filter(p => !writers.includes(p));
+        this.starting = true;
+        this.run(
+            concat(
+                ...missing.map(p => this.playerService.setRole(p.id, 'spectator')),
+                this.game.startCustom(room, writers, characters),
+            ),
+        );
+    }
 
-  protected goHome(): void {
-    this.store.stop();
-    this.session.forget(this.code);
-    this.router.navigate(['/']);
-  }
+    protected addTime(): void {
+        const room = this.store.room();
+        if (!room) return;
+        this.run(this.roomService.update(room.id, { writing_ends_at: new Date(Date.now() + 30_000).toISOString() }));
+    }
 
-  private run(action: Observable<unknown>): void {
-    this.busy.set(true);
-    this.actionError.set(null);
-    action.subscribe({
-      next: () => this.busy.set(false),
-      error: () => {
-        this.busy.set(false);
-        this.actionError.set('That didn\'t work. Check your connection and try again.');
-      },
-    });
-  }
+    protected kick(player: Player): void {
+        if (!confirm(`Kick ${player.name} from the room?`)) return;
+        this.store.patchPlayer(player.id, { status: 'kicked' });
+        this.run(this.playerService.kick(player.id));
+    }
+
+    protected toggleHelper(player: Player): void {
+        const role = player.role === 'helper' ? 'player' : 'helper';
+        this.store.patchPlayer(player.id, { role });
+        this.run(this.playerService.setRole(player.id, role));
+    }
+
+    protected leave(): void {
+        const me = this.store.me();
+        const room = this.store.room();
+        if (!me || !room) return;
+        const inLobby = room.status === 'lobby';
+
+        const others = this.present().filter(p => p.id !== me.id && p.role !== 'spectator');
+        const successor = me.role === 'admin' ? (others.find(p => p.role === 'helper') ?? others[0]) : undefined;
+
+        const steps: Observable<unknown>[] = [];
+        if (successor) steps.push(this.playerService.setRole(successor.id, 'admin'));
+        steps.push(this.playerService.leave(me, inLobby));
+
+        this.busy.set(true);
+        concat(...steps).subscribe({
+            error: () => {
+                this.busy.set(false);
+                this.actionError.set('Could not leave the room. Try again.');
+            },
+            complete: () => this.goHome(),
+        });
+    }
+
+    protected goHome(): void {
+        this.store.stop();
+        this.session.forget(this.code);
+        this.router.navigate(['/']);
+    }
+
+    private run(action: Observable<unknown>): void {
+        this.busy.set(true);
+        this.actionError.set(null);
+        action.subscribe({
+            next: () => this.busy.set(false),
+            error: () => {
+                this.busy.set(false);
+                this.actionError.set('That didn\'t work. Check your connection and try again.');
+            },
+        });
+    }
 }
