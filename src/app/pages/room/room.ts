@@ -45,11 +45,13 @@ export class RoomPage implements OnInit, OnDestroy {
     );
 
     protected readonly isOnline = (player: Player) => this.playerService.isOnline(player, this.store.now());
-
-    /** Players taking part (spectators watch). */
     protected readonly playing = computed(() => this.present().filter(p => p.role !== 'spectator'));
+    protected readonly inPlay = computed(() =>
+        this.store.players().filter(p => p.status === 'playing' && p.role !== 'spectator'),
+    );
+    private ending = false;
+    private skippedTurn: number | null = null;
 
-    /** The question of the current turn, if it has been asked. */
     protected readonly currentQuestion = computed(() => {
         const room = this.store.room();
         if (!room) return null;
@@ -64,7 +66,6 @@ export class RoomPage implements OnInit, OnDestroy {
         return q ? this.store.votes().filter(v => v.question_id === q.id) : [];
     });
 
-    /** Online players, except the asker, who must answer. */
     protected readonly voters = computed(() =>
         this.playing().filter(p => p.id !== this.store.room()?.current_player_id && this.isOnline(p)),
     );
@@ -74,7 +75,6 @@ export class RoomPage implements OnInit, OnDestroy {
     private starting = false;
 
     constructor() {
-        // When everyone has written, the Admin's app deals the characters and starts the game.
         effect(() => {
             const room = this.store.room();
             const me = this.store.me();
@@ -88,7 +88,6 @@ export class RoomPage implements OnInit, OnDestroy {
             }
         });
 
-        // When everyone has voted, the asker's app records the majority answer.
         effect(() => {
             const room = this.store.room();
             const question = this.currentQuestion();
@@ -104,6 +103,25 @@ export class RoomPage implements OnInit, OnDestroy {
                         .setResult(question.id, majority(votes))
                         .pipe(switchMap(() => this.roomService.update(room.id, { turn_phase: 'guess' }))),
                 );
+            }
+        });
+    
+        effect(() => {
+            const room = this.store.room();
+            if (!room || room.status !== 'playing' || this.ending) return;
+            if (this.inPlay().length < 2 && this.store.me()?.status === 'playing') {
+                this.ending = true;
+                this.run(this.roomService.update(room.id, { status: 'finished' }));
+            }
+        });
+
+        effect(() => {
+            const room = this.store.room();
+            if (!room || room.status !== 'playing' || this.store.me()?.role !== 'admin') return;
+            if (this.inPlay().length < 2 || this.skippedTurn === room.turn_number) return;
+            if (!this.inPlay().some(p => p.id === room.current_player_id)) {
+                this.skippedTurn = room.turn_number;
+                this.run(this.game.nextTurn(room, this.store.players()));
             }
         });
     }

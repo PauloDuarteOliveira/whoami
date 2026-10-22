@@ -61,13 +61,13 @@ export class GameService {
         );
 
     }
-    
+
     nextTurn(room: Room, players: Player[]): Observable<Room> {
         const inPlay = players
             .filter(p => p.status === 'playing' && p.turn_position !== null)
             .sort((a, b) => a.turn_position! - b.turn_position!);
-        const current = inPlay.findIndex(p => p.id === room.current_player_id);
-        const next = inPlay[(current + 1) % inPlay.length];
+        const currentPos = players.find(p => p.id === room.current_player_id)?.turn_position ?? 0;
+        const next = inPlay.find(p => p.turn_position! > currentPos) ?? inPlay[0];
         return this.rooms.update(room.id, {
             turn_number: room.turn_number + 1,
             current_player_id: next.id,
