@@ -1,0 +1,27 @@
+.center {
+  min-height: 100vh;
+  padding: 32px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  text-align: center;
+}
+
+.center h1 { font-size: 30px; }
+
+.muted { margin: 0; color: var(--muted); }
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  padding: 12px 18px;
+  border-radius: 14px;
+  background: var(--no-soft);
+  border: 1px solid rgba(255, 154, 154, 0.35);
+  color: var(--no);
+  font-weight: 600;
+}

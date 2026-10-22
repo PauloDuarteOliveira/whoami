@@ -1,0 +1,64 @@
+@switch (store.loadState()) {
+  @case ('loading') {
+    <div class="center"><p class="muted">Opening room {{ code }}…</p></div>
+  }
+  @case ('missing') {
+    <div class="center">
+      <h1>Room not found</h1>
+      <p class="muted">Room {{ code }} doesn't exist anymore.</p>
+      <button type="button" class="btn btn-primary" (click)="goHome()">Back to home</button>
+    </div>
+  }
+  @case ('error') {
+    <div class="center">
+      <h1>Can't reach the game server</h1>
+      <p class="muted">We'll keep trying. Check your internet connection.</p>
+      <a routerLink="/" class="btn btn-ghost">Back to home</a>
+    </div>
+  }
+  @case ('ready') {
+    @if (store.me(); as me) {
+      @if (me.status === 'kicked') {
+        <div class="center">
+          <h1>You were removed from the room</h1>
+          <p class="muted">The Admin kicked you from room {{ code }}.</p>
+          <button type="button" class="btn btn-primary" (click)="goHome()">Back to home</button>
+        </div>
+      } @else if (store.room(); as room) {
+        @switch (room.status) {
+          @case ('lobby') {
+            <app-lobby
+              [room]="room"
+              [players]="present()"
+              [me]="me"
+              [deckName]="deckName()"
+              [isOnline]="isOnline"
+              [connectionLost]="store.connectionLost()"
+              [starting]="busy()"
+              (start)="start()"
+              (leave)="leave()"
+              (kick)="kick($event)"
+              (toggleHelper)="toggleHelper($event)" />
+          }
+          @default {
+            <div class="center">
+              <h1>{{ room.status === 'writing' ? 'Writing phase' : 'Game started' }}</h1>
+              <p class="muted">This screen is the next thing to build.</p>
+              <button type="button" class="btn btn-ghost" (click)="leave()">Leave room</button>
+            </div>
+          }
+        }
+      }
+    } @else {
+      <div class="center">
+        <h1>You're not in this room</h1>
+        <p class="muted">You left, or the room was reset. Join again with the code.</p>
+        <button type="button" class="btn btn-primary" (click)="goHome()">Back to home</button>
+      </div>
+    }
+  }
+}
+
+@if (actionError()) {
+  <div class="toast" role="alert">{{ actionError() }}</div>
+}
