@@ -40,9 +40,22 @@
               (kick)="kick($event)"
               (toggleHelper)="toggleHelper($event)" />
           }
+          @case ('writing') {
+            <app-writing
+              [room]="room"
+              [players]="playing()"
+              [me]="me"
+              [characters]="store.characters()"
+              [now]="store.now()"
+              [busy]="busy()"
+              [notice]="writeNotice()"
+              (write)="write($event)"
+              (startWithout)="startWithout()"
+              (addTime)="addTime()" />
+          }
           @default {
             <div class="center">
-              <h1>{{ room.status === 'writing' ? 'Writing phase' : 'Game started' }}</h1>
+                <h1>Game started</h1>
               <p class="muted">This screen is the next thing to build.</p>
               <button type="button" class="btn btn-ghost" (click)="leave()">Leave room</button>
             </div>
