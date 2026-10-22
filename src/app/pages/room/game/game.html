@@ -65,7 +65,11 @@
                     }
                 </div>
                 }
+                @if (voters.length > 0) {
                 <p class="muted">{{ votes.length }} of {{ voters.length }} voted</p>
+                } @else {
+                <p class="muted">Waiting for the other players to come back online…</p>
+                }
                 }
                 }
 
