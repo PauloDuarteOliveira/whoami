@@ -3,18 +3,20 @@ import { CharacterService, sameCharacter } from '../../core/character.service';
 import { GameService } from '../../core/game.service';
 import { Writing } from './writing/writing';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { Observable, concat } from 'rxjs';
+import { Observable, concat, switchMap } from 'rxjs';
 import { DeckService } from '../../core/deck.service';
-import { Deck, Player } from '../../core/models';
+import { Deck, Player, Answer } from '../../core/models';
 import { PlayerService } from '../../core/player.service';
 import { RoomService } from '../../core/room.service';
 import { RoomStore } from '../../core/room-store';
 import { SessionService } from '../../core/session.service';
 import { Lobby } from './lobby/lobby';
+import { QuestionService, majority } from '../../core/question.service';
+import { Game } from './game/game';
 
 @Component({
     selector: 'app-room',
-    imports: [RouterLink, Lobby, Writing],
+    imports: [RouterLink, Lobby, Writing, Game],
     providers: [RoomStore],
     templateUrl: './room.html',
     styleUrl: './room.css',
@@ -30,6 +32,7 @@ export class RoomPage implements OnInit, OnDestroy {
     private readonly router = inject(Router);
     private readonly characterService = inject(CharacterService);
     private readonly game = inject(GameService);
+    private readonly questionService = inject(QuestionService);
 
     protected code = '';
     private readonly deckList = signal<Deck[]>([]);
@@ -43,12 +46,35 @@ export class RoomPage implements OnInit, OnDestroy {
 
     protected readonly isOnline = (player: Player) => this.playerService.isOnline(player, this.store.now());
 
+    /** Players taking part (spectators watch). */
     protected readonly playing = computed(() => this.present().filter(p => p.role !== 'spectator'));
+
+    /** The question of the current turn, if it has been asked. */
+    protected readonly currentQuestion = computed(() => {
+        const room = this.store.room();
+        if (!room) return null;
+        const asked = this.store.questions().filter(
+            q => q.turn_number === room.turn_number && q.player_id === room.current_player_id && q.kind === 'question',
+        );
+        return asked.at(-1) ?? null;
+    });
+
+    protected readonly currentVotes = computed(() => {
+        const q = this.currentQuestion();
+        return q ? this.store.votes().filter(v => v.question_id === q.id) : [];
+    });
+
+    /** Online players, except the asker, who must answer. */
+    protected readonly voters = computed(() =>
+        this.playing().filter(p => p.id !== this.store.room()?.current_player_id && this.isOnline(p)),
+    );
+
+    private readonly finished = new Set<string>();
     protected readonly writeNotice = signal<string | null>(null);
     private starting = false;
 
     constructor() {
-
+        // When everyone has written, the Admin's app deals the characters and starts the game.
         effect(() => {
             const room = this.store.room();
             const me = this.store.me();
@@ -59,6 +85,25 @@ export class RoomPage implements OnInit, OnDestroy {
             if (allWritten) {
                 this.starting = true;
                 this.run(this.game.startCustom(room, players, characters));
+            }
+        });
+
+        // When everyone has voted, the asker's app records the majority answer.
+        effect(() => {
+            const room = this.store.room();
+            const question = this.currentQuestion();
+            const votes = this.currentVotes();
+            const voters = this.voters();
+            if (!room || room.turn_phase !== 'answer_vote' || !question) return;
+            if (room.current_player_id !== this.store.me()?.id || this.finished.has(question.id)) return;
+            const allVoted = voters.length > 0 && voters.every(v => votes.some(vote => vote.voter_id === v.id));
+            if (allVoted) {
+                this.finished.add(question.id);
+                this.run(
+                    this.questionService
+                        .setResult(question.id, majority(votes))
+                        .pipe(switchMap(() => this.roomService.update(room.id, { turn_phase: 'guess' }))),
+                );
             }
         });
     }
@@ -142,6 +187,43 @@ export class RoomPage implements OnInit, OnDestroy {
         const room = this.store.room();
         if (!room) return;
         this.run(this.roomService.update(room.id, { writing_ends_at: new Date(Date.now() + 30_000).toISOString() }));
+    }
+
+    protected ask(text: string): void {
+        const room = this.store.room();
+        const me = this.store.me();
+        if (!room || !me) return;
+        this.run(
+            this.questionService.ask(room, me.id, text).pipe(
+                switchMap(question => {
+                    this.store.addQuestion(question);
+                    return this.roomService.update(room.id, { turn_phase: 'answer_vote' });
+                }),
+            ),
+        );
+    }
+
+    protected vote(value: Answer): void {
+        const question = this.currentQuestion();
+        const me = this.store.me();
+        if (!question || !me) return;
+        this.busy.set(true);
+        this.questionService.vote(question.id, me.id, value).subscribe({
+            next: vote => {
+                this.store.addVote(vote);
+                this.busy.set(false);
+            },
+            error: () => {
+                this.busy.set(false);
+                this.actionError.set('Could not send your answer. Try again.');
+            },
+        });
+    }
+
+    protected endTurn(): void {
+        const room = this.store.room();
+        if (!room) return;
+        this.run(this.game.nextTurn(room, this.store.players()));
     }
 
     protected kick(player: Player): void {
