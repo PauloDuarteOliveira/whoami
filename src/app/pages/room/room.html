@@ -53,10 +53,27 @@
               (startWithout)="startWithout()"
               (addTime)="addTime()" />
           }
+          @case ('playing') {
+            <app-game
+              [room]="room"
+              [players]="playing()"
+              [me]="me"
+              [characters]="store.characters()"
+              [questions]="store.questions()"
+              [question]="currentQuestion()"
+              [votes]="currentVotes()"
+              [voters]="voters()"
+              [isOnline]="isOnline"
+              [busy]="busy()"
+              (ask)="ask($event)"
+              (vote)="vote($event)"
+              (endTurn)="endTurn()"
+              (leave)="leave()" />
+          }
           @default {
             <div class="center">
-                <h1>Game started</h1>
-              <p class="muted">This screen is the next thing to build.</p>
+              <h1>Game over</h1>
+              <p class="muted">The results screen comes tomorrow.</p>
               <button type="button" class="btn btn-ghost" (click)="leave()">Leave room</button>
             </div>
           }

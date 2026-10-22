@@ -1,0 +1,46 @@
+import { Injectable, inject } from '@angular/core';
+import { Observable, of } from 'rxjs';
+import { Answer, GuessVerdict, Question, Room, Vote } from './models';
+import { SupabaseApiService } from './supabase-api.service';
+
+export function majority(votes: Vote[]): Answer {
+  const count = (value: Answer) => votes.filter(v => v.value === value).length;
+  const yes = count('yes');
+  const no = count('no');
+  const unsure = count('unsure');
+  if (yes > no && yes > unsure) return 'yes';
+  if (no > yes && no > unsure) return 'no';
+  return 'unsure';
+}
+
+@Injectable({ providedIn: 'root' })
+export class QuestionService {
+  private readonly api = inject(SupabaseApiService);
+
+  getQuestions(roomId: string): Observable<Question[]> {
+    return this.api.select<Question>('questions', { room_id: `eq.${roomId}`, order: 'created_at.asc' });
+  }
+
+  getVotes(questionIds: string[]): Observable<Vote[]> {
+    if (questionIds.length === 0) return of([]);
+    return this.api.select<Vote>('votes', { question_id: `in.(${questionIds.join(',')})` });
+  }
+
+  ask(room: Room, playerId: string, text: string): Observable<Question> {
+    return this.api.insertOne<Question>('questions', {
+      room_id: room.id,
+      player_id: playerId,
+      turn_number: room.turn_number,
+      kind: 'question',
+      text: text.trim(),
+    });
+  }
+
+  vote(questionId: string, voterId: string, value: Answer | GuessVerdict): Observable<Vote> {
+    return this.api.insertOne<Vote>('votes', { question_id: questionId, voter_id: voterId, value });
+  }
+
+  setResult(questionId: string, result: Answer | GuessVerdict): Observable<unknown> {
+    return this.api.update<Question>('questions', { id: `eq.${questionId}` }, { result });
+  }
+}

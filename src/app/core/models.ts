@@ -6,6 +6,9 @@ export type RoomStatus = 'lobby' | 'writing' | 'playing' | 'finished';
 export type TurnPhase = 'question' | 'answer_vote' | 'guess' | 'guess_vote';
 export type PlayerRole = 'admin' | 'helper' | 'player' | 'spectator';
 export type PlayerStatus = 'playing' | 'finished' | 'gave_up' | 'kicked' | 'left';
+export type QuestionKind = 'question' | 'guess';
+export type Answer = 'yes' | 'no' | 'unsure';
+export type GuessVerdict = 'correct' | 'wrong';
 
 export interface Deck {
   id: string;
@@ -60,5 +63,25 @@ export interface Character {
   name: string;
   written_by: string | null;
   assigned_to: string | null;
+  created_at: string;
+}
+
+export interface Question {
+  id: string;
+  room_id: string;
+  player_id: string;
+  turn_number: number;
+  kind: QuestionKind;
+  text: string;
+  result: Answer | GuessVerdict | null;
+  overruled: boolean;
+  created_at: string;
+}
+
+export interface Vote {
+  id: string;
+  question_id: string;
+  voter_id: string;
+  value: Answer | GuessVerdict;
   created_at: string;
 }
