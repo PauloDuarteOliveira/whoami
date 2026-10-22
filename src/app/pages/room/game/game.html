@@ -1,0 +1,103 @@
+<div class="game">
+  <aside class="side" aria-label="Players">
+    <div class="side-head">
+      <span class="logo">?</span>
+      <span class="brand">WhoAmI</span>
+      <span class="code">{{ room.code }}</span>
+    </div>
+    <div class="list">
+      <div class="group">TURN ORDER</div>
+      @for (p of ordered(); track p.id) {
+        <div class="row" [class.me]="p.id === me.id" [class.current]="p.id === room.current_player_id">
+          <span class="avatar" [style.background]="p.color">
+            {{ p.name.charAt(0) }}
+            <span class="dot" [class.on]="isOnline(p)"></span>
+          </span>
+          <div class="info">
+            <div class="char" [class.hidden]="p.id === me.id">{{ characterOf(p) }}</div>
+            <div class="sub">
+              {{ p.id === me.id ? 'You' : p.name }}
+              @if (p.id === room.current_player_id) { · <span class="now">asking now</span> }
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  </aside>
+
+  <div class="content">
+    <header class="top">
+      <span class="strong">Turn {{ room.turn_number }}</span>
+      <span class="muted">No-Voice mode · {{ ordered().length }} playing</span>
+      <button type="button" class="btn btn-ghost leave" (click)="leave.emit()">Leave room</button>
+    </header>
+
+    <main class="main">
+      <section class="card turn" aria-label="Current turn">
+        @switch (room.turn_phase) {
+          @case ('question') {
+            @if (isMyTurn()) {
+              <span class="pill accent">It's your turn</span>
+              <h1>Ask a yes-or-no question</h1>
+              <form class="ask" (submit)="$event.preventDefault(); submitQuestion()">
+                <input class="box" [formControl]="questionText" maxlength="140" autocomplete="off" placeholder="Am I a real person?" aria-label="Your question">
+                <button type="submit" class="btn btn-primary" [disabled]="busy">Ask</button>
+              </form>
+              @if (questionText.touched && questionText.invalid) {
+                <span class="error-text">Write a question (3 to 140 characters).</span>
+              }
+            } @else {
+              <span class="pill">{{ currentName() }}'s turn</span>
+              <h1>{{ currentName() }} is thinking of a question…</h1>
+            }
+          }
+
+          @case ('answer_vote') {
+            @if (question; as q) {
+              <span class="pill">{{ currentName() }} {{ isMyTurn() ? 'ask' : 'asks' }}</span>
+              <p class="question">{{ q.text }}</p>
+              @if (iCanVote()) {
+                <div class="answers">
+                  @for (a of answers; track a.value) {
+                    <button type="button" class="answer" [class]="'answer ' + a.value" [disabled]="busy" (click)="vote.emit(a.value)">{{ a.label }}</button>
+                  }
+                </div>
+              }
+              <p class="muted">{{ votes.length }} of {{ voters.length }} voted</p>
+            }
+          }
+
+          @default {
+            @if (question; as q) {
+              <span class="pill">{{ currentName() }} {{ isMyTurn() ? 'asked' : 'asked' }}</span>
+              <p class="question">{{ q.text }}</p>
+              <div class="result" [class]="'result ' + q.result">
+                {{ q.result === 'unsure' ? 'UNSURE' : (q.result | uppercase) }}
+                <span>({{ countOf(q.result!) }} of {{ votes.length || voters.length }})</span>
+              </div>
+              @if (isMyTurn()) {
+                <button type="button" class="btn btn-primary" [disabled]="busy" (click)="endTurn.emit()">End my turn</button>
+                <p class="small">Guessing comes next: you'll be able to guess here before ending your turn.</p>
+              } @else {
+                <p class="muted">Waiting for {{ currentName() }} to end the turn.</p>
+              }
+            }
+          }
+        }
+      </section>
+
+      <section class="card recent" aria-label="Recent answers">
+        <h2>Recent answers</h2>
+        @for (q of recent(); track q.id) {
+          <div class="line">
+            <span class="who">{{ nameOf(q.player_id) }}</span>
+            <span class="text">{{ q.text }}</span>
+            <span [class]="'tag-answer ' + q.result">{{ q.result | uppercase }}</span>
+          </div>
+        } @empty {
+          <p class="muted">No answers yet.</p>
+        }
+      </section>
+    </main>
+  </div>
+</div>
