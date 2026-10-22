@@ -1,0 +1,90 @@
+<div class="lobby">
+  <aside class="side" aria-label="Players">
+    <div class="side-head">
+      <span class="logo">?</span>
+      <span class="brand">WhoAmI</span>
+      <span class="code">{{ room.code }}</span>
+    </div>
+
+    <div class="list">
+      <div class="group">IN THE LOBBY — {{ playing.length }}</div>
+      @for (p of playing; track p.id) {
+        <app-player-row
+          [player]="p"
+          [isMe]="p.id === me.id"
+          [online]="isOnline(p)"
+          [canManage]="canManagePlayer(p)"
+          [canChangeHelpers]="isAdmin"
+          (kick)="kick.emit($event)"
+          (toggleHelper)="toggleHelper.emit($event)" />
+      }
+      <div class="waiting"><span class="plus">+</span>Waiting for friends…</div>
+
+      @if (watching.length) {
+        <div class="group">WATCHING — {{ watching.length }}</div>
+        @for (p of watching; track p.id) {
+          <app-player-row [player]="p" [isMe]="p.id === me.id" [online]="isOnline(p)" [canManage]="canManagePlayer(p)" (kick)="kick.emit($event)" />
+        }
+      }
+    </div>
+  </aside>
+
+  <div class="content">
+    <header class="top">
+      <span class="strong">Lobby</span>
+      <span class="muted">The game hasn't started yet</span>
+      @if (connectionLost) {
+        <span class="lost" role="status">Reconnecting…</span>
+      }
+      <button type="button" class="btn btn-ghost leave" (click)="leave.emit()">Leave room</button>
+    </header>
+
+    <main class="main">
+      <section class="invite" aria-label="Invite">
+        <span class="label">SHARE THIS CODE</span>
+        <div class="big-code">{{ room.code }}</div>
+        <div class="buttons">
+          <button type="button" class="btn" (click)="copy('code')">{{ copied() === 'code' ? 'Copied ✓' : 'Copy code' }}</button>
+          <button type="button" class="btn" (click)="copy('link')">{{ copied() === 'link' ? 'Copied ✓' : 'Copy invite link' }}</button>
+        </div>
+        <p class="muted">Friends join from the home page with this code. You need at least {{ minPlayers }} players to start.</p>
+      </section>
+
+      <aside class="cards" aria-label="Room settings">
+        <div class="card">
+          <h2>Settings</h2>
+          <app-settings-summary [settings]="room" [deckName]="deckName" />
+          <p class="small">Room opened at {{ room.created_at | date: 'HH:mm' }}</p>
+        </div>
+
+        <div class="card">
+          <h2>Ready?</h2>
+          @if (isAdmin) {
+            <p class="muted">
+              Check everyone's here, then start.
+              @if (room.character_source === 'custom') {
+                Everyone writes a character, and the game starts as soon as all of them are in.
+              } @else {
+                Everyone gets a character from the deck.
+              }
+            </p>
+            <button type="button" class="btn btn-primary go" [disabled]="playing.length < minPlayers || starting" (click)="start.emit()">
+              @if (starting) {
+                Starting…
+              } @else if (room.character_source === 'custom') {
+                Start writing phase
+              } @else {
+                Start game
+              }
+            </button>
+            @if (playing.length < minPlayers) {
+              <span class="small">Waiting for {{ minPlayers - playing.length }} more {{ minPlayers - playing.length === 1 ? 'player' : 'players' }}.</span>
+            }
+          } @else {
+            <p class="muted">Waiting for the Admin to start the game.</p>
+          }
+        </div>
+      </aside>
+    </main>
+  </div>
+</div>

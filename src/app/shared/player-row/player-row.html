@@ -1,0 +1,34 @@
+<div class="row" [class.me]="isMe" [class.offline]="!online">
+    <span class="avatar" [style.background]="player.color" [class.dashed]="player.role === 'spectator'">
+        {{ player.name.charAt(0) | uppercase }}
+        <span class="dot" [class.on]="online" [attr.aria-label]="online ? 'Online' : 'Offline'"></span>
+    </span>
+
+    <div class="info">
+        <div class="name">{{ isMe ? 'You' : player.name }}</div>
+        <div class="sub">
+            @if (player.role === 'player') {
+            {{ online ? 'Player' : 'Offline' }}
+            } @else {
+            <span [class]="'tag tag-' + player.role">{{ roleLabel() }}</span>
+            @if (!online) { <span class="off">· offline</span> }
+            }
+        </div>
+    </div>
+
+    @if (canManage && !isMe) {
+    <button type="button" class="more" [attr.aria-label]="'Options for ' + player.name"
+        [attr.aria-expanded]="menuOpen()" (click)="menuOpen.set(!menuOpen())">⋯</button>
+
+    @if (menuOpen()) {
+    <div class="menu" role="menu">
+        @if (canChangeHelpers && player.role !== 'spectator') {
+        <button type="button" role="menuitem" (click)="onToggleHelper()">
+            {{ player.role === 'helper' ? 'Remove Helper' : 'Make Helper' }}
+        </button>
+        }
+        <button type="button" role="menuitem" class="danger" (click)="onKick()">Kick from room</button>
+    </div>
+    }
+    }
+</div>
