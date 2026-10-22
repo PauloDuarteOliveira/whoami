@@ -111,7 +111,6 @@ export class RoomPage implements OnInit, OnDestroy {
     this.router.navigate(['/']);
   }
 
-  /** Runs an action and shows a message if it fails; the next update shows the result. */
   private run(action: Observable<unknown>): void {
     this.busy.set(true);
     this.actionError.set(null);
