@@ -85,7 +85,7 @@
           <h1>Write a character for someone else</h1>
           <p class="muted">Anyone the group knows: a celebrity, a movie character, a historical figure. It goes into a shared pool, and you'll never get your own.</p>
 
-          <form class="field" (ngSubmit)="submit()">
+            <form class="field" (submit)="$event.preventDefault(); submit()">
             <label for="char-input">Character name</label>
             <div class="input-row">
               <input id="char-input" class="box" [formControl]="character" maxlength="40" autocomplete="off" placeholder="Darth Vader">
