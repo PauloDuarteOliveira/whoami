@@ -48,3 +48,19 @@ export const playerNameValidators: ValidatorFn[] = [
 ];
 
 export const roomCodeValidators: ValidatorFn[] = [Validators.required, roomCode];
+
+const CHARACTER_SYMBOLS = " .'-&";
+
+export function characterName(control: AbstractControl): ValidationErrors | null {
+  const value: string = control.value ?? '';
+  if (value === '') {
+    return null;
+  }
+  const onlyAllowed = [...value].every(char => isLetter(char) || isDigit(char) || CHARACTER_SYMBOLS.includes(char));
+  if (!onlyAllowed) {
+    return { characterName: true };
+  }
+  return cleanName(value).length < 2 ? { minlength: true } : null;
+}
+
+export const characterNameValidators: ValidatorFn[] = [Validators.required, Validators.maxLength(40), characterName];
