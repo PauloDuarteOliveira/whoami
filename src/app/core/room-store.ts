@@ -52,7 +52,7 @@ export class RoomStore {
                                     }).pipe(
                                         switchMap(data =>
                                             this.questionService
-                                                .getVotes(data.questions.filter(q => q.result === null).map(q => q.id))
+                                                .getVotes(data.questions.filter(q => q.result === null || q.turn_number === room.turn_number).map(q => q.id))
                                                 .pipe(map(votes => ({ room, ...data, votes }))),
                                         ),
                                     )
