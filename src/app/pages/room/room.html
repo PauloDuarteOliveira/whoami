@@ -68,7 +68,13 @@
               (ask)="ask($event)"
               (vote)="vote($event)"
               (endTurn)="endTurn()"
-              (leave)="leave()" />
+              (leave)="leave()"
+              [guess]="currentGuess()"
+              [guessVotes]="guessVotes()"
+              [canOverrule]="canOverrule()"
+              (makeGuess)="makeGuess($event)"
+              (judge)="judge($event)"
+              (overrule)="overrule($event)" />
           }
           @default {
             <div class="center">
