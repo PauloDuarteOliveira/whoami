@@ -37,8 +37,18 @@ export class QuestionService {
             room_id: room.id,
             player_id: playerId,
             turn_number: room.turn_number,
-            kind: 'guess',
+            kind: 'question',
             text: text.trim(),
+        });
+    }
+
+    guess(room: Room, playerId: string, name: string): Observable<Question> {
+        return this.api.insertOne<Question>('questions', {
+            room_id: room.id,
+            player_id: playerId,
+            turn_number: room.turn_number,
+            kind: 'guess',
+            text: name.trim(),
         });
     }
 
