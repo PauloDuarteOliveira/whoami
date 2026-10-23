@@ -1,7 +1,8 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Answer, Character, Player, Question, Room, Vote } from '../../../core/models';
+import { Answer, Character, GuessVerdict, Player, Question, Room, Vote } from '../../../core/models';
 import { UpperCasePipe } from '@angular/common';
+import { characterNameValidators } from '../../../shared/validators';
 
 @Component({
     selector: 'app-game',
@@ -20,16 +21,24 @@ export class Game {
     @Input() voters: Player[] = [];
     @Input({ required: true }) isOnline!: (player: Player) => boolean;
     @Input() busy = false;
+    @Input() guess: Question | null = null;
+    @Input() guessVotes: Vote[] = [];
+    @Input() canOverrule = false;
 
     @Output() ask = new EventEmitter<string>();
     @Output() vote = new EventEmitter<Answer>();
     @Output() endTurn = new EventEmitter<void>();
     @Output() leave = new EventEmitter<void>();
+    @Output() makeGuess = new EventEmitter<string>();
+    @Output() judge = new EventEmitter<GuessVerdict>();
+    @Output() overrule = new EventEmitter<GuessVerdict>();
 
     protected readonly questionText = new FormControl('', {
         nonNullable: true,
         validators: [Validators.required, Validators.minLength(3), Validators.maxLength(140)],
     });
+
+    protected readonly guessText = new FormControl('', { nonNullable: true, validators: characterNameValidators });
 
     protected readonly answers: { value: Answer; label: string }[] = [
         { value: 'yes', label: 'Yes' },
@@ -56,9 +65,39 @@ export class Game {
         return playerId === this.me.id ? 'You' : (this.players.find(p => p.id === playerId)?.name ?? '?');
     }
 
+    /** Everyone sees the others' characters; your own only once you're out of the game. */
     protected characterOf(p: Player): string {
-        if (p.id === this.me.id) return 'Hidden';
+        if (p.id === this.me.id && p.status === 'playing') return 'Hidden';
         return this.characters.find(c => c.assigned_to === p.id)?.name ?? '—';
+    }
+
+    /** The latest answered questions and guesses, newest first. */
+    protected recent(): Question[] {
+        return this.questions.filter(q => q.result !== null).slice(-8).reverse();
+    }
+
+    /** 1 → "1st", 2 → "2nd", 3 → "3rd", 4 → "4th". */
+    protected placeLabel(place: number | null): string {
+        if (!place) return '';
+        const ends: Record<number, string> = { 1: 'st', 2: 'nd', 3: 'rd' };
+        return place + (ends[place] ?? 'th');
+    }
+
+    protected iCanJudge(): boolean {
+        return this.voters.some(v => v.id === this.me.id) && !this.guessVotes.some(v => v.voter_id === this.me.id);
+    }
+
+    protected guessCount(value: GuessVerdict): number {
+        return this.guessVotes.filter(v => v.value === value).length;
+    }
+
+    protected submitGuess(): void {
+        if (this.guessText.invalid || this.busy) {
+            this.guessText.markAsTouched();
+            return;
+        }
+        this.makeGuess.emit(this.guessText.value);
+        this.guessText.reset('');
     }
 
     protected iCanVote(): boolean {
@@ -67,10 +106,6 @@ export class Game {
 
     protected countOf(value: string): number {
         return this.votes.filter(v => v.value === value).length;
-    }
-
-    protected recent(): Question[] {
-        return this.questions.filter(q => q.result !== null && q.kind === 'question').slice(-8).reverse();
     }
 
     protected submitQuestion(): void {
