@@ -162,3 +162,16 @@
   .main { padding: 16px; }
   .question { font-size: 30px; }
 }
+
+.row.out .char { color: var(--text-2); }
+.won { color: var(--yes); font-weight: 600; }
+.small-q { font-size: 24px; }
+
+.answer.correct { background: var(--yes); color: #0A3F37; box-shadow: 0 5px 0 #1F9C80; }
+.answer.wrong { background: #FF6B6B; color: #3A1520; box-shadow: 0 5px 0 #B23A3A; }
+
+.overrule { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: center; font-size: 13px; color: var(--muted); }
+.overrule .btn { height: 36px; padding: 0 12px; }
+
+.tag-answer.correct { background: var(--yes-soft); color: var(--yes); }
+.tag-answer.wrong { background: var(--no-soft); color: var(--no); }

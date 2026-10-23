@@ -5,13 +5,13 @@ import { Writing } from './writing/writing';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Observable, concat, switchMap } from 'rxjs';
 import { DeckService } from '../../core/deck.service';
-import { Deck, Player, Answer } from '../../core/models';
+import { QuestionService, majority, verdict } from '../../core/question.service';
+import { Deck, Player, Answer, GuessVerdict, Question, Room } from '../../core/models';
 import { PlayerService } from '../../core/player.service';
 import { RoomService } from '../../core/room.service';
 import { RoomStore } from '../../core/room-store';
 import { SessionService } from '../../core/session.service';
 import { Lobby } from './lobby/lobby';
-import { QuestionService, majority } from '../../core/question.service';
 import { Game } from './game/game';
 
 @Component({
@@ -70,6 +70,25 @@ export class RoomPage implements OnInit, OnDestroy {
         this.playing().filter(p => p.id !== this.store.room()?.current_player_id && this.isOnline(p)),
     );
 
+    protected readonly currentGuess = computed(() => {
+        const room = this.store.room();
+        if (!room) return null;
+        const guesses = this.store.questions().filter(
+            q => q.turn_number === room.turn_number && q.player_id === room.current_player_id && q.kind === 'guess',
+        );
+        return guesses.at(-1) ?? null;
+    });
+
+    protected readonly guessVotes = computed(() => {
+        const g = this.currentGuess();
+        return g ? this.store.votes().filter(v => v.question_id === g.id) : [];
+    });
+
+    protected readonly canOverrule = computed(() => {
+        const me = this.store.me();
+        return !!me && (me.role === 'admin' || me.role === 'helper') && me.id !== this.store.room()?.current_player_id;
+    });
+
     private readonly finished = new Set<string>();
     protected readonly writeNotice = signal<string | null>(null);
     private starting = false;
@@ -105,7 +124,7 @@ export class RoomPage implements OnInit, OnDestroy {
                 );
             }
         });
-    
+
         effect(() => {
             const room = this.store.room();
             if (!room || room.status !== 'playing' || this.ending) return;
@@ -122,6 +141,19 @@ export class RoomPage implements OnInit, OnDestroy {
             if (!this.inPlay().some(p => p.id === room.current_player_id)) {
                 this.skippedTurn = room.turn_number;
                 this.run(this.game.nextTurn(room, this.store.players()));
+            }
+        });
+
+        effect(() => {
+            const room = this.store.room();
+            const guess = this.currentGuess();
+            const votes = this.guessVotes();
+            const voters = this.voters();
+            if (!room || room.turn_phase !== 'guess_vote' || !guess || guess.result !== null) return;
+            if (room.current_player_id !== this.store.me()?.id) return;
+            const allVoted = voters.length > 0 && voters.every(v => votes.some(vote => vote.voter_id === v.id));
+            if (allVoted) {
+                this.resolveGuess(room, guess, verdict(votes));
             }
         });
     }
@@ -242,6 +274,56 @@ export class RoomPage implements OnInit, OnDestroy {
         const room = this.store.room();
         if (!room) return;
         this.run(this.game.nextTurn(room, this.store.players()));
+    }
+
+    protected makeGuess(name: string): void {
+        const room = this.store.room();
+        const me = this.store.me();
+        if (!room || !me) return;
+        this.run(
+            this.questionService.guess(room, me.id, name).pipe(
+                switchMap(guess => {
+                    this.store.addQuestion(guess);
+                    return this.roomService.update(room.id, { turn_phase: 'guess_vote' });
+                }),
+            ),
+        );
+    }
+
+    protected judge(value: GuessVerdict): void {
+        const guess = this.currentGuess();
+        const me = this.store.me();
+        if (!guess || !me) return;
+        this.busy.set(true);
+        this.questionService.vote(guess.id, me.id, value).subscribe({
+            next: vote => {
+                this.store.addVote(vote);
+                this.busy.set(false);
+            },
+            error: () => {
+                this.busy.set(false);
+                this.actionError.set('Could not send your answer. Try again.');
+            },
+        });
+    }
+
+    protected overrule(value: GuessVerdict): void {
+        const room = this.store.room();
+        const guess = this.currentGuess();
+        if (room && guess) this.resolveGuess(room, guess, value);
+    }
+
+    private resolveGuess(room: Room, guess: Question, result: GuessVerdict): void {
+        if (this.finished.has(guess.id)) return;
+        this.finished.add(guess.id);
+        const players = this.store.players();
+        const guesser = players.find(p => p.id === guess.player_id);
+        const steps: Observable<unknown>[] = [this.questionService.setResult(guess.id, result)];
+        if (result === 'correct' && guesser) {
+            steps.push(this.game.finishPlayer(room, guesser, players));
+        }
+        steps.push(this.game.nextTurn(room, players));
+        this.run(concat(...steps));
     }
 
     protected kick(player: Player): void {
