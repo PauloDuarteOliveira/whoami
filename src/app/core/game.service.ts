@@ -75,4 +75,13 @@ export class GameService {
             turn_started_at: new Date().toISOString(),
         });
     }
+
+    finishPlayer(room: Room, player: Player, players: Player[]): Observable<unknown> {
+        const place = players.filter(p => p.status === 'finished').length + 1;
+        return this.api.update<Player>('players', { id: `eq.${player.id}` }, {
+            status: 'finished',
+            finish_place: place,
+            finish_turn: room.turn_number,
+        });
+    }
 }
