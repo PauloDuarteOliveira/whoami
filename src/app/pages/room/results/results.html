@@ -2,7 +2,7 @@
   <header class="head">
     <span class="logo">?</span>
     <span class="brand">WhoAmI</span>
-    <span class="muted">Room {{ room.code }} · game over after {{ room.turn_number }} turns · {{ room.created_at | date: 'd MMM y, HH:mm' }}</span>
+    <span class="muted">Room {{ room.code }} · game over after {{ plural(turnsPlayed(), 'turn') }} · {{ room.created_at | date: 'd MMM y, HH:mm' }}</span>
   </header>
 
   <main class="layout">
@@ -29,12 +29,12 @@
           </div>
           @switch (r.outcome) {
             @case ('guessed') { <span class="tag guessed">Guessed · turn {{ r.player.finish_turn }}</span> }
-            @case ('gave_up') { <span class="tag gave-up">Gave up · {{ r.questionsAsked }} questions</span> }
-            @default { <span class="tag last">Last one left · {{ r.questionsAsked }} questions</span> }
+            @case ('gave_up') { <span class="tag gave-up">Gave up · {{ plural(r.questionsAsked, 'question') }}</span> }
+            @default { <span class="tag last">Last one left · {{ plural(r.questionsAsked, 'question') }}</span> }
           }
         </div>
       }
-      <p class="muted small">{{ averageQuestions() | number: '1.0-1' }} questions per player on average</p>
+      <p class="muted small">{{ averageQuestions() | number: '1.0-1' }} {{ averageQuestions() === 1 ? 'question' : 'questions' }} per player on average</p>
       <button type="button" class="btn btn-primary" (click)="leave.emit()">Back to home</button>
     </section>
 

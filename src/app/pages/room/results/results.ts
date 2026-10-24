@@ -2,7 +2,7 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { rankPlayers } from '../../../core/game.service';
 import { Character, Player, Question, RankedPlayer, Room } from '../../../core/models';
-import { placeLabel } from '../../../shared/format';
+import { placeLabel, plural } from '../../../shared/format';
 
 @Component({
     selector: 'app-results',
@@ -41,6 +41,15 @@ export class Results {
 
     protected placeLabel(place: number): string {
         return placeLabel(place);
+    }
+
+    protected plural(count: number, word: string): string {
+        return plural(count, word);
+    }
+
+    /** The last turn that was played (room.turn_number has already moved on to the next one). */
+    protected turnsPlayed(): number {
+        return Math.max(0, ...this.questions.map(q => q.turn_number));
     }
 
     protected averageQuestions(): number {

@@ -6,7 +6,7 @@
 .muted { margin: 0; color: var(--muted); }
 .small { font-size: 13px; }
 
-.layout { flex: 1; padding: 32px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 24px; align-items: start; max-width: 1200px; width: 100%; margin: 0 auto; }
+.layout { flex: 1; padding: 32px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 24px; align-items: start; align-content: start; max-width: 1200px; width: 100%; margin: 0 auto; }
 .layout .card { border-radius: 24px; padding: 28px; display: flex; flex-direction: column; gap: 12px; }
 
 .hero { grid-column: 1 / -1; align-items: center; text-align: center; background: var(--accent-tint); border-color: var(--accent); }
