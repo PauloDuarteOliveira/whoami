@@ -13,6 +13,7 @@ export class ProfileService {
         try {
             localStorage.setItem(STORAGE_KEY, clean);
         } catch {
+            // Storage blocked (e.g. private mode): the name just isn't remembered.
         }
     }
 
