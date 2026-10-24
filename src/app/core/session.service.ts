@@ -32,6 +32,7 @@ export class SessionService {
     try {
       sessionStorage.setItem(STORAGE_KEY, JSON.stringify(sessions));
     } catch {
+      // Storage blocked (e.g. private mode): the session only lasts until the page reloads.
     }
   }
 }
