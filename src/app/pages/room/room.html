@@ -74,7 +74,8 @@
               [canOverrule]="canOverrule()"
               (makeGuess)="makeGuess($event)"
               (judge)="judge($event)"
-              (overrule)="overrule($event)" />
+              (overrule)="overrule($event)"
+              (giveUp)="giveUp()" />
           }
           @default {
             <div class="center">
