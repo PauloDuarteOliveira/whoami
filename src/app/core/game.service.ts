@@ -84,4 +84,11 @@ export class GameService {
             finish_turn: room.turn_number,
         });
     }
+
+    giveUp(room: Room, player: Player): Observable<unknown> {
+        return this.api.update<Player>('players', { id: `eq.${player.id}` }, {
+            status: 'gave_up',
+            finish_turn: room.turn_number,
+        });
+    }
 }
