@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable, forkJoin, map, switchMap } from 'rxjs';
 import { DeckService } from './deck.service';
-import { Character, Player, Room } from './models';
+import { Character, Player, Question, RankedPlayer, Room } from './models';
 import { RoomService } from './room.service';
 import { SupabaseApiService } from './supabase-api.service';
 
@@ -12,6 +12,23 @@ export function shuffle<T>(list: T[]): T[] {
         [copy[i], copy[j]] = [copy[j], copy[i]];
     }
     return copy;
+}
+
+export function rankPlayers(players: Player[], characters: Character[], questions: Question[]): RankedPlayer[] {
+    const asked = (p: Player) => questions.filter(q => q.kind === 'question' && q.player_id === p.id).length;
+    const inGame = players.filter(p => p.turn_position !== null);
+    const guessed = inGame.filter(p => p.status === 'finished').sort((a, b) => a.finish_place! - b.finish_place!);
+    const gaveUp = inGame.filter(p => p.status === 'gave_up').sort((a, b) => asked(b) - asked(a));
+    const last = inGame.filter(p => p.status === 'playing');
+
+    return [...guessed, ...gaveUp, ...last].map((p, i) => ({
+        place: i + 1,
+        player: p,
+        character: characters.find(c => c.assigned_to === p.id)?.name ?? '—',
+        outcome: p.status === 'finished' ? 'guessed' : p.status === 'gave_up' ? 'gave_up' : 'last',
+        questionsAsked: asked(p),
+        guesses: questions.filter(q => q.kind === 'guess' && q.player_id === p.id && q.result !== null),
+    }));
 }
 
 @Injectable({ providedIn: 'root' })

@@ -3,6 +3,7 @@ import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Answer, Character, GuessVerdict, Player, Question, Room, Vote } from '../../../core/models';
 import { UpperCasePipe } from '@angular/common';
 import { characterNameValidators } from '../../../shared/validators';
+import { placeLabel } from '../../../shared/format';
 
 @Component({
     selector: 'app-game',
@@ -76,9 +77,7 @@ export class Game {
     }
 
     protected placeLabel(place: number | null): string {
-        if (!place) return '';
-        const ends: Record<number, string> = { 1: 'st', 2: 'nd', 3: 'rd' };
-        return place + (ends[place] ?? 'th');
+        return placeLabel(place);
     }
 
     protected iCanJudge(): boolean {

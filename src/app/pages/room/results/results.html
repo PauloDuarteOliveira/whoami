@@ -1,0 +1,58 @@
+<div class="results">
+  <header class="head">
+    <span class="logo">?</span>
+    <span class="brand">WhoAmI</span>
+    <span class="muted">Room {{ room.code }} · game over after {{ plural(turnsPlayed(), 'turn') }} · {{ room.created_at | date: 'd MMM y, HH:mm' }}</span>
+  </header>
+
+  <main class="layout">
+    <section class="card hero">
+      @if (mine(); as r) {
+        <span class="label">YOU WERE</span>
+        <h1>{{ r.character }}</h1>
+        <p class="muted">{{ outcomeText(r) }} · {{ placeLabel(r.place) }} place</p>
+      } @else {
+        <span class="label">GAME OVER</span>
+        <h1>Thanks for watching</h1>
+      }
+    </section>
+
+    <section class="card ranking">
+      <h2>Final ranking</h2>
+      @for (r of ranking(); track r.player.id) {
+        <div class="rank-row" [class.me]="r.player.id === me.id">
+          <span class="place">{{ r.place }}</span>
+          <span class="avatar" [style.background]="r.player.color">{{ r.player.name.charAt(0) }}</span>
+          <div class="who">
+            <strong>{{ nameOf(r) }}</strong>
+            <span class="muted">{{ r.player.id === me.id ? 'were' : 'was' }} {{ r.character }}</span>
+          </div>
+          @switch (r.outcome) {
+            @case ('guessed') { <span class="tag guessed">Guessed · turn {{ r.player.finish_turn }}</span> }
+            @case ('gave_up') { <span class="tag gave-up">Gave up · {{ plural(r.questionsAsked, 'question') }}</span> }
+            @default { <span class="tag last">Last one left · {{ plural(r.questionsAsked, 'question') }}</span> }
+          }
+        </div>
+      }
+      <p class="muted small">{{ averageQuestions() | number: '1.0-1' }} {{ averageQuestions() === 1 ? 'question' : 'questions' }} per player on average</p>
+      <button type="button" class="btn btn-primary" (click)="leave.emit()">Back to home</button>
+    </section>
+
+    <section class="card stories">
+      <h2>The guess stories</h2>
+      @for (r of ranking(); track r.player.id) {
+        <div class="story">
+          <strong>{{ nameOf(r) }}</strong>
+          <div class="chips">
+            @for (g of r.guesses; track g.id) {
+              <span class="chip" [class.right]="g.result === 'correct'">{{ g.text }} {{ g.result === 'correct' ? '✓' : '✗' }}</span>
+            } @empty {
+              @if (r.outcome !== 'gave_up') { <span class="muted small">No guesses</span> }
+            }
+            @if (r.outcome === 'gave_up') { <span class="chip out">gave up</span> }
+          </div>
+        </div>
+      }
+    </section>
+  </main>
+</div>
