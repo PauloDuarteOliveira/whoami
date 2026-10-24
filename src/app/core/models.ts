@@ -9,6 +9,7 @@ export type PlayerStatus = 'playing' | 'finished' | 'gave_up' | 'kicked' | 'left
 export type QuestionKind = 'question' | 'guess';
 export type Answer = 'yes' | 'no' | 'unsure';
 export type GuessVerdict = 'correct' | 'wrong';
+export type Outcome = 'guessed' | 'gave_up' | 'last';
 
 export interface Deck {
   id: string;
@@ -84,4 +85,13 @@ export interface Vote {
   voter_id: string;
   value: Answer | GuessVerdict;
   created_at: string;
+}
+
+export interface RankedPlayer {
+  place: number;
+  player: Player;
+  character: string;
+  outcome: Outcome;
+  questionsAsked: number;
+  guesses: Question[];
 }
