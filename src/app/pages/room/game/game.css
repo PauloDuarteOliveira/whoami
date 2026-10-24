@@ -175,3 +175,6 @@
 
 .tag-answer.correct { background: var(--yes-soft); color: var(--yes); }
 .tag-answer.wrong { background: var(--no-soft); color: var(--no); }
+
+.main .out-banner { grid-column: 1 / -1; display: block; padding: 16px 24px; background: var(--accent-tint); border: 1px solid var(--accent); }
+.give-up { width: 100%; display: flex; justify-content: center; padding-top: 12px; border-top: 1px dashed var(--border); }

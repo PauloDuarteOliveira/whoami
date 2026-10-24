@@ -32,6 +32,7 @@ export class Game {
     @Output() makeGuess = new EventEmitter<string>();
     @Output() judge = new EventEmitter<GuessVerdict>();
     @Output() overrule = new EventEmitter<GuessVerdict>();
+    @Output() giveUp = new EventEmitter<void>();
 
     protected readonly questionText = new FormControl('', {
         nonNullable: true,
@@ -65,18 +66,15 @@ export class Game {
         return playerId === this.me.id ? 'You' : (this.players.find(p => p.id === playerId)?.name ?? '?');
     }
 
-    /** Everyone sees the others' characters; your own only once you're out of the game. */
     protected characterOf(p: Player): string {
         if (p.id === this.me.id && p.status === 'playing') return 'Hidden';
         return this.characters.find(c => c.assigned_to === p.id)?.name ?? '—';
     }
 
-    /** The latest answered questions and guesses, newest first. */
     protected recent(): Question[] {
         return this.questions.filter(q => q.result !== null).slice(-8).reverse();
     }
 
-    /** 1 → "1st", 2 → "2nd", 3 → "3rd", 4 → "4th". */
     protected placeLabel(place: number | null): string {
         if (!place) return '';
         const ends: Record<number, string> = { 1: 'st', 2: 'nd', 3: 'rd' };
@@ -98,6 +96,20 @@ export class Game {
         }
         this.makeGuess.emit(this.guessText.value);
         this.guessText.reset('');
+    }
+
+    protected myQuestionCount(): number {
+        return this.questions.filter(q => q.kind === 'question' && q.player_id === this.me.id).length;
+    }
+
+    protected canGiveUp(): boolean {
+        return this.myQuestionCount() >= this.room.give_up_after;
+    }
+
+    protected confirmGiveUp(): void {
+        if (confirm('Give up? Your character is revealed and you leave the turn queue. You keep answering for the others.')) {
+            this.giveUp.emit();
+        }
     }
 
     protected iCanVote(): boolean {
