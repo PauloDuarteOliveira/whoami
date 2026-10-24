@@ -13,10 +13,11 @@ import { RoomStore } from '../../core/room-store';
 import { SessionService } from '../../core/session.service';
 import { Lobby } from './lobby/lobby';
 import { Game } from './game/game';
+import { Results } from './results/results';
 
 @Component({
     selector: 'app-room',
-    imports: [RouterLink, Lobby, Writing, Game],
+    imports: [RouterLink, Lobby, Writing, Game, Results],
     providers: [RoomStore],
     templateUrl: './room.html',
     styleUrl: './room.css',

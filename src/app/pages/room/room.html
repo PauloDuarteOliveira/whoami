@@ -77,12 +77,14 @@
               (overrule)="overrule($event)"
               (giveUp)="giveUp()" />
           }
-          @default {
-            <div class="center">
-              <h1>Game over</h1>
-              <p class="muted">The results screen comes tomorrow.</p>
-              <button type="button" class="btn btn-ghost" (click)="leave()">Leave room</button>
-            </div>
+          @case ('finished') {
+            <app-results
+              [room]="room"
+              [players]="store.players()"
+              [me]="me"
+              [characters]="store.characters()"
+              [questions]="store.questions()"
+              (leave)="goHome()" />
           }
         }
       }
