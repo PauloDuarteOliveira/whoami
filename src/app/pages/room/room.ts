@@ -313,6 +313,14 @@ export class RoomPage implements OnInit, OnDestroy {
         if (room && guess) this.resolveGuess(room, guess, value);
     }
 
+    protected giveUp(): void {
+        const room = this.store.room();
+        const me = this.store.me();
+        if (!room || !me) return;
+        const players = this.store.players().map(p => (p.id === me.id ? { ...p, status: 'gave_up' as const } : p));
+        this.run(concat(this.game.nextTurn(room, players), this.game.giveUp(room, me)));
+    }
+
     private resolveGuess(room: Room, guess: Question, result: GuessVerdict): void {
         if (this.finished.has(guess.id)) return;
         this.finished.add(guess.id);
