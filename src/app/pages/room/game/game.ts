@@ -4,10 +4,11 @@ import { Answer, Character, GuessVerdict, Player, Question, Room, Vote } from '.
 import { UpperCasePipe } from '@angular/common';
 import { characterNameValidators } from '../../../shared/validators';
 import { placeLabel } from '../../../shared/format';
+import { ClueBoard } from '../clue-board/clue-board';
 
 @Component({
     selector: 'app-game',
-    imports: [ReactiveFormsModule, UpperCasePipe],
+    imports: [ReactiveFormsModule, UpperCasePipe, ClueBoard],
     templateUrl: './game.html',
     styleUrl: './game.css',
 })
