@@ -75,7 +75,9 @@
               (makeGuess)="makeGuess($event)"
               (judge)="judge($event)"
               (overrule)="overrule($event)"
-              (giveUp)="giveUp()" />
+              (giveUp)="giveUp()"
+              [notes]="store.notes()"
+              (saveNote)="saveNote($event)" />
           }
           @case ('finished') {
             <app-results
