@@ -1,0 +1,33 @@
+<section class="card notes" aria-label="Notes">
+  <div class="notes-head">
+    <h2>Notes</h2>
+    <div class="tabs" role="tablist" aria-label="Whose notes">
+      <button type="button" role="tab" class="tab" [class.active]="current() === 'me'" [attr.aria-selected]="current() === 'me'" (click)="tab.set('me')">You</button>
+      @for (n of shared(); track n.player_id) {
+        <button type="button" role="tab" class="tab" [class.active]="current() === n.player_id" [attr.aria-selected]="current() === n.player_id" (click)="tab.set(n.player_id)">{{ nameOf(n.player_id) }}</button>
+      }
+    </div>
+  </div>
+
+  @if (current() === 'me') {
+    <textarea
+      class="box"
+      rows="5"
+      maxlength="1000"
+      placeholder="Your theories… not a cartoon, maybe a singer?"
+      aria-label="Your notes"
+      [(ngModel)]="text"
+      (blur)="saveNow()"></textarea>
+    <div class="notes-foot">
+      <label class="toggle">
+        <input type="checkbox" [(ngModel)]="visible" (ngModelChange)="saveNow()">
+        Visible to the room
+      </label>
+      <span class="state">{{ dirty() ? 'Unsaved changes' : 'Saved' }}</span>
+      <button type="button" class="btn btn-ghost" [disabled]="!dirty()" (click)="saveNow()">Save</button>
+    </div>
+  } @else if (noteOf(current()); as n) {
+    <p class="shared-text">{{ n.text }}</p>
+    <span class="state">Updated at {{ n.updated_at | date: 'HH:mm' }}</span>
+  }
+</section>

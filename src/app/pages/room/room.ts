@@ -14,6 +14,8 @@ import { SessionService } from '../../core/session.service';
 import { Lobby } from './lobby/lobby';
 import { Game } from './game/game';
 import { Results } from './results/results';
+import { NoteService } from '../../core/note.service';
+import { NoteDraft } from './notes/notes';
 
 @Component({
     selector: 'app-room',
@@ -34,6 +36,7 @@ export class RoomPage implements OnInit, OnDestroy {
     private readonly characterService = inject(CharacterService);
     private readonly game = inject(GameService);
     private readonly questionService = inject(QuestionService);
+    private readonly noteService = inject(NoteService);
 
     protected code = '';
     private readonly deckList = signal<Deck[]>([]);
@@ -320,6 +323,17 @@ export class RoomPage implements OnInit, OnDestroy {
         if (!room || !me) return;
         const players = this.store.players().map(p => (p.id === me.id ? { ...p, status: 'gave_up' as const } : p));
         this.run(concat(this.game.nextTurn(room, players), this.game.giveUp(room, me)));
+    }
+
+    /** Saves quietly in the background (no busy state), so typing never blocks the game buttons. */
+    protected saveNote(draft: NoteDraft): void {
+        const room = this.store.room();
+        const me = this.store.me();
+        if (!room || !me) return;
+        this.noteService.save(room.id, me.id, draft.text, draft.visible).subscribe({
+            next: note => this.store.putNote(note),
+            error: () => this.actionError.set('Could not save your notes. Try again.'),
+        });
     }
 
     private resolveGuess(room: Room, guess: Question, result: GuessVerdict): void {

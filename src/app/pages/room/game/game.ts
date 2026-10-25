@@ -1,14 +1,15 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Answer, Character, GuessVerdict, Player, Question, Room, Vote } from '../../../core/models';
+import { Answer, Character, GuessVerdict, Note, Player, Question, Room, Vote } from '../../../core/models';
 import { UpperCasePipe } from '@angular/common';
 import { characterNameValidators } from '../../../shared/validators';
 import { placeLabel } from '../../../shared/format';
 import { ClueBoard } from '../clue-board/clue-board';
+import { NoteDraft, Notes } from '../notes/notes';
 
 @Component({
     selector: 'app-game',
-    imports: [ReactiveFormsModule, UpperCasePipe, ClueBoard],
+    imports: [ReactiveFormsModule, UpperCasePipe, ClueBoard, Notes],
     templateUrl: './game.html',
     styleUrl: './game.css',
 })
@@ -26,6 +27,7 @@ export class Game {
     @Input() guess: Question | null = null;
     @Input() guessVotes: Vote[] = [];
     @Input() canOverrule = false;
+    @Input() notes: Note[] = [];
 
     @Output() ask = new EventEmitter<string>();
     @Output() vote = new EventEmitter<Answer>();
@@ -35,6 +37,7 @@ export class Game {
     @Output() judge = new EventEmitter<GuessVerdict>();
     @Output() overrule = new EventEmitter<GuessVerdict>();
     @Output() giveUp = new EventEmitter<void>();
+    @Output() saveNote = new EventEmitter<NoteDraft>();
 
     protected readonly questionText = new FormControl('', {
         nonNullable: true,
