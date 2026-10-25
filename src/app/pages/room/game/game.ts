@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output, inject } from '@angular/core';
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Answer, Character, GuessVerdict, Note, Player, Question, Room, Vote } from '../../../core/models';
 import { UpperCasePipe } from '@angular/common';
@@ -6,6 +6,7 @@ import { characterNameValidators } from '../../../shared/validators';
 import { placeLabel } from '../../../shared/format';
 import { ClueBoard } from '../clue-board/clue-board';
 import { NoteDraft, Notes } from '../notes/notes';
+import { PreferencesService } from '../../../core/preferences.service';
 
 @Component({
     selector: 'app-game',
@@ -14,6 +15,8 @@ import { NoteDraft, Notes } from '../notes/notes';
     styleUrl: './game.css',
 })
 export class Game {
+    protected readonly prefs = inject(PreferencesService);
+
     @Input({ required: true }) room!: Room;
     @Input({ required: true }) players: Player[] = [];
     @Input({ required: true }) me!: Player;
