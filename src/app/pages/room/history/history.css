@@ -1,0 +1,28 @@
+.history { display: flex; flex-direction: column; gap: 12px; padding: 24px; border-radius: 24px; }
+.history-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.history-head h2 { margin: 0; font-size: 18px; }
+
+.filters { display: flex; gap: 6px; flex-wrap: wrap; }
+.filter { height: 30px; padding: 0 12px; border-radius: 15px; border: 1px solid var(--border-strong); background: transparent; color: var(--text-2); font-weight: 600; font-size: 13px; }
+.filter.active { background: var(--accent); border-color: var(--accent); color: var(--bg); }
+
+.turns { max-height: 360px; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; padding-right: 4px; }
+.turn-group { display: flex; flex-direction: column; gap: 4px; }
+.turn-title { font-size: 11px; font-weight: 700; letter-spacing: 1px; color: var(--muted); }
+
+.line { width: 100%; display: grid; grid-template-columns: 64px minmax(0, 1fr) auto 14px; gap: 8px; align-items: center; padding: 6px 8px; border: none; border-radius: 10px; background: transparent; color: var(--text); font: inherit; font-size: 13px; text-align: left; }
+.line:hover, .line[aria-expanded="true"] { background: var(--surface-2); }
+.who { color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.chevron { color: var(--muted); font-size: 11px; }
+
+.votes { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; padding: 6px 8px 8px 80px; font-size: 12px; color: var(--text-2); }
+.vote { display: inline-flex; align-items: center; gap: 6px; }
+.note { margin: 0; font-size: 12px; color: var(--muted); }
+.note.error { color: var(--no); }
+.retry { border: none; background: none; padding: 0; color: var(--accent); font: inherit; font-size: 12px; text-decoration: underline; }
+
+.tag-answer { padding: 2px 8px; border-radius: 8px; font-weight: 700; font-size: 11px; }
+.tag-answer.yes, .tag-answer.correct { background: var(--yes-soft); color: var(--yes); }
+.tag-answer.no, .tag-answer.wrong { background: var(--no-soft); color: var(--no); }
+.tag-answer.unsure { background: var(--unsure-soft); color: var(--unsure); }

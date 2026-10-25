@@ -167,18 +167,7 @@
             </section>
 
             <div class="side-col">
-                <section class="card recent" aria-label="Recent answers">
-                    <h2>Recent answers</h2>
-                    @for (q of recent(); track q.id) {
-                    <div class="line">
-                        <span class="who">{{ nameOf(q.player_id) }}</span>
-                        <span class="text">{{ q.kind === 'guess' ? 'Guess: ' + q.text : q.text }}</span>
-                        <span [class]="'tag-answer ' + q.result">{{ q.result | uppercase }}</span>
-                    </div>
-                    } @empty {
-                    <p class="muted">No answers yet.</p>
-                    }
-                </section>
+                <app-history [questions]="questions" [players]="players" [me]="me" />
 
                 <app-notes [me]="me" [players]="players" [notes]="notes" (save)="saveNote.emit($event)" />
             </div>
