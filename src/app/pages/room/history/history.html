@@ -1,0 +1,47 @@
+<section class="card history" aria-label="History">
+  <div class="history-head">
+    <h2>History</h2>
+    <div class="filters" role="group" aria-label="Filter the history">
+      @for (f of filters; track f.value) {
+        <button type="button" class="filter" [class.active]="filter() === f.value" (click)="filter.set(f.value)">{{ f.label }}</button>
+      }
+    </div>
+  </div>
+
+  <div class="turns">
+    @for (t of turns(); track t.turn) {
+      <div class="turn-group">
+        <span class="turn-title">TURN {{ t.turn }}</span>
+        @for (q of t.items; track q.id) {
+          <div class="entry">
+            <button type="button" class="line" [attr.aria-expanded]="open().has(q.id)" (click)="toggle(q)">
+              <span class="who">{{ nameOf(q.player_id) }}</span>
+              <span class="text">{{ q.kind === 'guess' ? 'Guess: ' + q.text : q.text }}</span>
+              <span [class]="'tag-answer ' + q.result">{{ q.result | uppercase }}</span>
+              <span class="chevron" aria-hidden="true">{{ open().has(q.id) ? '▴' : '▾' }}</span>
+            </button>
+
+            @if (open().has(q.id)) {
+              <div class="votes">
+                @if (loading().has(q.id)) {
+                  <span class="note">Loading votes…</span>
+                } @else if (failed().has(q.id)) {
+                  <span class="note error">Couldn't load the votes.</span>
+                  <button type="button" class="retry" (click)="retry(q)">Try again</button>
+                } @else {
+                  @for (v of votes()[q.id] ?? []; track v.id) {
+                    <span class="vote">{{ nameOf(v.voter_id) }} <span [class]="'tag-answer ' + v.value">{{ v.value | uppercase }}</span></span>
+                  } @empty {
+                    <span class="note">No votes recorded.</span>
+                  }
+                }
+              </div>
+            }
+          </div>
+        }
+      </div>
+    } @empty {
+      <p class="note">{{ filter() === 'all' ? 'Nothing answered yet.' : 'Nothing in this filter yet.' }}</p>
+    }
+  </div>
+</section>
