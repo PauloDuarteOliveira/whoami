@@ -95,3 +95,8 @@ export interface RankedPlayer {
   questionsAsked: number;
   guesses: Question[];
 }
+
+export interface ClueGroup {
+  answer: Answer;
+  items: Question[];
+}

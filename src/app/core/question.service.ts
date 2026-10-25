@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable, of } from 'rxjs';
-import { Answer, GuessVerdict, Question, Room, Vote } from './models';
+import { Answer, ClueGroup, GuessVerdict, Question, Room, Vote } from './models';
 import { SupabaseApiService } from './supabase-api.service';
 
 export function majority(votes: Vote[]): Answer {
@@ -17,6 +17,17 @@ export function verdict(votes: Vote[]): GuessVerdict {
     const correct = votes.filter(v => v.value === 'correct').length;
     const wrong = votes.filter(v => v.value === 'wrong').length;
     return correct > wrong ? 'correct' : 'wrong';
+}
+
+/** A player's answered questions and guesses, grouped into YES / NO / UNSURE (a right guess counts as YES, a wrong one as NO). */
+export function clueGroups(playerId: string, questions: Question[]): ClueGroup[] {
+    const answered = questions.filter(q => q.player_id === playerId && q.result !== null);
+    const groupOf = (q: Question): Answer =>
+        q.result === 'correct' ? 'yes' : q.result === 'wrong' ? 'no' : (q.result as Answer);
+
+    return (['yes', 'no', 'unsure'] as Answer[])
+        .map(answer => ({ answer, items: answered.filter(q => groupOf(q) === answer) }))
+        .filter(group => group.items.length > 0);
 }
 
 @Injectable({ providedIn: 'root' })
