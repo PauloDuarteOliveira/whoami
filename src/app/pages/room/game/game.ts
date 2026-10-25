@@ -6,11 +6,12 @@ import { characterNameValidators } from '../../../shared/validators';
 import { placeLabel } from '../../../shared/format';
 import { ClueBoard } from '../clue-board/clue-board';
 import { NoteDraft, Notes } from '../notes/notes';
+import { History } from '../history/history';
 import { PreferencesService } from '../../../core/preferences.service';
 
 @Component({
     selector: 'app-game',
-    imports: [ReactiveFormsModule, UpperCasePipe, ClueBoard, Notes],
+    imports: [ReactiveFormsModule, UpperCasePipe, ClueBoard, Notes, History],
     templateUrl: './game.html',
     styleUrl: './game.css',
 })
@@ -70,17 +71,9 @@ export class Game {
         return current ? (current.id === this.me.id ? 'You' : current.name) : 'Someone';
     }
 
-    protected nameOf(playerId: string): string {
-        return playerId === this.me.id ? 'You' : (this.players.find(p => p.id === playerId)?.name ?? '?');
-    }
-
     protected characterOf(p: Player): string {
         if (p.id === this.me.id && p.status === 'playing') return 'Hidden';
         return this.characters.find(c => c.assigned_to === p.id)?.name ?? '—';
-    }
-
-    protected recent(): Question[] {
-        return this.questions.filter(q => q.result !== null).slice(-8).reverse();
     }
 
     protected placeLabel(place: number | null): string {
