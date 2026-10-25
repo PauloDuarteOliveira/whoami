@@ -1,7 +1,8 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { Subscription, catchError, forkJoin, map, of, switchMap, timer } from 'rxjs';
 import { CharacterService } from './character.service';
-import { Character, Player, Question, Room, Vote } from './models';
+import { Character, Note, Player, Question, Room, Vote } from './models';
+import { NoteService } from './note.service';
 import { PlayerService } from './player.service';
 import { RoomService } from './room.service';
 import { SessionService } from './session.service';
@@ -19,12 +20,14 @@ export class RoomStore {
     private readonly characterService = inject(CharacterService);
     private readonly session = inject(SessionService);
     private readonly questionService = inject(QuestionService);
+    private readonly noteService = inject(NoteService);
 
     readonly room = signal<Room | null>(null);
     readonly players = signal<Player[]>([]);
     readonly characters = signal<Character[]>([]);
     readonly questions = signal<Question[]>([]);
     readonly votes = signal<Vote[]>([]);
+    readonly notes = signal<Note[]>([]);
     readonly loadState = signal<LoadState>('loading');
     readonly connectionLost = signal(false);
     readonly now = signal(Date.now());
@@ -49,6 +52,7 @@ export class RoomStore {
                                         players: this.playerService.getPlayers(room.id),
                                         characters: this.characterService.getCharacters(room.id),
                                         questions: this.questionService.getQuestions(room.id),
+                                        notes: this.noteService.getNotes(room.id),
                                     }).pipe(
                                         switchMap(data =>
                                             this.questionService
@@ -56,7 +60,7 @@ export class RoomStore {
                                                 .pipe(map(votes => ({ room, ...data, votes }))),
                                         ),
                                     )
-                                    : of({ room: null, players: [] as Player[], characters: [] as Character[], questions: [] as Question[], votes: [] as Vote[] }),
+                                    : of({ room: null, players: [] as Player[], characters: [] as Character[], questions: [] as Question[], notes: [] as Note[], votes: [] as Vote[] }),
                             ),
                             catchError(() => of('failed' as const)),
                         ),
@@ -75,6 +79,7 @@ export class RoomStore {
                     this.characters.set(result.characters);
                     this.questions.set(result.questions);
                     this.votes.set(result.votes);
+                    this.notes.set(result.notes);
                     this.loadState.set(result.room ? 'ready' : 'missing');
                 }),
         );
@@ -114,5 +119,9 @@ export class RoomStore {
 
     addVote(vote: Vote): void {
         this.votes.update(list => [...list, vote]);
+    }
+
+    putNote(note: Note): void {
+        this.notes.update(list => [...list.filter(n => n.player_id !== note.player_id), note]);
     }
 }

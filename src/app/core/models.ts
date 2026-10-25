@@ -100,3 +100,11 @@ export interface ClueGroup {
   answer: Answer;
   items: Question[];
 }
+
+export interface Note {
+  player_id: string;
+  room_id: string;
+  text: string;
+  visible: boolean;
+  updated_at: string;
+}
