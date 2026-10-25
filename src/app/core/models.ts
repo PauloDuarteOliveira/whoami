@@ -56,6 +56,7 @@ export interface Player {
   muted: boolean;
   last_seen: string;
   joined_at: string;
+  user_id: string | null;
 }
 
 export interface Character {

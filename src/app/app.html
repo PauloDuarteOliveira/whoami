@@ -1,1 +1,7 @@
+@if (auth.status() === 'error') {
+  <div class="auth-error" role="alert">
+    Couldn't sign you in to the game server. Check your connection.
+    <button type="button" class="btn btn-ghost" (click)="auth.signIn()">Try again</button>
+  </div>
+}
 <router-outlet />

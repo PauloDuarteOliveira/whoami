@@ -1,0 +1,17 @@
+.auth-error {
+  position: fixed;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px 10px 18px;
+  border-radius: 14px;
+  background: var(--no-soft);
+  border: 1px solid var(--no);
+  color: var(--text);
+  font-size: 14px;
+}
+.auth-error .btn { height: 34px; padding: 0 12px; }

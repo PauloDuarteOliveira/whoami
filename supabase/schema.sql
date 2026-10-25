@@ -56,6 +56,7 @@ create table players (
   muted         boolean not null default false,
   last_seen     timestamptz not null default now(),                     -- heartbeat for online / offline
   joined_at     timestamptz not null default now(),
+  user_id       uuid default auth.uid() references auth.users(id) on delete set null,  -- Supabase Auth user who owns this player
   unique (room_id, name)
 );
 
