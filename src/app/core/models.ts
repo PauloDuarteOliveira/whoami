@@ -109,3 +109,15 @@ export interface Note {
   visible: boolean;
   updated_at: string;
 }
+
+/** A player's drawing Board: one per player, saved as a PNG data URL. */
+export interface Whiteboard {
+  player_id: string;
+  room_id: string;
+  image: string;
+  shared: boolean;
+  updated_at: string;
+}
+
+/** A board without its picture: enough to know if it changed. */
+export type WhiteboardInfo = Omit<Whiteboard, 'image'>;

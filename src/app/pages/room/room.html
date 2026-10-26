@@ -77,7 +77,9 @@
               (overrule)="overrule($event)"
               (giveUp)="giveUp()"
               [notes]="store.notes()"
-              (saveNote)="saveNote($event)" />
+              (saveNote)="saveNote($event)"
+              [boards]="store.boards()"
+              (saveBoard)="saveBoard($event)" />
           }
           @case ('finished') {
             <app-results

@@ -170,7 +170,35 @@ app-clue-board { grid-column: 1 / -1; }
 /* Header pieces used on smaller screens (hidden on desktop) ---------------------------------------- */
 
 .turn-info { display: flex; align-items: baseline; gap: 12px; min-width: 0; white-space: nowrap; }
-.avatars, .tools, .tabbar { display: none; }
+.avatars, .tabbar { display: none; }
+
+.tools { display: flex; gap: 8px; margin-left: auto; }
+.tools ~ .sky { margin-left: 0; }
+.tool { height: 40px; }
+.tool.on { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+/* On desktop, Notes and History are always on screen, so only the Board button is needed. */
+@media (min-width: 1181px) {
+  .tools .tool:not(.board-tool) { display: none; }
+}
+
+/* The Board: hidden until opened. On desktop and tablet it's a large window over the game. */
+app-board, .board-backdrop { display: none; }
+@media (min-width: 901px) {
+  .board-backdrop { display: block; position: fixed; inset: 0; z-index: 49; border: none; padding: 0; cursor: pointer; background: rgba(4, 22, 28, 0.6); }
+  .game[data-pane="board"] app-board {
+    display: block;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    z-index: 50;
+    width: min(1120px, calc(100vw - 48px));
+    transform: translate(-50%, -50%);
+    --board-bg: var(--bg);
+    --board-max-w: calc((100dvh - 48px - 170px) * 4 / 3);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+    border-radius: 24px;
+  }
+}
 
 /* Tablet (up to 1180 px): narrower sidebar; Notes and History open in a drawer ---------------------- */
 
@@ -179,11 +207,6 @@ app-clue-board { grid-column: 1 / -1; }
   .top { padding: 0 20px; gap: 8px; }
   .main { grid-template-columns: minmax(0, 1fr); padding: 20px; gap: 16px; }
   .turn { min-height: 300px; }
-
-  .tools { display: flex; gap: 8px; margin-left: auto; }
-  .tools ~ .sky { margin-left: 0; }
-  .tool { height: 40px; }
-  .tool.on { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
 
   .side-col { display: none; }
   .game[data-pane="notes"] .side-col,
@@ -269,6 +292,7 @@ app-clue-board { grid-column: 1 / -1; }
   .game:not([data-pane="play"]) .turn,
   .game:not([data-pane="play"]) .out-banner { display: none; }
   .game:not([data-pane="clues"]) app-clue-board { display: none; }
+  .game[data-pane="board"] app-board { display: block; grid-column: 1 / -1; }
 
   /* The turn card fills the screen, and its actions sit at the bottom, where the thumb rests. */
   .turn { min-height: calc(100dvh - 56px - 64px - 32px); justify-content: flex-start; padding-top: 28px; }
@@ -284,7 +308,7 @@ app-clue-board { grid-column: 1 / -1; }
 
   .tabbar {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(5, minmax(0, 1fr));
     position: fixed;
     left: 0;
     right: 0;

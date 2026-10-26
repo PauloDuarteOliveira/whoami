@@ -69,6 +69,11 @@ No accounts, no downloads: create a room, share the 4-letter code, and play from
   </tr>
 </table>
 
+<p align="center">
+  <img src="docs/screenshots/board.jpg" alt="The drawing Board open over the game" width="100%">
+  <br><sub><b>The Board.</b> Sketch your theories with a finger, a stylus or the mouse, and share them with the room, live.</sub>
+</p>
+
 ### 📱 Made for phones too
 
 <p align="center">
@@ -76,11 +81,11 @@ No accounts, no downloads: create a room, share the 4-letter code, and play from
   &nbsp;
   <img src="docs/screenshots/phone-clues.jpg" alt="The clue board on a phone" width="23%">
   &nbsp;
-  <img src="docs/screenshots/phone-history.jpg" alt="The history on a phone" width="23%">
+  <img src="docs/screenshots/phone-board.jpg" alt="Drawing on the Board on a phone" width="23%">
   &nbsp;
   <img src="docs/screenshots/phone-players.jpg" alt="The players sheet on a phone" width="23%">
 </p>
-<p align="center"><sub>Big answer buttons at your thumb, a tab bar for Play · Clues · History · Notes, and a players sheet that slides up.</sub></p>
+<p align="center"><sub>Big answer buttons at your thumb, a tab bar for Play · Clues · Board · History · Notes, and a players sheet that slides up.</sub></p>
 
 ## ✨ Features
 
@@ -101,8 +106,8 @@ No accounts, no downloads: create a room, share the 4-letter code, and play from
   </tr>
   <tr>
     <td valign="top">
-      <h4>📝 Notes</h4>
-      Keep your theories while you play. Keep them private, or share them with the room.
+      <h4>📝 Notes &amp; 🎨 Board</h4>
+      Write your theories down, or sketch them on your own drawing board. Keep them private, or share them with the room, live.
     </td>
     <td valign="top">
       <h4>🙈 Hide names</h4>
@@ -140,23 +145,17 @@ No accounts, no downloads: create a room, share the 4-letter code, and play from
 | **Styling** | Plain CSS with CSS variables for the two themes. No UI library. |
 
 ```mermaid
-flowchart LR
-    subgraph Browser["🌐 Browser · Angular app"]
-        UI["Pages & components"] --> Store["RoomStore<br/>(signals)"]
-        Store --> Http["HttpClient<br/>+ auth interceptor"]
-        Store --> RT["supabase-js<br/>Realtime"]
-        Auth["supabase-js<br/>Auth"] -.token.-> Http
-    end
+flowchart TB
+    GH["🐙 GitHub Actions<br/>lint · build · deploy"] --> Pages["GitHub Pages"]
+    Pages -- serves --> App["🅰️ Angular app<br/>pages · RoomStore with signals"]
+    App -- "sign in" --> Auth
+    App -- "HttpClient + token" --> REST
+    Live -- "live changes" --> App
     subgraph Supabase["⚡ Supabase"]
+        Auth["Auth"]
         REST["REST API"] --> DB[("PostgreSQL<br/>+ Row Level Security")]
         DB --> Live["Realtime"]
-        GoTrue["Auth"]
     end
-    Http --> REST
-    Live --> RT
-    Auth --> GoTrue
-    GH["🐙 GitHub Actions"] -- "lint · build · deploy" --> Pages["GitHub Pages"]
-    Pages -. serves .-> Browser
 ```
 
 <details>
@@ -197,6 +196,7 @@ npm install
 3. [`supabase/migrations/001-players-user-id.sql`](supabase/migrations/001-players-user-id.sql)
 4. [`supabase/migrations/002-row-level-security.sql`](supabase/migrations/002-row-level-security.sql)
 5. [`supabase/migrations/003-realtime.sql`](supabase/migrations/003-realtime.sql)
+6. [`supabase/migrations/004-whiteboards-realtime.sql`](supabase/migrations/004-whiteboards-realtime.sql)
 
 Then, under **Authentication → Sign In / Providers**:
 

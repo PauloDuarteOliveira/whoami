@@ -1,20 +1,22 @@
 import { Component, EventEmitter, Input, Output, inject, signal } from '@angular/core';
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Answer, Character, GuessVerdict, Note, Player, Question, Room, Vote } from '../../../core/models';
+import { Answer, Character, GuessVerdict, Note, Player, Question, Room, Vote, Whiteboard } from '../../../core/models';
 import { NgTemplateOutlet, UpperCasePipe } from '@angular/common';
 import { characterNameValidators } from '../../../shared/validators';
 import { placeLabel } from '../../../shared/format';
 import { ClueBoard } from '../clue-board/clue-board';
 import { NoteDraft, Notes } from '../notes/notes';
 import { History } from '../history/history';
+import { Board, BoardDraft } from '../board/board';
 import { PreferencesService } from '../../../core/preferences.service';
 import { SkySwitch } from '../../../shared/sky-switch/sky-switch';
 
-type GamePane = 'play' | 'clues' | 'history' | 'notes';
+type GamePane = 'play' | 'clues' | 'board' | 'history' | 'notes';
+type GameTool = 'notes' | 'board' | 'history';
 
 @Component({
     selector: 'app-game',
-    imports: [ReactiveFormsModule, UpperCasePipe, NgTemplateOutlet, ClueBoard, Notes, History, SkySwitch],
+    imports: [ReactiveFormsModule, UpperCasePipe, NgTemplateOutlet, ClueBoard, Notes, History, Board, SkySwitch],
     templateUrl: './game.html',
     styleUrl: './game.css',
 })
@@ -35,6 +37,7 @@ export class Game {
     @Input() guessVotes: Vote[] = [];
     @Input() canOverrule = false;
     @Input() notes: Note[] = [];
+    @Input() boards: Whiteboard[] = [];
 
     @Output() ask = new EventEmitter<string>();
     @Output() vote = new EventEmitter<Answer>();
@@ -45,6 +48,7 @@ export class Game {
     @Output() overrule = new EventEmitter<GuessVerdict>();
     @Output() giveUp = new EventEmitter<void>();
     @Output() saveNote = new EventEmitter<NoteDraft>();
+    @Output() saveBoard = new EventEmitter<BoardDraft>();
 
     protected readonly questionText = new FormControl('', {
         nonNullable: true,
@@ -68,6 +72,7 @@ export class Game {
     protected readonly tabs: { value: GamePane; label: string }[] = [
         { value: 'play', label: 'Play' },
         { value: 'clues', label: 'Clues' },
+        { value: 'board', label: 'Board' },
         { value: 'history', label: 'History' },
         { value: 'notes', label: 'Notes' },
     ];
@@ -76,7 +81,7 @@ export class Game {
     protected readonly playersOpen = signal(false);
 
     /** Tablet header buttons: open a tool in the drawer, or close it when it's already open. */
-    protected toggleTool(tool: 'notes' | 'history'): void {
+    protected toggleTool(tool: GameTool): void {
         this.pane.update(open => (open === tool ? 'play' : tool));
     }
 
