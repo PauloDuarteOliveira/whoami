@@ -1,0 +1,53 @@
+/* The Players rail (design Layout A): same panel and cards as the game's Players & clues. */
+/* Above the middle column, so the ⋯ menu that floats beside the rail is never covered by its cards. */
+:host { display: block; min-height: 0; min-width: 0; position: relative; z-index: 3; }
+
+.panel {
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  border-radius: 22px;
+  background: var(--glass);
+  border: 1px solid var(--border);
+  /* No backdrop-filter here: it would trap the floating ⋯ menu inside the panel. */
+}
+
+.head { display: flex; align-items: baseline; gap: 8px; }
+.head h2 { font-size: 20px; }
+.count { margin-left: auto; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+.cards { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding: 2px; }
+.group { padding: 4px 2px 0; font-size: 11px; font-weight: 700; letter-spacing: 1px; color: var(--muted); }
+
+.pcard { flex: none; display: flex; align-items: center; gap: 10px; padding: 10px 8px 10px 12px; border-radius: 16px; background: var(--surface-2); border: 1px solid var(--border); }
+.pcard.mine { background: var(--accent-tint); border-color: var(--accent); }
+.pcard.away { opacity: .72; }
+.pcard:has(app-player-menu .more[aria-expanded="true"]) { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+.avatar { position: relative; width: 34px; height: 34px; flex: none; border-radius: 50%; color: var(--on-accent); font-weight: 800; text-transform: uppercase; display: grid; place-items: center; }
+.avatar.dashed { border: 2px dashed currentColor; }
+.dot { position: absolute; right: -2px; bottom: -2px; width: 11px; height: 11px; border-radius: 50%; border: 2px solid var(--surface); background: var(--faint); }
+.dot.on { background: var(--yes); }
+
+.who { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.name { font-weight: 800; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sub { display: flex; align-items: center; gap: 6px; min-width: 0; font-size: 12px; color: var(--muted); white-space: nowrap; }
+.state { overflow: hidden; text-overflow: ellipsis; }
+.state.yes { color: var(--yes-text); }
+.state.now { color: var(--accent-text); }
+.state.off { color: var(--no-text); }
+.role { flex: none; padding: 1px 6px; border-radius: 5px; font-size: 10px; font-weight: 800; letter-spacing: .4px; }
+.role.admin { background: var(--accent-soft); color: var(--accent-text); }
+.role.helper { background: var(--unsure-soft); color: var(--unsure-text); }
+
+.waiting { flex: none; display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 16px; border: 1px dashed var(--border-strong); color: var(--faint); }
+.plus { width: 34px; height: 34px; flex: none; border-radius: 50%; border: 1px dashed var(--border-strong); display: grid; place-items: center; }
+
+/* Phone: the rail is a card in the page, which scrolls as a whole. */
+@media (max-width: 760px) {
+  .panel { height: auto; }
+  .cards { overflow: visible; }
+}
