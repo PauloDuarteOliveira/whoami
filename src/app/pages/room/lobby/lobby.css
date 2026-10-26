@@ -4,7 +4,8 @@
 .side {
   width: 300px;
   flex: none;
-  background: var(--surface);
+  background: var(--glass);
+  backdrop-filter: blur(10px);
   border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
@@ -24,7 +25,7 @@
   height: 30px;
   border-radius: 10px;
   background: var(--accent);
-  color: var(--bg);
+  color: var(--on-accent);
   font-family: var(--font-display);
   display: flex;
   align-items: center;
@@ -73,7 +74,7 @@
 .strong { font-weight: 600; }
 .muted { margin: 0; color: var(--muted); line-height: 1.55; }
 .small { margin: 0; font-size: 12px; color: var(--muted); }
-.lost { font-size: 12px; font-weight: 600; color: var(--no); }
+.lost { font-size: 12px; font-weight: 600; color: var(--no-text); }
 .leave { margin-left: auto; height: 40px; }
 
 .main {
@@ -107,7 +108,7 @@
   letter-spacing: .2em;
   padding-left: .2em;
   line-height: 1;
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 .buttons { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
@@ -136,3 +137,5 @@
   .top { padding: 0 16px; }
   .main { padding: 16px; }
 }
+.sky { margin-left: auto; }
+.sky ~ .leave { margin-left: 8px; }

@@ -4,7 +4,7 @@
 
 .filters { display: flex; gap: 6px; flex-wrap: wrap; }
 .filter { height: 30px; padding: 0 12px; border-radius: 15px; border: 1px solid var(--border-strong); background: transparent; color: var(--text-2); font-weight: 600; font-size: 13px; }
-.filter.active { background: var(--accent); border-color: var(--accent); color: var(--bg); }
+.filter.active { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
 
 .turns { max-height: 360px; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; padding-right: 4px; }
 .turn-group { display: flex; flex-direction: column; gap: 4px; }
@@ -19,10 +19,10 @@
 .votes { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; padding: 6px 8px 8px 80px; font-size: 12px; color: var(--text-2); }
 .vote { display: inline-flex; align-items: center; gap: 6px; }
 .note { margin: 0; font-size: 12px; color: var(--muted); }
-.note.error { color: var(--no); }
-.retry { border: none; background: none; padding: 0; color: var(--accent); font: inherit; font-size: 12px; text-decoration: underline; }
+.note.error { color: var(--no-text); }
+.retry { border: none; background: none; padding: 0; color: var(--accent-text); font: inherit; font-size: 12px; text-decoration: underline; }
 
 .tag-answer { padding: 2px 8px; border-radius: 8px; font-weight: 700; font-size: 11px; }
-.tag-answer.yes, .tag-answer.correct { background: var(--yes-soft); color: var(--yes); }
-.tag-answer.no, .tag-answer.wrong { background: var(--no-soft); color: var(--no); }
-.tag-answer.unsure { background: var(--unsure-soft); color: var(--unsure); }
+.tag-answer.yes, .tag-answer.correct { background: var(--yes-soft); color: var(--yes-text); }
+.tag-answer.no, .tag-answer.wrong { background: var(--no-soft); color: var(--no-text); }
+.tag-answer.unsure { background: var(--unsure-soft); color: var(--unsure-text); }

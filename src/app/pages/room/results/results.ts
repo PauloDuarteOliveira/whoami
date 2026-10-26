@@ -3,10 +3,11 @@ import { DatePipe, DecimalPipe } from '@angular/common';
 import { rankPlayers } from '../../../core/game.service';
 import { Character, Player, Question, RankedPlayer, Room } from '../../../core/models';
 import { placeLabel, plural } from '../../../shared/format';
+import { SkySwitch } from '../../../shared/sky-switch/sky-switch';
 
 @Component({
     selector: 'app-results',
-    imports: [DatePipe, DecimalPipe],
+    imports: [DatePipe, DecimalPipe, SkySwitch],
     templateUrl: './results.html',
     styleUrl: './results.css',
 })

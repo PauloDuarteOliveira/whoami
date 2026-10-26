@@ -8,10 +8,11 @@ import { ClueBoard } from '../clue-board/clue-board';
 import { NoteDraft, Notes } from '../notes/notes';
 import { History } from '../history/history';
 import { PreferencesService } from '../../../core/preferences.service';
+import { SkySwitch } from '../../../shared/sky-switch/sky-switch';
 
 @Component({
     selector: 'app-game',
-    imports: [ReactiveFormsModule, UpperCasePipe, ClueBoard, Notes, History],
+    imports: [ReactiveFormsModule, UpperCasePipe, ClueBoard, Notes, History, SkySwitch],
     templateUrl: './game.html',
     styleUrl: './game.css',
 })

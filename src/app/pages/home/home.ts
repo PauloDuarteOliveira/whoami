@@ -3,11 +3,12 @@ import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth.service';
 import { ProfileService } from '../../core/profile.service';
+import { SkySwitch } from '../../shared/sky-switch/sky-switch';
 import { isCodeChar, playerNameValidators, roomCodeValidators } from '../../shared/validators';
 
 @Component({
   selector: 'app-home',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, SkySwitch],
   templateUrl: './home.html',
   styleUrl: './home.css',
 })

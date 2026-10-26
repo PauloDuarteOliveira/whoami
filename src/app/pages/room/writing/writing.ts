@@ -1,11 +1,12 @@
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, signal } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { Character, Player, Room } from '../../../core/models';
+import { SkySwitch } from '../../../shared/sky-switch/sky-switch';
 import { characterNameValidators } from '../../../shared/validators';
 
 @Component({
   selector: 'app-writing',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, SkySwitch],
   templateUrl: './writing.html',
   styleUrl: './writing.css',
 })

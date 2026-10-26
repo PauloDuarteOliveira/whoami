@@ -21,7 +21,7 @@
 
 .tabs { display: flex; gap: 6px; padding: 4px; border-radius: 16px; background: var(--surface-2); }
 .tab { flex: 1; height: 38px; border: none; border-radius: 12px; background: transparent; color: var(--text-2); font: 600 14px var(--font); cursor: pointer; }
-.tab.active { background: var(--accent); color: var(--bg); }
+.tab.active { background: var(--accent); color: var(--on-accent); }
 
 .form { display: flex; flex-direction: column; gap: 14px; }
 .field { display: flex; flex-direction: column; gap: 6px; }
