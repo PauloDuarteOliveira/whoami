@@ -41,6 +41,18 @@
   --palm: #05222A;
   --palm-opacity: 1;
 
+  /* Dialogs and menus float above the panels, so they get a tint of their own. */
+  --dialog-bg: #155566;
+  --dialog-border: rgba(255, 248, 236, 0.22);
+  --dialog-shadow: 0 18px 44px rgba(0, 0, 0, 0.45);
+  --scrim: rgba(4, 22, 28, 0.62);
+  --destructive: #FF6B6B;
+  --on-destructive: #3A1520;
+  --destructive-deep: #B23A3A;
+  --warn-text: #FFB547;
+  --warn-soft: #4A4424;
+  --warn-note: #FFE29A;
+
   --radius: 14px;
   --radius-lg: 18px;
   --font: 'Fredoka', system-ui, sans-serif;
@@ -81,6 +93,14 @@ html[data-sky="day"] {
 
   --palm: #2C8C78;
   --palm-opacity: 0.35;
+
+  --dialog-bg: #FFF8EA;
+  --dialog-border: rgba(122, 80, 0, 0.22);
+  --dialog-shadow: 0 18px 44px rgba(11, 52, 64, 0.22);
+  --scrim: rgba(11, 52, 64, 0.45);
+  --warn-text: #8F5A00;
+  --warn-soft: #F5E2B0;
+  --warn-note: #6B4A00;
 
   color-scheme: light;
 }
@@ -184,3 +204,72 @@ a:not(.btn):hover { color: var(--accent-hover); }
 
 * { scrollbar-width: thin; scrollbar-color: var(--border-strong) transparent; }
 *:hover { scrollbar-color: var(--accent) transparent; }
+
+/* Red button for actions you can't take back (Kick, Give up, Replace) */
+.btn-destructive { background: var(--destructive); color: var(--on-destructive); font-weight: 800; box-shadow: 0 5px 0 var(--destructive-deep) !important; }
+
+/* Dialogs (confirmation boxes, troll-character votes): the Palm shadows design, sections 6 and 7 ------ */
+
+.dialog-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+.dialog-backdrop { position: absolute; inset: 0; border: none; padding: 0; background: var(--scrim); cursor: pointer; }
+.dialog {
+  position: relative;
+  width: min(480px, 100%);
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
+  padding: 28px;
+  border-radius: 22px;
+  background: var(--dialog-bg);
+  border: 1px solid var(--dialog-border);
+  box-shadow: var(--dialog-shadow);
+  color: var(--text);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  animation: dialog-in 0.16s ease-out;
+}
+.dialog.wide { width: min(520px, 100%); }
+.dialog-head { display: flex; align-items: center; gap: 14px; }
+.dialog-head h2 { font-size: 24px; line-height: 1.15; }
+.dialog-badge { width: 48px; height: 48px; flex: none; border-radius: 16px; display: flex; align-items: center; justify-content: center; }
+.dialog-badge.normal { background: var(--accent-tint); color: var(--accent-text); }
+.dialog-badge.warn { background: var(--warn-soft); color: var(--warn-text); }
+.dialog-badge.danger { background: var(--no-soft); color: var(--no-text); }
+.dialog-text { margin: 0; color: var(--muted); font-size: 15px; line-height: 1.5; }
+.dialog-text strong { color: var(--text); }
+.dialog-card { padding: 14px 16px; border-radius: 16px; background: var(--bg); border: 1px dashed var(--border-strong); display: flex; align-items: center; gap: 12px; }
+.dialog-card .who { flex: 1; min-width: 0; }
+.dialog-card .card-label { font-size: 12px; color: var(--muted); }
+.dialog-card .card-name { font-weight: 800; font-size: 20px; overflow-wrap: anywhere; }
+.dialog-card .card-tag { padding: 4px 10px; border-radius: 10px; background: var(--no-soft); color: var(--no-text); font-weight: 800; font-size: 12px; }
+.dialog-note { padding: 12px 14px; border-radius: 14px; font-size: 14px; line-height: 1.45; display: flex; gap: 10px; align-items: flex-start; }
+.dialog-note.warn { background: var(--warn-soft); color: var(--warn-note); }
+.dialog-note.danger { background: var(--no-soft); color: var(--no-text); }
+.dialog-note svg { flex: none; }
+.dialog-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 6px; }
+.dialog-actions .btn { height: 46px; font-size: 15px; }
+.dialog-foot { font-size: 12px; color: var(--faint); }
+.dialog .avatar-dot { width: 36px; height: 36px; flex: none; border-radius: 50%; color: var(--on-accent); font-weight: 800; display: flex; align-items: center; justify-content: center; }
+
+@keyframes dialog-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+/* On a phone the dialog slides up from the bottom, with full-width buttons near the thumb. */
+@media (max-width: 600px) {
+  .dialog-layer { align-items: flex-end; padding: 10px; }
+  .dialog { padding: 22px 20px 20px; border-radius: 26px; }
+  .dialog::before { content: ''; align-self: center; width: 44px; height: 5px; border-radius: 3px; background: var(--border-strong); margin: -8px 0 4px; }
+  .dialog-head h2 { font-size: 22px; }
+  .dialog-actions { flex-direction: column-reverse; }
+  .dialog-actions .btn { width: 100%; height: 52px; }
+  .dialog-foot.hint { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) { .dialog { animation: none; } }
