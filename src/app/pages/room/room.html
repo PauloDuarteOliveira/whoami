@@ -84,7 +84,21 @@
               (skipTurn)="skipTurn()"
               (kick)="kick($event)"
               (toggleHelper)="toggleHelper($event)"
-              (handOver)="handOver($event)" />
+              (handOver)="handOver($event)"
+              [reportable]="reportable()"
+              [waitingForCharacter]="waitingForCharacter()"
+              (report)="report($event)" />
+            <app-report-dialogs
+              [me]="me"
+              [players]="present()"
+              [characters]="store.characters()"
+              [reports]="store.reports()"
+              [votes]="store.reportVotes()"
+              [isOnline]="isOnline"
+              [busy]="busy()"
+              (vote)="voteReport($event)"
+              (rewrite)="rewriteCharacter($event)"
+              (decide)="decideReport($event)" />
           }
           @case ('finished') {
             <app-results

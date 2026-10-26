@@ -115,7 +115,7 @@ No accounts, no downloads: create a room, share the 4-letter code, and play from
     </td>
     <td valign="top">
       <h4>👑 Admin tools</h4>
-      The room's Admin can kick players, name Helpers, overrule a guess, add writing time, or start without late players.
+      The Admin and Helpers can skip a stuck turn, kick players, overrule a guess, add writing time, or start without late players. The Admin names Helpers and can hand over the role.
     </td>
   </tr>
   <tr>
@@ -197,6 +197,7 @@ npm install
 4. [`supabase/migrations/002-row-level-security.sql`](supabase/migrations/002-row-level-security.sql)
 5. [`supabase/migrations/003-realtime.sql`](supabase/migrations/003-realtime.sql)
 6. [`supabase/migrations/004-whiteboards-realtime.sql`](supabase/migrations/004-whiteboards-realtime.sql)
+7. [`supabase/migrations/005-troll-reports.sql`](supabase/migrations/005-troll-reports.sql)
 
 Then, under **Authentication → Sign In / Providers**:
 

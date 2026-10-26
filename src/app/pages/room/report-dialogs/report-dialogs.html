@@ -1,0 +1,113 @@
+@if (decision(); as r) {
+<!-- 7.4 · Second strike: the Admin or a Helper decides -->
+<div class="dialog-layer">
+  <div class="dialog-backdrop" aria-hidden="true"></div>
+  <section #box class="dialog wide" role="alertdialog" aria-modal="true" aria-labelledby="report-title" [attr.data-key]="'decide-' + r.id">
+    <div class="dialog-head">
+      <span class="dialog-badge danger"><app-dialog-icon name="kick" /></span>
+      <h2 id="report-title">{{ writerName(r) }}'s character was replaced again</h2>
+    </div>
+    <p class="dialog-text">
+      This is the second time the room voted against a character {{ writerName(r) }} wrote
+      (this time for {{ nameOf(r.receiver_id) }}). What should happen?
+    </p>
+    <div class="choices">
+      <div class="choice"><strong>Kick {{ writerName(r) }}</strong><span>{{ writerName(r) }} leaves the room. A random player writes {{ nameOf(r.receiver_id) }}'s new character (never {{ nameOf(r.receiver_id) }}).</span></div>
+      <div class="choice"><strong>One more chance</strong><span>{{ writerName(r) }} writes once more. Use it if the first report was a misunderstanding.</span></div>
+    </div>
+    <div class="dialog-actions">
+      <button type="button" class="btn btn-ghost" data-first [disabled]="busy" (click)="decide.emit({ report: r, choice: 'chance' })">One more chance</button>
+      <button type="button" class="btn btn-destructive" [disabled]="busy" (click)="decide.emit({ report: r, choice: 'kick' })">Kick {{ writerName(r) }}</button>
+    </div>
+    <span class="dialog-foot"><span class="tag tag-admin">ADMIN</span>&nbsp; Only the Admin and Helpers see this</span>
+  </section>
+</div>
+} @else if (toRewrite(); as r) {
+<!-- 7.3 · The writer writes a new character -->
+<div class="dialog-layer">
+  <div class="dialog-backdrop" aria-hidden="true"></div>
+  <section #box class="dialog wide" role="alertdialog" aria-modal="true" aria-labelledby="report-title" [attr.data-key]="'rewrite-' + r.id">
+    <div class="dialog-head">
+      <span class="dialog-badge warn"><app-dialog-icon name="pen" /></span>
+      <h2 id="report-title">Write a new character for {{ nameOf(r.receiver_id) }}</h2>
+    </div>
+    @if (r.admin_decision === 'kicked') {
+      <p class="dialog-text">{{ writerName(r) }} was kicked from the room, and you were picked to write {{ nameOf(r.receiver_id) }}'s character instead. Pick someone everyone knows.</p>
+    } @else {
+      <p class="dialog-text">The room voted to replace <strong>{{ r.character_name }}</strong>. Pick someone everyone knows: a celebrity, a movie character, a historical figure.</p>
+    }
+    <form class="field" (submit)="$event.preventDefault(); send(r)">
+      <label for="new-character">New character for {{ nameOf(r.receiver_id) }}</label>
+      <input id="new-character" class="input big" [formControl]="newName" maxlength="40" autocomplete="off" placeholder="Cleopatra">
+      @if (newName.touched && newName.hasError('taken')) {
+        <span class="error-text">That one is already in the game (or it's the one that was replaced).</span>
+      } @else if (newName.touched && newName.invalid) {
+        <span class="error-text">Use 2 to 40 letters, numbers and . ' - &amp; only.</span>
+      }
+    </form>
+    @if (r.admin_decision === null) {
+      <div class="dialog-note danger"><app-dialog-icon name="warn" /><span><strong>Last chance.</strong> If this one is reported and replaced too, the Admin can kick you, and someone else writes {{ nameOf(r.receiver_id) }}'s character.</span></div>
+    } @else if (r.admin_decision === 'chance') {
+      <div class="dialog-note danger"><app-dialog-icon name="warn" /><span><strong>The Admin gave you one more chance.</strong> Pick a fair character this time.</span></div>
+    }
+    <div class="dialog-actions">
+      <button type="button" class="btn btn-primary" [disabled]="busy" (click)="send(r)">Send to {{ nameOf(r.receiver_id) }}</button>
+    </div>
+    <span class="dialog-foot">The game waits for you · {{ nameOf(r.receiver_id) }} only sees "Your character is being replaced", never who wrote it</span>
+  </section>
+</div>
+} @else if (toVote(); as r) {
+<!-- 7.2 · The room votes -->
+<div class="dialog-layer">
+  <div class="dialog-backdrop" aria-hidden="true"></div>
+  <section #box class="dialog wide" role="alertdialog" aria-modal="true" aria-labelledby="report-title" [attr.data-key]="'vote-' + r.id">
+    <div class="dialog-head">
+      <span class="dialog-badge warn"><app-dialog-icon name="vote" /></span>
+      <h2 id="report-title">Is this a fair character?</h2>
+    </div>
+    <p class="dialog-text">
+      {{ nameOf(r.reporter_id) }} reported the character {{ writerName(r) }} wrote for {{ nameOf(r.receiver_id) }}.
+      Would {{ nameOf(r.receiver_id) }} have a fair chance to guess it?
+    </p>
+    <div class="dialog-card">
+      @if (player(r.receiver_id); as receiver) {
+        <span class="avatar-dot" [style.background]="receiver.color">{{ receiver.name.charAt(0) }}</span>
+      }
+      <div class="who">
+        <div class="card-label">{{ nameOf(r.receiver_id) }}'s character · written by {{ writerName(r) }}</div>
+        <div class="card-name">{{ r.character_name }}</div>
+      </div>
+      <span class="card-tag">REPORTED</span>
+    </div>
+    <div class="voters">
+      @for (p of voters(r); track p.id) {
+        <span class="voter">
+          <span class="mini" [style.background]="p.color">{{ p.name.charAt(0) }}</span>
+          {{ p.id === me.id ? 'You' : p.name }}
+          @switch (voteOf(r, p)) {
+            @case ('replace') { <span class="said replace">Replace</span> }
+            @case ('keep') { <span class="said keep">Keep</span> }
+            @default { <span class="said">…</span> }
+          }
+        </span>
+      }
+    </div>
+    <span class="dialog-foot">{{ votedCount(r) }} of {{ voters(r).length }} voted · most votes decide · a tie keeps it · {{ nameOf(r.receiver_id) }} and {{ writerName(r) }} don't vote</span>
+    <div class="dialog-actions">
+      <button type="button" class="btn btn-ghost" data-first [disabled]="busy" (click)="vote.emit({ report: r, value: 'keep' })">It's fine, keep it</button>
+      <button type="button" class="btn btn-destructive" [disabled]="busy" (click)="vote.emit({ report: r, value: 'replace' })">Replace it</button>
+    </div>
+  </section>
+</div>
+}
+
+@if (beingReplaced()) {
+<!-- 7.5 · The receiver: no name, no writer, no votes -->
+<div class="replacing" role="status">
+  <span class="dialog-badge normal"><app-dialog-icon name="pen" /></span>
+  <div>
+    <strong>Your character is being replaced</strong>
+    <span>The room voted that it wasn't fair, and a new one is being written. Your turn waits until it's in.</span>
+  </div>
+</div>
+}

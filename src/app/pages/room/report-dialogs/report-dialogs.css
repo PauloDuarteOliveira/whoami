@@ -1,0 +1,45 @@
+/* The dialog look itself is global (styles.css, "Dialogs"); these are the parts only troll reports use. */
+
+.dialog-backdrop { cursor: default; }
+
+.choices { display: flex; flex-direction: column; gap: 8px; }
+.choice { padding: 12px 14px; border-radius: 14px; background: var(--surface-2); border: 1px solid var(--border-strong); display: flex; flex-direction: column; gap: 3px; }
+.choice span { font-size: 13px; color: var(--text-3); }
+
+.voters { display: flex; flex-wrap: wrap; gap: 8px; }
+.voter { height: 34px; padding: 0 12px 0 4px; border-radius: 17px; background: var(--surface-2); display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; }
+.mini { width: 26px; height: 26px; border-radius: 50%; color: var(--on-accent); font-size: 12px; font-weight: 800; text-transform: uppercase; display: flex; align-items: center; justify-content: center; }
+.said { color: var(--muted); }
+.said.replace { color: var(--no-text); }
+.said.keep { color: var(--yes-text); }
+
+.field label { font-size: 13px; color: var(--text-2); letter-spacing: 0; }
+.input.big { height: 50px; font-size: 16px; background: var(--bg); }
+
+/* 7.5 · a notice for the receiver, above the game but not blocking it */
+.replacing {
+  position: fixed;
+  z-index: 60;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(520px, calc(100% - 24px));
+  padding: 18px 22px;
+  border-radius: 22px;
+  background: var(--dialog-bg);
+  border: 1px solid var(--dialog-border);
+  box-shadow: var(--dialog-shadow);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.replacing div { display: flex; flex-direction: column; gap: 4px; }
+.replacing strong { font-size: 17px; }
+.replacing span:not(.dialog-badge) { color: var(--muted); font-size: 14px; line-height: 1.45; }
+
+/* Phone: just above the tab bar, so it never covers the turn card's heading */
+@media (max-width: 900px) {
+  .replacing { bottom: calc(76px + env(safe-area-inset-bottom)); padding: 14px 16px; gap: 12px; }
+  .replacing strong { font-size: 15px; }
+  .replacing span:not(.dialog-badge) { font-size: 13px; }
+}

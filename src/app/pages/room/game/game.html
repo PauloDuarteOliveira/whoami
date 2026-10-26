@@ -23,9 +23,9 @@
             </div>
         </div>
         <app-player-menu [player]="p" [canSkip]="canSkip(p)" [canKick]="canKick(p)"
-            [canChangeHelpers]="canChangeRoles(p)" [canHandOver]="canChangeRoles(p)"
+            [canChangeHelpers]="canChangeRoles(p)" [canHandOver]="canChangeRoles(p)" [canReport]="reportable.includes(p.id)"
             (skip)="skipTurn.emit()" (kick)="kick.emit($event)" (toggleHelper)="toggleHelper.emit($event)"
-            (handOver)="handOver.emit($event)" />
+            (handOver)="handOver.emit($event)" (report)="report.emit($event)" />
     </div>
 </ng-template>
 
@@ -104,7 +104,11 @@
             <section class="card turn" aria-label="Current turn">
                 @switch (room.turn_phase) {
                 @case ('question') {
-                @if (isMyTurn()) {
+                @if (isMyTurn() && waitingForCharacter) {
+                <span class="pill accent">It's your turn</span>
+                <h1>Your character is being replaced</h1>
+                <p class="muted">You can ask as soon as the new one is in.</p>
+                } @else if (isMyTurn()) {
                 <span class="pill accent">It's your turn</span>
                 <h1>Ask a yes-or-no question</h1>
                 <form class="ask" (submit)="$event.preventDefault(); submitQuestion()">

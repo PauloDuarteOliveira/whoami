@@ -7,6 +7,9 @@
     @if (canSkip) {
     <button type="button" role="menuitem" (click)="choose(skip)">Skip their turn</button>
     }
+    @if (canReport) {
+    <button type="button" role="menuitem" (click)="choose(report)">Report character</button>
+    }
     @if (canChangeHelpers) {
     <button type="button" role="menuitem" (click)="choose(toggleHelper)">
         {{ player.role === 'helper' ? 'Remove Helper' : 'Make Helper' }}

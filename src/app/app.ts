@@ -3,9 +3,10 @@ import { RouterOutlet } from '@angular/router';
 import { AuthService } from './core/auth.service';
 import { PreferencesService } from './core/preferences.service';
 import { Scenery } from './shared/scenery/scenery';
+import { ConfirmDialog } from './shared/confirm-dialog/confirm-dialog';
 
 @Component({
-  imports: [RouterOutlet, Scenery],
+  imports: [RouterOutlet, Scenery, ConfirmDialog],
   selector: 'app-root',
   styleUrl: './app.css',
   templateUrl: './app.html',
