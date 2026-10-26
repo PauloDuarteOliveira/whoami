@@ -1,36 +1,13 @@
+<!-- Layout A (design canvas): the same frame as the game, with the Players rail on the left. -->
 <div class="writing">
-  <aside class="side" aria-label="Players">
-    <div class="side-head">
-      <span class="logo">?</span>
-      <span class="brand">WhoAmI</span>
-      <span class="code">{{ room.code }}</span>
-    </div>
-    <div class="list">
-      <div class="group">WRITING — {{ doneCount() }} OF {{ players.length }} DONE</div>
-      @for (p of players; track p.id) {
-        <div class="row" [class.me]="p.id === me.id">
-          <span class="avatar" [style.background]="p.color">{{ p.name.charAt(0) }}</span>
-          <div class="info">
-            <div class="name">{{ p.id === me.id ? 'You' : p.name }}</div>
-            @if (hasWritten(p)) {
-              <div class="state done">Submitted ✓</div>
-            } @else if (p.id === me.id && bounced()) {
-              <div class="state redo">Needs a new one</div>
-            } @else {
-              <div class="state">Writing…</div>
-            }
-          </div>
-        </div>
-      }
-    </div>
-  </aside>
+  <app-room-top [code]="room.code" title="Writing phase"
+    [subtitle]="'Custom Pool · ' + (room.mode === 'voice' ? 'Voice' : 'No-Voice') + ' mode'"
+    [connectionLost]="connectionLost" (leave)="leave.emit()" />
 
-  <div class="content">
-    <header class="top">
-      <span class="strong">Writing phase</span>
-      <span class="muted">Custom Pool · {{ room.mode === 'voice' ? 'Voice' : 'No-Voice' }} mode</span>
-      <app-sky-switch class="sky" />
-    </header>
+  <div class="body">
+    <app-roster class="rail" phase="writing" [players]="everyone" [me]="me" [isOnline]="isOnline"
+      [characters]="characters" [needsNew]="!!bounced()"
+      (kick)="kick.emit($event)" (toggleHelper)="toggleHelper.emit($event)" (handOver)="handOver.emit($event)" />
 
     <main class="main">
       @if (showDecision()) {

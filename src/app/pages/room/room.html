@@ -52,7 +52,14 @@
               [notice]="writeNotice()"
               (write)="write($event)"
               (startWithout)="startWithout()"
-              (addTime)="addTime()" />
+              (addTime)="addTime()"
+              [everyone]="present()"
+              [isOnline]="isOnline"
+              [connectionLost]="store.connectionLost()"
+              (leave)="leave()"
+              (kick)="kick($event)"
+              (toggleHelper)="toggleHelper($event)"
+              (handOver)="handOver($event)" />
           }
           @case ('playing') {
             <app-game

@@ -1,98 +1,47 @@
-.writing { min-height: 100vh; display: flex; }
+/* Layout A (design canvas): header, then Players | the writing card. Fits one screen. */
+.writing { height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
 
-/* Players sidebar (same look as the lobby) */
-.side { width: 300px; flex: none; background: var(--glass); backdrop-filter: blur(10px); border-right: 1px solid var(--border); }
-
-.side-head {
-  height: 64px;
-  padding: 0 20px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  border-bottom: 1px solid var(--border);
+.body {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 390px minmax(0, 1fr);
+  gap: 20px;
+  padding: 20px;
 }
+.rail { min-height: 0; }
 
-.logo {
-  width: 30px;
-  height: 30px;
-  border-radius: 10px;
-  background: var(--accent);
-  color: var(--on-accent);
-  font-family: var(--font-display);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.brand { font-family: var(--font-display); font-size: 18px; }
-.code { margin-left: auto; font-size: 12px; color: var(--muted); letter-spacing: 1px; }
-
-.list { padding: 16px 12px; display: flex; flex-direction: column; gap: 4px; }
-.group { padding: 8px; font-size: 11px; font-weight: 600; letter-spacing: 1px; color: var(--muted); }
-
-.row { display: flex; align-items: center; gap: 10px; padding: 8px; border-radius: 10px; }
-.row.me { background: var(--surface-2); }
-
-.avatar {
-  width: 34px;
-  height: 34px;
-  flex: none;
-  border-radius: 50%;
-  color: var(--on-accent);
-  font-weight: 700;
-  text-transform: uppercase;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.info { min-width: 0; }
-.name { font-weight: 600; }
-.state { font-size: 12px; color: var(--muted); }
-.state.done { color: var(--yes-text); }
-.state.redo { color: var(--no-text); }
-
-/* Main column */
-.content { flex: 1; min-width: 0; display: flex; flex-direction: column; }
-
-.top {
-  height: 64px;
-  padding: 0 32px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  border-bottom: 1px solid var(--border);
-}
-
-.strong { font-weight: 600; }
 .muted { margin: 0; color: var(--muted); line-height: 1.55; }
 .small { margin: 0; font-size: 12px; color: var(--muted); }
 .accent { color: var(--accent-text); }
 
-.main { flex: 1; display: flex; align-items: center; justify-content: center; padding: 32px; }
+.main { min-width: 0; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; align-items: center; padding: 12px; }
 
 .main .card {
   width: 100%;
-  max-width: 640px;
+  max-width: 700px;
+  margin: auto;
   border-radius: 24px;
-  padding: 36px;
+  padding: 32px;
   display: flex;
   flex-direction: column;
   gap: 16px;
+  background: var(--glass);
+  backdrop-filter: blur(10px);
 }
 
-.main h1 { font-size: 30px; }
+.main h1 { font-size: 30px; text-wrap: balance; }
 
 .timer { align-self: flex-start; padding: 6px 12px; border-radius: 20px; background: var(--accent-tint); color: var(--accent-text); }
 .timer strong { font-size: 18px; }
 
 .input-row { display: flex; gap: 10px; }
-.input-row .box { flex: 1; }
-.input-row .btn { height: 48px; }
+.input-row .box { flex: 1; min-width: 0; }
+.input-row .btn { height: 52px; padding: 0 24px; }
 
 .box {
-  height: 48px;
-  padding: 0 14px;
+  height: 52px;
+  padding: 0 16px;
   border-radius: var(--radius);
   border: 1px solid var(--border-strong);
   background: var(--bg);
@@ -147,28 +96,22 @@
 .choice-title { font-weight: 700; font-size: 16px; }
 .choice-text { font-size: 13px; opacity: .85; }
 
-.sky { margin-left: auto; }
-
-/* Phone: the header first, then the writing card, then who's done (like the lobby). */
-@media (max-width: 760px) {
-  .writing { flex-direction: column; gap: 16px; padding-bottom: 16px; }
-  .content { display: contents; }
-  .top { order: 1; height: 56px; padding: 0 16px; }
-  .top .muted { display: none; }
-  .main { order: 2; flex: none; padding: 0 16px; }
-  .main .card { padding: 24px 20px; }
+/* Tablet: a narrower rail. */
+@media (max-width: 1180px) {
+  .body { grid-template-columns: 340px minmax(0, 1fr); gap: 16px; padding: 16px; }
+  .main { padding: 0; }
+  .main .card { padding: 24px; }
   .main h1 { font-size: 26px; }
-  .side {
-    order: 3;
-    width: auto;
-    margin: 0 16px;
-    border: 1px solid var(--border);
-    border-radius: 20px;
-  }
-  .side-head { display: none; }
-  .list { padding: 8px; }
+  .choices { grid-template-columns: 1fr; }
+}
+
+/* Phone: one column that scrolls: the writing card first, then who's done. */
+@media (max-width: 760px) {
+  .writing { height: auto; min-height: 100dvh; overflow: visible; }
+  .body { display: flex; flex-direction: column; gap: 16px; padding: 16px; }
+  .main { order: 1; overflow: visible; }
+  .rail { order: 2; }
+  .main .card { padding: 24px 20px; }
   .input-row { flex-direction: column; }
   .input-row .box { flex: none; }
-  .input-row .btn { height: 52px; }
-  .choices { grid-template-columns: 1fr; }
 }
