@@ -1,6 +1,6 @@
-import { Injectable, computed, signal } from '@angular/core';
-import { AuthError, Session, createClient } from '@supabase/supabase-js';
-import { environment } from '../../environments/environment';
+import { Injectable, computed, inject, signal } from '@angular/core';
+import { AuthError, Session } from '@supabase/supabase-js';
+import { SUPABASE } from './supabase.client';
 
 export type AuthStatus = 'loading' | 'ready' | 'error';
 
@@ -11,17 +11,7 @@ export type AuthStatus = 'loading' | 'ready' | 'error';
  */
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-    private readonly client = createClient(environment.supabaseUrl, environment.supabaseKey, {
-        auth: {
-            // One session per tab, like the player sessions, so two tabs are two different players.
-            // The key is unique per tab because supabase-js also shares sign-ins between tabs with the same key
-            // (a BroadcastChannel named after it): with one shared key, a new tab would switch the others to its user.
-            storage: browserSessionStorage(),
-            storageKey: `whoami.auth.${tabId()}`,
-            persistSession: true,
-            autoRefreshToken: true,
-        },
-    });
+    private readonly client = inject(SUPABASE);
 
     readonly session = signal<Session | null>(null);
     readonly status = signal<AuthStatus>('loading');
@@ -103,28 +93,5 @@ function friendlyError(error: AuthError): string {
             return 'Confirm your email first, using the link we sent you.';
         default:
             return 'Something went wrong. Check your connection and try again.';
-    }
-}
-
-/** A random id for this tab, kept in sessionStorage so it survives a reload but isn't shared with other tabs. */
-function tabId(): string {
-    try {
-        let id = sessionStorage.getItem('whoami.tab');
-        if (!id) {
-            id = crypto.randomUUID();
-            sessionStorage.setItem('whoami.tab', id);
-        }
-        return id;
-    } catch {
-        return crypto.randomUUID();
-    }
-}
-
-/** sessionStorage, or nothing when the browser blocks it (the session then lasts until the page reloads). */
-function browserSessionStorage(): Storage | undefined {
-    try {
-        return window.sessionStorage;
-    } catch {
-        return undefined;
     }
 }
