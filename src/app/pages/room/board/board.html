@@ -1,0 +1,58 @@
+<section class="card board" aria-label="Board">
+  <div class="head">
+    <h2>Board</h2>
+    <div class="tabs" role="tablist" aria-label="Whose board">
+      <button type="button" role="tab" class="tab" [class.active]="current() === 'me'" [attr.aria-selected]="current() === 'me'"
+        (click)="tab.set('me')">You</button>
+      @for (b of others(); track b.player_id) {
+        <button type="button" role="tab" class="tab" [class.active]="current() === b.player_id"
+          [attr.aria-selected]="current() === b.player_id" (click)="tab.set(b.player_id)">{{ nameOf(b.player_id) }}</button>
+      }
+    </div>
+    <div class="actions">
+      @if (current() === 'me') {
+        <button type="button" class="switch" role="switch" [attr.aria-checked]="shared()" (click)="toggleShared()">
+          <span class="knob" aria-hidden="true"></span>Shared
+        </button>
+      }
+      <button type="button" class="btn btn-ghost small-btn" (click)="download()">Download</button>
+      <button type="button" class="close" aria-label="Close the board" (click)="closed.emit()">×</button>
+    </div>
+  </div>
+
+  <div class="surface">
+    <canvas #canvas [width]="width" [height]="height" [hidden]="current() !== 'me'"
+      aria-label="Your board: draw with a finger, a stylus or the mouse"
+      (pointerdown)="startStroke($event)" (pointermove)="moveStroke($event)"
+      (pointerup)="endStroke()" (pointercancel)="endStroke()" (lostpointercapture)="endStroke()"></canvas>
+    @if (current() === 'me' && blank()) {
+      <p class="empty" aria-hidden="true">Sketch your theories here</p>
+    }
+    @if (current() !== 'me') {
+      @if (boardOf(current()); as b) {
+        <img [src]="b.image" [alt]="nameOf(b.player_id) + '\'s board'">
+      }
+    }
+  </div>
+
+  @if (current() === 'me') {
+    <div class="toolbar">
+      <div class="tools" role="group" aria-label="Tools">
+        <button type="button" class="tool" [class.on]="tool() === 'pen'" [attr.aria-pressed]="tool() === 'pen'" (click)="tool.set('pen')">✎ Pen</button>
+        <button type="button" class="tool" [class.on]="tool() === 'eraser'" [attr.aria-pressed]="tool() === 'eraser'" (click)="tool.set('eraser')">Eraser</button>
+        <button type="button" class="tool" [disabled]="!canUndo()" (click)="undoStep()">↶ Undo</button>
+        <button type="button" class="tool" [disabled]="blank()" (click)="clear()">Clear</button>
+      </div>
+      <div class="colors" role="group" aria-label="Colours">
+        @for (c of colors; track c.value) {
+          <button type="button" class="color" [style.background]="c.value" [attr.aria-label]="c.label"
+            [class.on]="tool() === 'pen' && color() === c.value" [attr.aria-pressed]="tool() === 'pen' && color() === c.value"
+            (click)="pickColor(c.value)"></button>
+        }
+      </div>
+      <span class="hint">{{ saving() === 'saved' ? (shared() ? 'Saved · the room can see it' : 'Saved · only you can see it') : 'Saving…' }}</span>
+    </div>
+  } @else if (boardOf(current()); as b) {
+    <p class="hint">{{ nameOf(b.player_id) }}'s board · updated at {{ b.updated_at | date: 'HH:mm' }} · updates live</p>
+  }
+</section>
