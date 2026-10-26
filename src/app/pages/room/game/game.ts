@@ -10,13 +10,14 @@ import { History } from '../history/history';
 import { Board, BoardDraft } from '../board/board';
 import { PreferencesService } from '../../../core/preferences.service';
 import { SkySwitch } from '../../../shared/sky-switch/sky-switch';
+import { PlayerMenu } from '../../../shared/player-menu/player-menu';
 
 type GamePane = 'play' | 'clues' | 'board' | 'history' | 'notes';
 type GameTool = 'notes' | 'board' | 'history';
 
 @Component({
     selector: 'app-game',
-    imports: [ReactiveFormsModule, UpperCasePipe, NgTemplateOutlet, ClueBoard, Notes, History, Board, SkySwitch],
+    imports: [ReactiveFormsModule, UpperCasePipe, NgTemplateOutlet, ClueBoard, Notes, History, Board, SkySwitch, PlayerMenu],
     templateUrl: './game.html',
     styleUrl: './game.css',
 })
@@ -49,6 +50,10 @@ export class Game {
     @Output() giveUp = new EventEmitter<void>();
     @Output() saveNote = new EventEmitter<NoteDraft>();
     @Output() saveBoard = new EventEmitter<BoardDraft>();
+    @Output() skipTurn = new EventEmitter<void>();
+    @Output() kick = new EventEmitter<Player>();
+    @Output() toggleHelper = new EventEmitter<Player>();
+    @Output() handOver = new EventEmitter<Player>();
 
     protected readonly questionText = new FormControl('', {
         nonNullable: true,
@@ -122,6 +127,31 @@ export class Game {
 
     protected placeLabel(place: number | null): string {
         return placeLabel(place);
+    }
+
+    // Managing the room: the Admin and Helpers -------------------------------------------------------
+
+    protected isAdmin(): boolean {
+        return this.me.role === 'admin';
+    }
+
+    protected canManage(): boolean {
+        return this.me.role === 'admin' || this.me.role === 'helper';
+    }
+
+    /** Skip turn: anyone's turn but your own (you end your own turn with Skip). */
+    protected canSkip(p: Player): boolean {
+        return this.canManage() && p.id === this.room.current_player_id && p.id !== this.me.id;
+    }
+
+    /** Helpers can't kick the Admin. */
+    protected canKick(p: Player): boolean {
+        return this.canManage() && p.id !== this.me.id && p.role !== 'admin';
+    }
+
+    /** Only the Admin names Helpers and hands over the Admin role. */
+    protected canChangeRoles(p: Player): boolean {
+        return this.isAdmin() && p.id !== this.me.id && p.role !== 'spectator';
     }
 
     protected iCanJudge(): boolean {
