@@ -131,11 +131,40 @@
   .main { grid-template-columns: 1fr; }
 }
 
-@media (max-width: 760px) {
-  .lobby { flex-direction: column; }
-  .side { width: auto; border-right: none; border-bottom: 1px solid var(--border); }
-  .top { padding: 0 16px; }
-  .main { padding: 16px; }
-}
 .sky { margin-left: auto; }
 .sky ~ .leave { margin-left: 8px; }
+
+/*
+ * Phone: one column in the order you need it: the header, the code to share, the players,
+ * then the settings. The wrappers step aside (display: contents) so the four parts can be reordered.
+ */
+@media (max-width: 760px) {
+  .lobby { flex-direction: column; gap: 16px; padding-bottom: 16px; }
+  .content, .main { display: contents; }
+  .top { order: 1; height: 56px; padding: 0 16px; }
+  .top .muted { display: none; }
+  .invite { order: 2; margin: 0 16px; padding: 28px 16px; gap: 14px; }
+  .side {
+    order: 3;
+    width: auto;
+    margin: 0 16px;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+  }
+  .side-head { display: none; }
+  .list { padding: 8px; }
+  .cards { order: 4; margin: 0 16px; }
+  /* The Admin's Start button stays at the bottom of the screen. */
+  .lobby:has(.go) { padding-bottom: 100px; }
+  .go {
+    position: fixed;
+    left: 16px;
+    right: 16px;
+    bottom: 16px;
+    z-index: 10;
+    height: 56px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  }
+  /* Solid when disabled, so the page doesn't show through it. */
+  .go:disabled { opacity: 1; background: var(--surface-3); color: var(--muted); }
+}

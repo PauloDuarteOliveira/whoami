@@ -158,7 +158,11 @@ h1 {
   .top { padding: 0 16px; }
 }
 
+.sky { margin-left: 12px; }
+
 @media (max-width: 600px) {
   .rules { grid-template-columns: 1fr; }
+  .how { display: none; }
+  .account { margin-left: auto; max-width: 150px; }
+  .play { padding: 20px; }
 }
-.sky { margin-left: 12px; }

@@ -32,3 +32,15 @@
 
 @media (max-width: 900px) { .layout { grid-template-columns: 1fr; padding: 16px; } }
 .sky { margin-left: auto; }
+
+/* Phone: a short header, and each ranking tag on its own line under the name. */
+@media (max-width: 600px) {
+  .head { height: 56px; padding: 0 16px; }
+  .head .muted { display: none; }
+  .hero h1 { font-size: 38px; }
+  .layout .card { padding: 20px; }
+  .rank-row { flex-wrap: wrap; row-gap: 6px; }
+  .who { flex: 0 0 calc(100% - 88px); }
+  .rank-row .tag { margin-left: 88px; }
+  .ranking .btn { align-self: stretch; height: 52px; }
+}
