@@ -18,16 +18,18 @@ export class PlayerMenu {
     @Input() canKick = false;
     @Input() canChangeHelpers = false;
     @Input() canHandOver = false;
+    @Input() canReport = false;
 
     @Output() skip = new EventEmitter<Player>();
     @Output() kick = new EventEmitter<Player>();
     @Output() toggleHelper = new EventEmitter<Player>();
     @Output() handOver = new EventEmitter<Player>();
+    @Output() report = new EventEmitter<Player>();
 
     protected readonly open = signal(false);
 
     protected hasActions(): boolean {
-        return this.canSkip || this.canKick || this.canChangeHelpers || this.canHandOver;
+        return this.canSkip || this.canReport || this.canKick || this.canChangeHelpers || this.canHandOver;
     }
 
     protected choose(action: EventEmitter<Player>): void {

@@ -3,7 +3,7 @@ import { CharacterService, sameCharacter } from '../../core/character.service';
 import { GameService } from '../../core/game.service';
 import { Writing } from './writing/writing';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { Observable, concat, switchMap } from 'rxjs';
+import { Observable, concat, map, switchMap, tap } from 'rxjs';
 import { DeckService } from '../../core/deck.service';
 import { QuestionService, majority, verdict } from '../../core/question.service';
 import { Deck, Player, Answer, GuessVerdict, Question, Room } from '../../core/models';
@@ -18,10 +18,14 @@ import { NoteService } from '../../core/note.service';
 import { NoteDraft } from './notes/notes';
 import { BoardDraft } from './board/board';
 import { WhiteboardService } from '../../core/whiteboard.service';
+import { ConfirmService } from '../../core/confirm.service';
+import { ReportService } from '../../core/report.service';
+import { openReport, reportResult, reportVoters, strikes, writerOf } from '../../core/report-rules';
+import { DecisionEvent, ReportDialogs, ReportVoteEvent, RewriteEvent } from './report-dialogs/report-dialogs';
 
 @Component({
     selector: 'app-room',
-    imports: [RouterLink, Lobby, Writing, Game, Results],
+    imports: [RouterLink, Lobby, Writing, Game, Results, ReportDialogs],
     providers: [RoomStore],
     templateUrl: './room.html',
     styleUrl: './room.css',
@@ -40,6 +44,8 @@ export class RoomPage implements OnInit, OnDestroy {
     private readonly questionService = inject(QuestionService);
     private readonly noteService = inject(NoteService);
     private readonly whiteboardService = inject(WhiteboardService);
+    private readonly confirm = inject(ConfirmService);
+    private readonly reportService = inject(ReportService);
 
     protected code = '';
     private readonly deckList = signal<Deck[]>([]);
@@ -96,11 +102,138 @@ export class RoomPage implements OnInit, OnDestroy {
         return !!me && (me.role === 'admin' || me.role === 'helper') && me.id !== this.store.room()?.current_player_id;
     });
 
+    // Troll characters (game design, section 4) -------------------------------------------------------------
+
+    private characterOf(playerId: string) {
+        return this.store.characters().find(c => c.assigned_to === playerId) ?? null;
+    }
+
+    /**
+     * Players whose character I may report: written by another player (not a deck card), not by me,
+     * not already being dealt with, and not one the room already voted to keep.
+     */
+    protected readonly reportable = computed(() => {
+        const me = this.store.me();
+        if (!me || me.role === 'spectator') return [];
+        const reports = this.store.reports();
+        return this.playing()
+            .filter(p => p.id !== me.id)
+            .filter(p => {
+                const character = this.characterOf(p.id);
+                return !!character && !!character.written_by && character.written_by !== me.id
+                    && !openReport(reports, character.id)
+                    && !reports.some(r => r.character_id === character.id && r.status === 'kept' && r.character_name === character.name);
+            })
+            .map(p => p.id);
+    });
+
+    /** My character is being rewritten, so my turn waits. */
+    protected readonly waitingForCharacter = computed(() => {
+        const me = this.store.me();
+        return !!me && this.store.reports().some(r => r.receiver_id === me.id && r.status === 'replaced');
+    });
+
+    private readonly resolvedReports = new Set<string>();
+
+    protected async report(player: Player): Promise<void> {
+        const me = this.store.me();
+        const character = this.characterOf(player.id);
+        if (!me || !character) return;
+        const writer = this.store.players().find(p => p.id === character.written_by);
+        const yes = await this.confirm.ask({
+            tone: 'warn', icon: 'flag', title: `Report ${player.name}'s character?`,
+            text: `Use this for a character that's offensive, or a joke nobody could guess. The room votes, and ${player.name} never sees it.`,
+            card: { label: `${player.name}'s character · written by ${writer?.name ?? 'someone'}`, name: character.name, avatar: { letter: player.name.charAt(0), color: player.color } },
+            note: 'Everyone sees who reported it. If most players say it\'s fine, the character stays.',
+            confirmLabel: 'Report it',
+        });
+        if (!yes) return;
+        // Reporting counts as your vote to replace it.
+        this.run(
+            this.reportService.create(character, me.id).pipe(
+                tap(report => this.store.putReport(report)),
+                switchMap(report => this.reportService.vote(report, me.id, 'replace')),
+                tap(vote => this.store.addReportVote(vote)),
+            ),
+        );
+    }
+
+    protected voteReport(event: ReportVoteEvent): void {
+        const me = this.store.me();
+        if (!me) return;
+        this.run(this.reportService.vote(event.report, me.id, event.value).pipe(tap(vote => this.store.addReportVote(vote))));
+    }
+
+    protected rewriteCharacter(event: RewriteEvent): void {
+        this.run(
+            concat(
+                this.reportService.rename(event.report.character_id, event.name).pipe(
+                    map(character => {
+                        if (!character) throw new Error('Not allowed to rename this character');
+                        this.store.patchCharacter(character.id, { name: character.name });
+                        return character;
+                    }),
+                ),
+                this.reportService.update(event.report, 'replaced', { status: 'rewritten' }).pipe(
+                    tap(report => report && this.store.putReport(report)),
+                ),
+            ),
+        );
+    }
+
+    /** Second strike: give the writer one more chance, or kick them and let a random player write it. */
+    protected decideReport(event: DecisionEvent): void {
+        const report = event.report;
+        if (event.choice === 'chance') {
+            this.run(this.reportService.setDecision(report, 'chance').pipe(tap(r => r && this.store.putReport(r))));
+            return;
+        }
+        const writerId = writerOf(report, this.store.characters());
+        const writer = this.store.players().find(p => p.id === writerId);
+        const candidates = this.playing().filter(p => p.id !== report.receiver_id && p.id !== writerId);
+        const online = candidates.filter(p => this.isOnline(p));
+        const pool = online.length ? online : candidates;
+        const next = pool[Math.floor(Math.random() * pool.length)];
+        if (!next) return;
+        this.run(
+            concat(
+                this.reportService.setWriter(report.character_id, next.id),
+                this.reportService.setDecision(report, 'kicked').pipe(tap(r => r && this.store.putReport(r))),
+            ),
+        );
+        this.store.patchCharacter(report.character_id, { written_by: next.id });
+        if (writer) this.removePlayer(writer);
+    }
+
     private readonly finished = new Set<string>();
     protected readonly writeNotice = signal<string | null>(null);
     private starting = false;
 
     constructor() {
+        // Records a report's result once the votes decide it. The reporter's device does it,
+        // or the Admin's if the reporter is offline; the status check makes a second write do nothing.
+        effect(() => {
+            const me = this.store.me();
+            const reports = this.store.reports();
+            const votes = this.store.reportVotes();
+            const players = this.present();
+            const characters = this.store.characters();
+            if (!me) return;
+            for (const report of reports) {
+                if (report.status !== 'voting' || this.resolvedReports.has(report.id)) continue;
+                const reporter = players.find(p => p.id === report.reporter_id);
+                const resolver = reporter && this.isOnline(reporter) ? reporter.id : players.find(p => p.role === 'admin')?.id;
+                if (resolver !== me.id) continue;
+                const result = reportResult(report, reportVoters(report, players, characters, votes, this.isOnline), votes);
+                if (!result) continue;
+                this.resolvedReports.add(report.id);
+                const changes = result === 'kept'
+                    ? { status: 'kept' as const }
+                    : { status: 'replaced' as const, admin_decision: strikes(reports, report.writer_id, report) >= 2 ? 'pending' as const : null };
+                this.run(this.reportService.update(report, 'voting', changes).pipe(tap(r => r && this.store.putReport(r))));
+            }
+        });
+
         effect(() => {
             const room = this.store.room();
             const me = this.store.me();
@@ -359,8 +492,17 @@ export class RoomPage implements OnInit, OnDestroy {
         this.run(concat(...steps));
     }
 
-    protected kick(player: Player): void {
-        if (!confirm(`Kick ${player.name} from the room?`)) return;
+    protected async kick(player: Player): Promise<void> {
+        const yes = await this.confirm.ask({
+            tone: 'danger', icon: 'kick', title: `Kick ${player.name} from the room?`,
+            text: `${player.name} leaves the game straight away. If it's their turn, it passes to the next player.`,
+            confirmLabel: `Kick ${player.name}`,
+        });
+        if (yes) this.removePlayer(player);
+    }
+
+    /** Kicks without asking (the caller already asked). */
+    private removePlayer(player: Player): void {
         const room = this.store.room();
         const steps: Observable<unknown>[] = [];
         // Kicking the player whose turn it is: pass the turn first, so nobody waits for someone who's gone.
@@ -376,19 +518,34 @@ export class RoomPage implements OnInit, OnDestroy {
     }
 
     /** The Admin or a Helper passes the turn of a player who's away or stuck. */
-    protected skipTurn(): void {
+    protected async skipTurn(): Promise<void> {
         const room = this.store.room();
         if (!room || room.status !== 'playing') return;
         const current = this.store.players().find(p => p.id === room.current_player_id);
-        if (!confirm(`Skip ${current?.name ?? 'this player'}'s turn?`)) return;
-        this.run(this.game.nextTurn(room, this.store.players()));
+        const name = current?.name ?? 'this player';
+        const queue = this.inPlay().filter(p => p.turn_position !== null).sort((a, b) => a.turn_position! - b.turn_position!);
+        const next = queue.find(p => p.turn_position! > (current?.turn_position ?? 0)) ?? queue[0];
+        const away = current && !this.isOnline(current) ? `${name} is offline. ` : '';
+        const yes = await this.confirm.ask({
+            tone: 'normal', icon: 'skip', title: `Skip ${name}'s turn?`,
+            text: `${away}The turn passes to ${next && next.id !== current?.id ? next.name : 'the next player'}, and ${name} keeps their place in the queue.`,
+            confirmLabel: 'Skip turn',
+        });
+        // The turn may have moved on while the box was open: only skip the turn that was asked about.
+        const now = this.store.room();
+        if (yes && now && now.turn_number === room.turn_number) this.run(this.game.nextTurn(now, this.store.players()));
     }
 
     /** The Admin makes someone else Admin and becomes a Helper, so they can still help run the room. */
-    protected handOver(player: Player): void {
+    protected async handOver(player: Player): Promise<void> {
         const me = this.store.me();
         if (!me || me.role !== 'admin') return;
-        if (!confirm(`Make ${player.name} the Admin? You'll become a Helper.`)) return;
+        const yes = await this.confirm.ask({
+            tone: 'normal', icon: 'crown', title: `Make ${player.name} the Admin?`,
+            text: `${player.name} gets every Admin power. You become a Helper, so you can still skip turns and kick players.`,
+            confirmLabel: `Make ${player.name} Admin`,
+        });
+        if (!yes) return;
         this.store.patchPlayer(player.id, { role: 'admin' });
         this.store.patchPlayer(me.id, { role: 'helper' });
         this.run(concat(this.playerService.setRole(player.id, 'admin'), this.playerService.setRole(me.id, 'helper')));

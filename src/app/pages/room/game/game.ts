@@ -9,6 +9,7 @@ import { NoteDraft, Notes } from '../notes/notes';
 import { History } from '../history/history';
 import { Board, BoardDraft } from '../board/board';
 import { PreferencesService } from '../../../core/preferences.service';
+import { ConfirmService } from '../../../core/confirm.service';
 import { SkySwitch } from '../../../shared/sky-switch/sky-switch';
 import { PlayerMenu } from '../../../shared/player-menu/player-menu';
 
@@ -23,6 +24,7 @@ type GameTool = 'notes' | 'board' | 'history';
 })
 export class Game {
     protected readonly prefs = inject(PreferencesService);
+    private readonly confirm = inject(ConfirmService);
 
     @Input({ required: true }) room!: Room;
     @Input({ required: true }) players: Player[] = [];
@@ -39,6 +41,10 @@ export class Game {
     @Input() canOverrule = false;
     @Input() notes: Note[] = [];
     @Input() boards: Whiteboard[] = [];
+    /** Players whose character this player may report as a troll entry. */
+    @Input() reportable: string[] = [];
+    /** True while this player's character is being rewritten: their turn waits. */
+    @Input() waitingForCharacter = false;
 
     @Output() ask = new EventEmitter<string>();
     @Output() vote = new EventEmitter<Answer>();
@@ -54,6 +60,7 @@ export class Game {
     @Output() kick = new EventEmitter<Player>();
     @Output() toggleHelper = new EventEmitter<Player>();
     @Output() handOver = new EventEmitter<Player>();
+    @Output() report = new EventEmitter<Player>();
 
     protected readonly questionText = new FormControl('', {
         nonNullable: true,
@@ -179,10 +186,13 @@ export class Game {
         return this.myQuestionCount() >= this.room.give_up_after;
     }
 
-    protected confirmGiveUp(): void {
-        if (confirm('Give up? Your character is revealed and you leave the turn queue. You keep answering for the others.')) {
-            this.giveUp.emit();
-        }
+    protected async confirmGiveUp(): Promise<void> {
+        const yes = await this.confirm.ask({
+            tone: 'danger', icon: 'flag', title: 'Give up?',
+            text: 'Your character is revealed and you leave the turn queue. You keep answering for the others.',
+            cancelLabel: 'Keep playing', confirmLabel: 'Give up',
+        });
+        if (yes) this.giveUp.emit();
     }
 
     protected iCanVote(): boolean {
