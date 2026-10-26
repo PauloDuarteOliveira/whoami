@@ -147,10 +147,28 @@
 .choice-title { font-weight: 700; font-size: 16px; }
 .choice-text { font-size: 13px; opacity: .85; }
 
-@media (max-width: 760px) {
-  .writing { flex-direction: column; }
-  .side { width: auto; border-right: none; border-bottom: 1px solid var(--border); }
-  .choices { grid-template-columns: 1fr; }
-  .main { padding: 16px; }
-}
 .sky { margin-left: auto; }
+
+/* Phone: the header first, then the writing card, then who's done (like the lobby). */
+@media (max-width: 760px) {
+  .writing { flex-direction: column; gap: 16px; padding-bottom: 16px; }
+  .content { display: contents; }
+  .top { order: 1; height: 56px; padding: 0 16px; }
+  .top .muted { display: none; }
+  .main { order: 2; flex: none; padding: 0 16px; }
+  .main .card { padding: 24px 20px; }
+  .main h1 { font-size: 26px; }
+  .side {
+    order: 3;
+    width: auto;
+    margin: 0 16px;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+  }
+  .side-head { display: none; }
+  .list { padding: 8px; }
+  .input-row { flex-direction: column; }
+  .input-row .box { flex: none; }
+  .input-row .btn { height: 52px; }
+  .choices { grid-template-columns: 1fr; }
+}

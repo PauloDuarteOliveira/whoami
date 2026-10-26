@@ -1,7 +1,7 @@
-import { Component, EventEmitter, Input, Output, inject } from '@angular/core';
+import { Component, EventEmitter, Input, Output, inject, signal } from '@angular/core';
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Answer, Character, GuessVerdict, Note, Player, Question, Room, Vote } from '../../../core/models';
-import { UpperCasePipe } from '@angular/common';
+import { NgTemplateOutlet, UpperCasePipe } from '@angular/common';
 import { characterNameValidators } from '../../../shared/validators';
 import { placeLabel } from '../../../shared/format';
 import { ClueBoard } from '../clue-board/clue-board';
@@ -10,9 +10,11 @@ import { History } from '../history/history';
 import { PreferencesService } from '../../../core/preferences.service';
 import { SkySwitch } from '../../../shared/sky-switch/sky-switch';
 
+type GamePane = 'play' | 'clues' | 'history' | 'notes';
+
 @Component({
     selector: 'app-game',
-    imports: [ReactiveFormsModule, UpperCasePipe, ClueBoard, Notes, History, SkySwitch],
+    imports: [ReactiveFormsModule, UpperCasePipe, NgTemplateOutlet, ClueBoard, Notes, History, SkySwitch],
     templateUrl: './game.html',
     styleUrl: './game.css',
 })
@@ -56,6 +58,34 @@ export class Game {
         { value: 'no', label: 'No' },
         { value: 'unsure', label: 'Unsure' },
     ];
+
+    /**
+     * What smaller screens show (see game.css): on a tablet, 'notes' and 'history' open a drawer;
+     * on a phone (and a tablet held upright) the bottom tab bar switches between all four.
+     * Panes that aren't shown are only hidden, so unsaved notes survive a switch.
+     */
+    protected readonly pane = signal<GamePane>('play');
+    protected readonly tabs: { value: GamePane; label: string }[] = [
+        { value: 'play', label: 'Play' },
+        { value: 'clues', label: 'Clues' },
+        { value: 'history', label: 'History' },
+        { value: 'notes', label: 'Notes' },
+    ];
+
+    /** The players sheet that slides up on a phone when the avatars are tapped. */
+    protected readonly playersOpen = signal(false);
+
+    /** Tablet header buttons: open a tool in the drawer, or close it when it's already open. */
+    protected toggleTool(tool: 'notes' | 'history'): void {
+        this.pane.update(open => (open === tool ? 'play' : tool));
+    }
+
+    /** True when the game is waiting for this player, to flag the Play tab while another tab is open. */
+    protected needsMe(): boolean {
+        if (this.room.turn_phase === 'answer_vote') return this.iCanVote();
+        if (this.room.turn_phase === 'guess_vote') return this.iCanJudge();
+        return this.isMyTurn();
+    }
 
     protected ordered(): Player[] {
         return this.players

@@ -1,4 +1,42 @@
-<div class="game">
+<!-- One player's row: used in the sidebar (desktop, tablet) and in the players sheet (phone). -->
+<ng-template #playerRow let-p>
+    <div class="row" [class.me]="p.id === me.id" [class.current]="p.id === room.current_player_id"
+        [class.out]="p.status !== 'playing'">
+        <span class="avatar" [style.background]="p.color">
+            {{ p.name.charAt(0) }}
+            <span class="dot" [class.on]="isOnline(p)"></span>
+        </span>
+        <div class="info">
+            @if (!namesHidden(p)) {
+            <div class="char" [class.hidden]="p.id === me.id && p.status === 'playing'">{{ characterOf(p) }}
+            </div>
+            }
+            <div class="sub" [class.lead]="namesHidden(p)">
+                {{ p.id === me.id ? 'You' : p.name }}
+                @switch (p.status) {
+                @case ('finished') { · <span class="won">★ {{ placeLabel(p.finish_place) }}</span> }
+                @case ('gave_up') { · gave up }
+                @default {
+                @if (p.id === room.current_player_id) { · <span class="now">asking now</span> }
+                }
+                }
+            </div>
+        </div>
+    </div>
+</ng-template>
+
+<ng-template #eyeIcon>
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" />
+        <circle cx="12" cy="12" r="3" />
+        @if (prefs.hideNames()) {
+        <line x1="3" y1="3" x2="21" y2="21" />
+        }
+    </svg>
+</ng-template>
+
+<div class="game" [attr.data-pane]="pane()">
     <aside class="side" aria-label="Players">
         <div class="side-head">
             <span class="logo">?</span>
@@ -8,49 +46,40 @@
         <div class="list">
             <div class="group">TURN ORDER</div>
             @for (p of ordered(); track p.id) {
-            <div class="row" [class.me]="p.id === me.id" [class.current]="p.id === room.current_player_id"
-                [class.out]="p.status !== 'playing'">
-                <span class="avatar" [style.background]="p.color">
-                    {{ p.name.charAt(0) }}
-                    <span class="dot" [class.on]="isOnline(p)"></span>
-                </span>
-                <div class="info">
-                    @if (!namesHidden(p)) {
-                    <div class="char" [class.hidden]="p.id === me.id && p.status === 'playing'">{{ characterOf(p) }}
-                    </div>
-                    }
-                    <div class="sub" [class.lead]="namesHidden(p)">
-                        {{ p.id === me.id ? 'You' : p.name }}
-                        @switch (p.status) {
-                        @case ('finished') { · <span class="won">★ {{ placeLabel(p.finish_place) }}</span> }
-                        @case ('gave_up') { · gave up }
-                        @default {
-                        @if (p.id === room.current_player_id) { · <span class="now">asking now</span> }
-                        }
-                        }
-                    </div>
-                </div>
-            </div>
+            <ng-container *ngTemplateOutlet="playerRow; context: { $implicit: p }" />
             }
         </div>
     </aside>
 
     <div class="content">
         <header class="top">
-            <span class="strong">Turn {{ room.turn_number }}</span>
-            <span class="muted">No-Voice mode · {{ ordered().length }} playing</span>
+            <div class="turn-info">
+                <span class="strong">Turn {{ room.turn_number }}</span>
+                <span class="muted mode">No-Voice mode · {{ ordered().length }} playing</span>
+            </div>
+
+            <!-- Phone: the players as a row of avatars that opens the players sheet. -->
+            <button type="button" class="avatars" aria-label="Players" (click)="playersOpen.set(true)">
+                @for (p of ordered(); track p.id) {
+                <span class="mini" [class.current]="p.id === room.current_player_id"
+                    [style.background]="p.color">{{ p.name.charAt(0) }}</span>
+                }
+                <span class="chevron" aria-hidden="true">▾</span>
+            </button>
+
+            <!-- Tablet: Notes and History open in a drawer. -->
+            <div class="tools">
+                <button type="button" class="btn btn-ghost tool" [class.on]="pane() === 'notes'"
+                    [attr.aria-pressed]="pane() === 'notes'" (click)="toggleTool('notes')">Notes</button>
+                <button type="button" class="btn btn-ghost tool" [class.on]="pane() === 'history'"
+                    [attr.aria-pressed]="pane() === 'history'" (click)="toggleTool('history')">History</button>
+            </div>
+
             <app-sky-switch class="sky" [compact]="true" />
             <button type="button" class="btn btn-ghost eye" [attr.aria-pressed]="prefs.hideNames()"
-                (click)="prefs.toggleHideNames()">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" />
-                    <circle cx="12" cy="12" r="3" />
-                    @if (prefs.hideNames()) {
-                    <line x1="3" y1="3" x2="21" y2="21" />
-                    }
-                </svg>
-                {{ prefs.hideNames() ? 'Show names' : 'Hide names' }}
+                [attr.aria-label]="prefs.hideNames() ? 'Show names' : 'Hide names'" (click)="prefs.toggleHideNames()">
+                <ng-container *ngTemplateOutlet="eyeIcon" />
+                <span class="eye-label">{{ prefs.hideNames() ? 'Show names' : 'Hide names' }}</span>
             </button>
             <button type="button" class="btn btn-ghost leave" (click)="leave.emit()">Leave room</button>
         </header>
@@ -133,7 +162,7 @@
                 <span class="pill accent">{{ currentName() }} {{ isMyTurn() ? 'guess' : 'guesses' }}</span>
                 <p class="question">Am I {{ g.text }}?</p>
                 @if (iCanJudge()) {
-                <div class="answers">
+                <div class="answers judge">
                     <button type="button" class="answer correct" [disabled]="busy"
                         (click)="judge.emit('correct')">Correct</button>
                     <button type="button" class="answer wrong" [disabled]="busy"
@@ -176,5 +205,41 @@
 
             <app-clue-board [room]="room" [players]="players" [questions]="questions" [me]="me" [isOnline]="isOnline" />
         </main>
+
+        <!-- Phone: the bottom tab bar replaces the side panels. -->
+        <nav class="tabbar" aria-label="Game sections">
+            @for (t of tabs; track t.value) {
+            <button type="button" [class.on]="pane() === t.value" [attr.aria-pressed]="pane() === t.value"
+                (click)="pane.set(t.value)">
+                {{ t.label }}
+                @if (t.value === 'play' && pane() !== 'play' && needsMe()) {
+                <span class="badge" aria-label="Your move"></span>
+                }
+            </button>
+            }
+        </nav>
     </div>
+
+    @if (playersOpen()) {
+    <button type="button" class="sheet-backdrop" aria-label="Close the players list"
+        (click)="playersOpen.set(false)"></button>
+    <section class="sheet" role="dialog" aria-label="Players">
+        <div class="sheet-head">
+            <h2>Players</h2>
+            <button type="button" class="btn btn-ghost eye-small" [attr.aria-pressed]="prefs.hideNames()"
+                (click)="prefs.toggleHideNames()">
+                <ng-container *ngTemplateOutlet="eyeIcon" />
+                {{ prefs.hideNames() ? 'Show names' : 'Hide names' }}
+            </button>
+            <button type="button" class="close" aria-label="Close" (click)="playersOpen.set(false)">×</button>
+        </div>
+        <div class="sheet-list">
+            @for (p of ordered(); track p.id) {
+            <ng-container *ngTemplateOutlet="playerRow; context: { $implicit: p }" />
+            }
+        </div>
+        <p class="small">Room {{ room.code }} · No-Voice mode</p>
+        <button type="button" class="btn btn-ghost" (click)="leave.emit()">Leave room</button>
+    </section>
+    }
 </div>
