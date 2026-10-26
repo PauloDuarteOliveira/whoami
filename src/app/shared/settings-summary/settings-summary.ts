@@ -1,5 +1,6 @@
 import { Component, Input } from '@angular/core';
 import { RoomSettings } from '../../core/room.service';
+import { plural } from '../format';
 
 @Component({
   selector: 'app-settings-summary',
@@ -15,7 +16,7 @@ import { RoomSettings } from '../../core/room.service';
           }
         </dd>
       </div>
-      <div><dt>Give up after</dt><dd>{{ settings.give_up_after }} questions</dd></div>
+      <div><dt>Give up after</dt><dd>{{ plural(settings.give_up_after, 'question') }}</dd></div>
       <div><dt>Turn timer</dt><dd>{{ settings.turn_timer_sec ? settings.turn_timer_sec / 60 + ' min' : 'No timer' }}</dd></div>
       @if (settings.character_source === 'custom') {
         <div><dt>Writing timer</dt><dd>{{ settings.writing_timer_sec ? settings.writing_timer_sec + ' s' : 'No timer' }}</dd></div>
@@ -32,4 +33,6 @@ import { RoomSettings } from '../../core/room.service';
 export class SettingsSummary {
   @Input({ required: true }) settings!: RoomSettings;
   @Input() deckName: string | null = null;
+
+  protected readonly plural = plural;
 }
