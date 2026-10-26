@@ -15,10 +15,11 @@
                     <span class="dot" [class.on]="isOnline(p)"></span>
                 </span>
                 <div class="info">
-                    <div class="char" [class.hidden]="p.id === me.id && p.status === 'playing'"
-                        [class.blurred]="prefs.hideNames() && p.id !== me.id">{{ characterOf(p) }}
+                    @if (!namesHidden(p)) {
+                    <div class="char" [class.hidden]="p.id === me.id && p.status === 'playing'">{{ characterOf(p) }}
                     </div>
-                    <div class="sub">
+                    }
+                    <div class="sub" [class.lead]="namesHidden(p)">
                         {{ p.id === me.id ? 'You' : p.name }}
                         @switch (p.status) {
                         @case ('finished') { · <span class="won">★ {{ placeLabel(p.finish_place) }}</span> }

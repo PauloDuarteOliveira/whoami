@@ -77,6 +77,14 @@ export class Game {
         return this.characters.find(c => c.assigned_to === p.id)?.name ?? '—';
     }
 
+    /**
+     * With Hide names on, other players' characters aren't shown at all (not even blurred,
+     * because a blurred word still gives away its length). Your own row isn't affected.
+     */
+    protected namesHidden(p: Player): boolean {
+        return this.prefs.hideNames() && p.id !== this.me.id;
+    }
+
     protected placeLabel(place: number | null): string {
         return placeLabel(place);
     }
