@@ -16,6 +16,8 @@ import { Game } from './game/game';
 import { Results } from './results/results';
 import { NoteService } from '../../core/note.service';
 import { NoteDraft } from './notes/notes';
+import { BoardDraft } from './board/board';
+import { WhiteboardService } from '../../core/whiteboard.service';
 
 @Component({
     selector: 'app-room',
@@ -37,6 +39,7 @@ export class RoomPage implements OnInit, OnDestroy {
     private readonly game = inject(GameService);
     private readonly questionService = inject(QuestionService);
     private readonly noteService = inject(NoteService);
+    private readonly whiteboardService = inject(WhiteboardService);
 
     protected code = '';
     private readonly deckList = signal<Deck[]>([]);
@@ -329,6 +332,17 @@ export class RoomPage implements OnInit, OnDestroy {
         this.noteService.save(room.id, me.id, draft.text, draft.visible).subscribe({
             next: note => this.store.putNote(note),
             error: () => this.actionError.set('Could not save your notes. Try again.'),
+        });
+    }
+
+    /** Like notes, the board saves in the background while you keep drawing. */
+    protected saveBoard(draft: BoardDraft): void {
+        const room = this.store.room();
+        const me = this.store.me();
+        if (!room || !me) return;
+        this.whiteboardService.save(room.id, me.id, draft.image, draft.shared).subscribe({
+            next: board => this.store.putBoard(board),
+            error: () => this.actionError.set('Could not save your board. Try again.'),
         });
     }
 

@@ -67,10 +67,12 @@
                 <span class="chevron" aria-hidden="true">▾</span>
             </button>
 
-            <!-- Tablet: Notes and History open in a drawer. -->
+            <!-- Desktop: the Board button. Tablet: Notes and History open in a drawer, the Board over the game. -->
             <div class="tools">
                 <button type="button" class="btn btn-ghost tool" [class.on]="pane() === 'notes'"
                     [attr.aria-pressed]="pane() === 'notes'" (click)="toggleTool('notes')">Notes</button>
+                <button type="button" class="btn btn-ghost tool board-tool" [class.on]="pane() === 'board'"
+                    [attr.aria-pressed]="pane() === 'board'" (click)="toggleTool('board')">Board</button>
                 <button type="button" class="btn btn-ghost tool" [class.on]="pane() === 'history'"
                     [attr.aria-pressed]="pane() === 'history'" (click)="toggleTool('history')">History</button>
             </div>
@@ -204,6 +206,13 @@
             </div>
 
             <app-clue-board [room]="room" [players]="players" [questions]="questions" [me]="me" [isOnline]="isOnline" />
+
+            <!-- A window over the game on desktop and tablet, a tab on the phone. It stays alive while hidden. -->
+            @if (pane() === 'board') {
+            <button type="button" class="board-backdrop" aria-label="Close the board" (click)="pane.set('play')"></button>
+            }
+            <app-board [me]="me" [players]="players" [boards]="boards" [open]="pane() === 'board'"
+                (save)="saveBoard.emit($event)" (closed)="pane.set('play')" />
         </main>
 
         <!-- Phone: the bottom tab bar replaces the side panels. -->
