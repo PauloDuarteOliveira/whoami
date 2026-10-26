@@ -36,6 +36,10 @@ import { PreferencesService } from '../../core/preferences.service';
     button.on { background: var(--accent); color: var(--on-accent); }
     button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
     .compact button { width: 34px; padding: 0; justify-content: center; }
+    /* Day: the sun sits behind the header, so the switch gets its own white surface and a dark
+       active half; a yellow "on" would disappear into the yellow sun. */
+    :host-context(html[data-sky="day"]) .sky-switch { background: #FFFFFF; box-shadow: 0 2px 10px rgba(11, 52, 64, 0.16); }
+    :host-context(html[data-sky="day"]) button.on { background: #0B3440; color: #FFC93C; }
     /* On a phone the switch always shows only the icons. */
     @media (max-width: 600px) {
       button { width: 34px; padding: 0; justify-content: center; }
