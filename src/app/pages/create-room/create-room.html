@@ -59,7 +59,7 @@
           <button type="button" class="step" aria-label="Fewer questions" (click)="stepGiveUp(-1)" [disabled]="form.value.giveUpAfter === 1">−</button>
           <strong>{{ form.value.giveUpAfter }}</strong>
           <button type="button" class="step" aria-label="More questions" (click)="stepGiveUp(1)" [disabled]="form.value.giveUpAfter === 99">+</button>
-          <span class="hint">questions</span>
+          <span class="hint">{{ form.value.giveUpAfter === 1 ? 'question' : 'questions' }}</span>
         </div>
       </div>
 
