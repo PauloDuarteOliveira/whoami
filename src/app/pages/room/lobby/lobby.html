@@ -15,6 +15,8 @@
           [online]="isOnline(p)"
           [canManage]="canManagePlayer(p)"
           [canChangeHelpers]="isAdmin"
+          [canHandOver]="isAdmin"
+          (handOver)="handOver.emit($event)"
           (kick)="kick.emit($event)"
           (toggleHelper)="toggleHelper.emit($event)" />
       }
