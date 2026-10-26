@@ -1,14 +1,19 @@
 @if (hasActions()) {
 <button type="button" class="more" [attr.aria-label]="'Options for ' + player.name" [attr.aria-expanded]="open()"
-    (click)="open.set(!open())">⋯</button>
+    (click)="toggle()">⋯</button>
 
 @if (open()) {
-<div class="menu" role="menu" [attr.aria-label]="'Options for ' + player.name">
+<div class="menu" role="menu" [attr.aria-label]="'Actions for ' + player.name" [style.left.px]="place().left"
+    [style.top.px]="place().top">
+    <div class="menu-head">
+        <strong>{{ player.name }}</strong>
+        @if (context) { <span [class.alert]="contextAlert">{{ context }}</span> }
+    </div>
     @if (canSkip) {
-    <button type="button" role="menuitem" (click)="choose(skip)">Skip their turn</button>
+    <button type="button" role="menuitem" class="suggested" (click)="choose(skip)">Skip their turn</button>
     }
     @if (canReport) {
-    <button type="button" role="menuitem" (click)="choose(report)">Report character</button>
+    <button type="button" role="menuitem" (click)="choose(report)">Report their character</button>
     }
     @if (canChangeHelpers) {
     <button type="button" role="menuitem" (click)="choose(toggleHelper)">
@@ -16,11 +21,13 @@
     </button>
     }
     @if (canHandOver) {
-    <button type="button" role="menuitem" (click)="choose(handOver)">Make Admin</button>
+    <button type="button" role="menuitem" (click)="choose(handOver)">Hand over Admin</button>
     }
     @if (canKick) {
+    <hr>
     <button type="button" role="menuitem" class="danger" (click)="choose(kick)">Kick from room</button>
     }
+    @if (note) { <p>{{ note }}</p> }
 </div>
 }
 }

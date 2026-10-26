@@ -1,34 +1,3 @@
-<!-- One player's row: used in the sidebar (desktop, tablet) and in the players sheet (phone). -->
-<ng-template #playerRow let-p>
-    <div class="row" [class.me]="p.id === me.id" [class.current]="p.id === room.current_player_id"
-        [class.out]="p.status !== 'playing'">
-        <span class="avatar" [style.background]="p.color">
-            {{ p.name.charAt(0) }}
-            <span class="dot" [class.on]="isOnline(p)"></span>
-        </span>
-        <div class="info">
-            @if (!namesHidden(p)) {
-            <div class="char" [class.hidden]="p.id === me.id && p.status === 'playing'">{{ characterOf(p) }}
-            </div>
-            }
-            <div class="sub" [class.lead]="namesHidden(p)">
-                {{ p.id === me.id ? 'You' : p.name }}
-                @switch (p.status) {
-                @case ('finished') { · <span class="won">★ {{ placeLabel(p.finish_place) }}</span> }
-                @case ('gave_up') { · gave up }
-                @default {
-                @if (p.id === room.current_player_id) { · <span class="now">asking now</span> }
-                }
-                }
-            </div>
-        </div>
-        <app-player-menu [player]="p" [canSkip]="canSkip(p)" [canKick]="canKick(p)"
-            [canChangeHelpers]="canChangeRoles(p)" [canHandOver]="canChangeRoles(p)" [canReport]="reportable.includes(p.id)"
-            (skip)="skipTurn.emit()" (kick)="kick.emit($event)" (toggleHelper)="toggleHelper.emit($event)"
-            (handOver)="handOver.emit($event)" (report)="report.emit($event)" />
-    </div>
-</ng-template>
-
 <ng-template #eyeIcon>
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -40,58 +9,53 @@
     </svg>
 </ng-template>
 
-<div class="game" [attr.data-pane]="pane()">
-    <aside class="side" aria-label="Players">
-        <div class="side-head">
-            <span class="logo">?</span>
-            <span class="brand">WhoAmI</span>
-            <span class="code">{{ room.code }}</span>
+<!-- Layout A (design canvas): players & clues on the left, the turn in the middle, one dock on the right
+     for Notes or History. The Board takes the middle and the dock. Phones use the tab bar instead. -->
+<div class="game" [attr.data-pane]="pane()" [attr.data-dock]="dock()" [class.dock-open]="dockOpen()">
+    <header class="top">
+        <span class="logo" aria-hidden="true">?</span>
+        <span class="brand">WhoAmI</span>
+        <span class="code">{{ room.code }}</span>
+        <span class="divider" aria-hidden="true"></span>
+        <div class="turn-info">
+            <span class="strong">Turn {{ room.turn_number }}</span>
+            <span class="muted mode">No-Voice · {{ ordered().length }} playing</span>
         </div>
-        <div class="list">
-            <div class="group">TURN ORDER</div>
+
+        <!-- Phone: the players as a row of avatars; a tap opens the Clues tab. -->
+        <button type="button" class="avatars" aria-label="Players and clues" (click)="pane.set('clues')">
             @for (p of ordered(); track p.id) {
-            <ng-container *ngTemplateOutlet="playerRow; context: { $implicit: p }" />
+            <span class="mini" [class.current]="p.id === room.current_player_id"
+                [style.background]="p.color">{{ p.name.charAt(0) }}</span>
             }
+            <span class="chevron" aria-hidden="true">▾</span>
+        </button>
+
+        <div class="tools">
+            @if (canManage() && !isMyTurn()) {
+            <button type="button" class="btn btn-ghost tool skip-tool" [disabled]="busy" (click)="skipTurn.emit()">Skip turn</button>
+            }
+            <div class="tabs" role="group" aria-label="Tools">
+                <button type="button" [attr.aria-pressed]="pane() !== 'board' && dock() === 'notes' && dockOpen()" (click)="toggleTool('notes')">Notes</button>
+                <button type="button" [attr.aria-pressed]="pane() === 'board'" (click)="toggleTool('board')">Board</button>
+                <button type="button" [attr.aria-pressed]="pane() !== 'board' && dock() === 'history' && dockOpen()" (click)="toggleTool('history')">History</button>
+            </div>
         </div>
-    </aside>
 
-    <div class="content">
-        <header class="top">
-            <div class="turn-info">
-                <span class="strong">Turn {{ room.turn_number }}</span>
-                <span class="muted mode">No-Voice mode · {{ ordered().length }} playing</span>
-            </div>
+        <app-sky-switch class="sky" [compact]="true" />
+        <!-- Phone only: on bigger screens Hide names sits on the players panel it changes. -->
+        <button type="button" class="btn btn-ghost eye" [attr.aria-pressed]="prefs.hideNames()"
+            [attr.aria-label]="prefs.hideNames() ? 'Show names' : 'Hide names'" (click)="prefs.toggleHideNames()">
+            <ng-container *ngTemplateOutlet="eyeIcon" />
+        </button>
+        <button type="button" class="btn btn-ghost leave" (click)="leave.emit()">Leave</button>
+    </header>
 
-            <!-- Phone: the players as a row of avatars that opens the players sheet. -->
-            <button type="button" class="avatars" aria-label="Players" (click)="playersOpen.set(true)">
-                @for (p of ordered(); track p.id) {
-                <span class="mini" [class.current]="p.id === room.current_player_id"
-                    [style.background]="p.color">{{ p.name.charAt(0) }}</span>
-                }
-                <span class="chevron" aria-hidden="true">▾</span>
-            </button>
-
-            <!-- Desktop: the Board button. Tablet: Notes and History open in a drawer, the Board over the game. -->
-            <div class="tools">
-                @if (canManage() && !isMyTurn()) {
-                <button type="button" class="btn btn-ghost tool skip-tool" [disabled]="busy" (click)="skipTurn.emit()">Skip turn</button>
-                }
-                <button type="button" class="btn btn-ghost tool" [class.on]="pane() === 'notes'"
-                    [attr.aria-pressed]="pane() === 'notes'" (click)="toggleTool('notes')">Notes</button>
-                <button type="button" class="btn btn-ghost tool board-tool" [class.on]="pane() === 'board'"
-                    [attr.aria-pressed]="pane() === 'board'" (click)="toggleTool('board')">Board</button>
-                <button type="button" class="btn btn-ghost tool" [class.on]="pane() === 'history'"
-                    [attr.aria-pressed]="pane() === 'history'" (click)="toggleTool('history')">History</button>
-            </div>
-
-            <app-sky-switch class="sky" [compact]="true" />
-            <button type="button" class="btn btn-ghost eye" [attr.aria-pressed]="prefs.hideNames()"
-                [attr.aria-label]="prefs.hideNames() ? 'Show names' : 'Hide names'" (click)="prefs.toggleHideNames()">
-                <ng-container *ngTemplateOutlet="eyeIcon" />
-                <span class="eye-label">{{ prefs.hideNames() ? 'Show names' : 'Hide names' }}</span>
-            </button>
-            <button type="button" class="btn btn-ghost leave" (click)="leave.emit()">Leave room</button>
-        </header>
+    <div class="body">
+        <app-players-panel class="rail" [room]="room" [players]="players" [me]="me" [characters]="characters"
+            [questions]="questions" [isOnline]="isOnline" [reportable]="reportable"
+            (skip)="skipTurn.emit()" (kick)="kick.emit($event)" (toggleHelper)="toggleHelper.emit($event)"
+            (handOver)="handOver.emit($event)" (report)="report.emit($event)" />
 
         <main class="main">
             @if (me.status === 'finished' || me.status === 'gave_up') {
@@ -210,56 +174,56 @@
                 }
             </section>
 
-            <div class="side-col">
-                <app-history [questions]="questions" [players]="players" [me]="me" />
-
-                <app-notes [me]="me" [players]="players" [notes]="notes" (save)="saveNote.emit($event)" />
-            </div>
-
-            <app-clue-board [room]="room" [players]="players" [questions]="questions" [me]="me" [isOnline]="isOnline" />
-
-            <!-- A window over the game on desktop and tablet, a tab on the phone. It stays alive while hidden. -->
+            <!-- The Board: the question stays on top, so you can vote without closing it. -->
             @if (pane() === 'board') {
-            <button type="button" class="board-backdrop" aria-label="Close the board" (click)="pane.set('play')"></button>
+            <div class="board-turn">
+                @if (room.turn_phase === 'answer_vote' && question) {
+                <span class="who-asks">{{ currentName() | uppercase }} {{ isMyTurn() ? 'ASK' : 'ASKS' }}</span>
+                <span class="board-q">{{ question.text }}</span>
+                @if (iCanVote()) {
+                <span class="board-answers">
+                    @for (a of answers; track a.value) {
+                    <button type="button" [class]="'answer ' + a.value" [disabled]="busy" (click)="vote.emit(a.value)">{{ a.label }}</button>
+                    }
+                </span>
+                } @else {
+                <span class="board-note">{{ votes.length }} of {{ voters.length }} voted</span>
+                }
+                } @else if (room.turn_phase === 'guess_vote' && guess) {
+                <span class="who-asks">{{ currentName() | uppercase }} {{ isMyTurn() ? 'GUESS' : 'GUESSES' }}</span>
+                <span class="board-q">Am I {{ guess.text }}?</span>
+                @if (iCanJudge()) {
+                <span class="board-answers">
+                    <button type="button" class="answer correct" [disabled]="busy" (click)="judge.emit('correct')">Correct</button>
+                    <button type="button" class="answer wrong" [disabled]="busy" (click)="judge.emit('wrong')">Wrong</button>
+                </span>
+                }
+                } @else {
+                <span class="who-asks">TURN {{ room.turn_number }}</span>
+                <span class="board-q">{{ isMyTurn() ? "It's your turn: close the board to ask" : currentName() + "'s turn" }}</span>
+                }
+            </div>
             }
             <app-board [me]="me" [players]="players" [boards]="boards" [open]="pane() === 'board'"
                 (save)="saveBoard.emit($event)" (closed)="pane.set('play')" />
         </main>
 
-        <!-- Phone: the bottom tab bar replaces the side panels. -->
-        <nav class="tabbar" aria-label="Game sections">
-            @for (t of tabs; track t.value) {
-            <button type="button" [class.on]="pane() === t.value" [attr.aria-pressed]="pane() === t.value"
-                (click)="pane.set(t.value)">
-                {{ t.label }}
-                @if (t.value === 'play' && pane() !== 'play' && needsMe()) {
-                <span class="badge" aria-label="Your move"></span>
-                }
-            </button>
-            }
-        </nav>
+        <aside class="dock" aria-label="Notes and history">
+            <app-history [questions]="questions" [players]="players" [me]="me" />
+            <app-notes [me]="me" [players]="players" [notes]="notes" (save)="saveNote.emit($event)" />
+        </aside>
     </div>
 
-    @if (playersOpen()) {
-    <button type="button" class="sheet-backdrop" aria-label="Close the players list"
-        (click)="playersOpen.set(false)"></button>
-    <section class="sheet" role="dialog" aria-label="Players">
-        <div class="sheet-head">
-            <h2>Players</h2>
-            <button type="button" class="btn btn-ghost eye-small" [attr.aria-pressed]="prefs.hideNames()"
-                (click)="prefs.toggleHideNames()">
-                <ng-container *ngTemplateOutlet="eyeIcon" />
-                {{ prefs.hideNames() ? 'Show names' : 'Hide names' }}
-            </button>
-            <button type="button" class="close" aria-label="Close" (click)="playersOpen.set(false)">×</button>
-        </div>
-        <div class="sheet-list">
-            @for (p of ordered(); track p.id) {
-            <ng-container *ngTemplateOutlet="playerRow; context: { $implicit: p }" />
+    <!-- Phone: the bottom tab bar replaces the side panels. -->
+    <nav class="tabbar" aria-label="Game sections">
+        @for (t of tabs; track t.value) {
+        <button type="button" [class.on]="pane() === t.value" [attr.aria-pressed]="pane() === t.value"
+            (click)="pane.set(t.value)">
+            {{ t.label }}
+            @if (t.value === 'play' && pane() !== 'play' && needsMe()) {
+            <span class="badge" aria-label="Your move"></span>
             }
-        </div>
-        <p class="small">Room {{ room.code }} · No-Voice mode</p>
-        <button type="button" class="btn btn-ghost" (click)="leave.emit()">Leave room</button>
-    </section>
-    }
+        </button>
+        }
+    </nav>
 </div>

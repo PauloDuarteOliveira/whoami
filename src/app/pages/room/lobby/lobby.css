@@ -5,7 +5,7 @@
   width: 300px;
   flex: none;
   background: var(--glass);
-  backdrop-filter: blur(10px);
+  /* No backdrop-filter: it would trap the floating ⋯ menu inside the list. */
   border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;

@@ -3,22 +3,20 @@ import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Answer, Character, GuessVerdict, Note, Player, Question, Room, Vote, Whiteboard } from '../../../core/models';
 import { NgTemplateOutlet, UpperCasePipe } from '@angular/common';
 import { characterNameValidators } from '../../../shared/validators';
-import { placeLabel } from '../../../shared/format';
-import { ClueBoard } from '../clue-board/clue-board';
+import { PlayersPanel } from '../players-panel/players-panel';
 import { NoteDraft, Notes } from '../notes/notes';
 import { History } from '../history/history';
 import { Board, BoardDraft } from '../board/board';
 import { PreferencesService } from '../../../core/preferences.service';
 import { ConfirmService } from '../../../core/confirm.service';
 import { SkySwitch } from '../../../shared/sky-switch/sky-switch';
-import { PlayerMenu } from '../../../shared/player-menu/player-menu';
 
 type GamePane = 'play' | 'clues' | 'board' | 'history' | 'notes';
 type GameTool = 'notes' | 'board' | 'history';
 
 @Component({
     selector: 'app-game',
-    imports: [ReactiveFormsModule, UpperCasePipe, NgTemplateOutlet, ClueBoard, Notes, History, Board, SkySwitch, PlayerMenu],
+    imports: [ReactiveFormsModule, UpperCasePipe, NgTemplateOutlet, PlayersPanel, Notes, History, Board, SkySwitch],
     templateUrl: './game.html',
     styleUrl: './game.css',
 })
@@ -76,11 +74,14 @@ export class Game {
     ];
 
     /**
-     * What smaller screens show (see game.css): on a tablet, 'notes' and 'history' open a drawer;
-     * on a phone (and a tablet held upright) the bottom tab bar switches between all four.
-     * Panes that aren't shown are only hidden, so unsaved notes survive a switch.
+     * Layout A: the dock on the right shows Notes or History; the Board takes the middle and the dock.
+     * Clicking the open tool again closes the dock and the turn gets the whole width. On a laptop the
+     * dock starts open; on a tablet it's a drawer that starts closed; on a phone the tab bar switches panes.
+     * Panels that aren't shown are only hidden, so unsaved notes and drawings survive a switch.
      */
     protected readonly pane = signal<GamePane>('play');
+    protected readonly dock = signal<'notes' | 'history'>('notes');
+    protected readonly dockOpen = signal(window.innerWidth > 1180);
     protected readonly tabs: { value: GamePane; label: string }[] = [
         { value: 'play', label: 'Play' },
         { value: 'clues', label: 'Clues' },
@@ -89,12 +90,16 @@ export class Game {
         { value: 'notes', label: 'Notes' },
     ];
 
-    /** The players sheet that slides up on a phone when the avatars are tapped. */
-    protected readonly playersOpen = signal(false);
-
-    /** Tablet header buttons: open a tool in the drawer, or close it when it's already open. */
+    /** Header tools: Board opens or closes the board; Notes and History open the dock, or close it if already open. */
     protected toggleTool(tool: GameTool): void {
-        this.pane.update(open => (open === tool ? 'play' : tool));
+        if (tool === 'board') {
+            this.pane.update(p => (p === 'board' ? 'play' : 'board'));
+            return;
+        }
+        const sameOpen = this.dock() === tool && this.dockOpen() && this.pane() !== 'board';
+        this.dock.set(tool);
+        this.dockOpen.set(!sameOpen);
+        if (this.pane() === 'board') this.pane.set('play');
     }
 
     /** True when the game is waiting for this player, to flag the Play tab while another tab is open. */
@@ -124,18 +129,6 @@ export class Game {
         return this.characters.find(c => c.assigned_to === p.id)?.name ?? '—';
     }
 
-    /**
-     * With Hide names on, other players' characters aren't shown at all (not even blurred,
-     * because a blurred word still gives away its length). Your own row isn't affected.
-     */
-    protected namesHidden(p: Player): boolean {
-        return this.prefs.hideNames() && p.id !== this.me.id;
-    }
-
-    protected placeLabel(place: number | null): string {
-        return placeLabel(place);
-    }
-
     // Managing the room: the Admin and Helpers -------------------------------------------------------
 
     protected isAdmin(): boolean {
@@ -144,21 +137,6 @@ export class Game {
 
     protected canManage(): boolean {
         return this.me.role === 'admin' || this.me.role === 'helper';
-    }
-
-    /** Skip turn: anyone's turn but your own (you end your own turn with Skip). */
-    protected canSkip(p: Player): boolean {
-        return this.canManage() && p.id === this.room.current_player_id && p.id !== this.me.id;
-    }
-
-    /** Helpers can't kick the Admin. */
-    protected canKick(p: Player): boolean {
-        return this.canManage() && p.id !== this.me.id && p.role !== 'admin';
-    }
-
-    /** Only the Admin names Helpers and hands over the Admin role. */
-    protected canChangeRoles(p: Player): boolean {
-        return this.isAdmin() && p.id !== this.me.id && p.role !== 'spectator';
     }
 
     protected iCanJudge(): boolean {
