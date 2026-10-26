@@ -3,7 +3,7 @@ import { Player } from './models';
 import { SUPABASE } from './supabase.client';
 
 export interface RoomWatchers {
-    /** Something in the room changed (room, characters, questions, votes, notes, players joining or leaving). */
+    /** Something in the room changed (room, characters, questions, votes, notes, boards, players joining or leaving). */
     changed: () => void;
     /** A player row changed (status, role, heartbeat…): the new row is applied without reloading everything. */
     player: (player: Player) => void;
@@ -34,12 +34,18 @@ export class RealtimeService {
             .on('postgres_changes', { event: '*', schema: 'public', table: 'characters', filter: inRoom }, changed)
             .on('postgres_changes', { event: '*', schema: 'public', table: 'questions', filter: inRoom }, changed)
             .on('postgres_changes', { event: '*', schema: 'public', table: 'notes', filter: inRoom }, changed)
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'whiteboards', filter: inRoom }, changed)
             // Votes have no room_id; Row Level Security only sends the ones from rooms you're in.
             .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'votes' }, changed)
             // Deleted rows can't be filtered by room, so any deletion (a player leaving the lobby,
             // a duplicate character removed) just triggers a reload.
             .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'players' }, changed)
             .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'characters' }, changed)
+            // If Supabase refuses the changes (for example a table missing from the Realtime publication),
+            // no change arrives at all, so the room goes back to frequent reloads.
+            .on('system', {}, (message: { status?: string; extension?: string }) => {
+                if (message.status === 'error' && message.extension === 'postgres_changes') on.live(false);
+            })
             .subscribe(status => on.live(status === 'SUBSCRIBED'));
 
         return () => {
