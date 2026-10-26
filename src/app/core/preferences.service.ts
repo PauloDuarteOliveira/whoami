@@ -11,7 +11,7 @@ const SKY_KEY = 'whoami.sky';
 export class PreferencesService {
     private readonly document = inject(DOCUMENT);
 
-    /** Blur the other players' characters, for people sitting side by side or playing on a phone. */
+    /** Hide the other players' characters, for people sitting side by side or playing on a phone. */
     readonly hideNames = signal(read(HIDE_NAMES_KEY) === 'true');
 
     /** Palm shadows Day / Night. Night is the default. */
