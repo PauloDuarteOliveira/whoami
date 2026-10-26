@@ -1,7 +1,8 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { Subject, Subscription, catchError, debounceTime, filter, forkJoin, map, merge, of, switchMap, timer } from 'rxjs';
 import { CharacterService } from './character.service';
-import { Character, Note, Player, Question, Room, Vote, Whiteboard, WhiteboardInfo } from './models';
+import { Character, Note, Player, Question, Report, ReportVote, Room, Vote, Whiteboard, WhiteboardInfo } from './models';
+import { ReportService } from './report.service';
 import { NoteService } from './note.service';
 import { PlayerService } from './player.service';
 import { RealtimeService } from './realtime.service';
@@ -30,6 +31,7 @@ export class RoomStore {
     private readonly noteService = inject(NoteService);
     private readonly realtime = inject(RealtimeService);
     private readonly whiteboardService = inject(WhiteboardService);
+    private readonly reportService = inject(ReportService);
 
     readonly room = signal<Room | null>(null);
     readonly players = signal<Player[]>([]);
@@ -39,6 +41,9 @@ export class RoomStore {
     readonly notes = signal<Note[]>([]);
     /** Your board and the shared ones, with their pictures. */
     readonly boards = signal<Whiteboard[]>([]);
+    /** Reported (troll) characters and their votes. */
+    readonly reports = signal<Report[]>([]);
+    readonly reportVotes = signal<ReportVote[]>([]);
     readonly loadState = signal<LoadState>('loading');
     readonly connectionLost = signal(false);
     /** True while Supabase Realtime is connected for this room. */
@@ -73,6 +78,8 @@ export class RoomStore {
                                         questions: this.questionService.getQuestions(room.id),
                                         notes: this.noteService.getNotes(room.id),
                                         boards: this.whiteboardService.getInfo(room.id),
+                                        reports: this.reportService.getReports(room.id),
+                                        reportVotes: this.reportService.getVotes(room.id),
                                     }).pipe(
                                         switchMap(data =>
                                             this.questionService
@@ -80,7 +87,7 @@ export class RoomStore {
                                                 .pipe(map(votes => ({ room, ...data, votes }))),
                                         ),
                                     )
-                                    : of({ room: null, players: [] as Player[], characters: [] as Character[], questions: [] as Question[], notes: [] as Note[], boards: [] as WhiteboardInfo[], votes: [] as Vote[] }),
+                                    : of({ room: null, players: [] as Player[], characters: [] as Character[], questions: [] as Question[], notes: [] as Note[], boards: [] as WhiteboardInfo[], reports: [] as Report[], reportVotes: [] as ReportVote[], votes: [] as Vote[] }),
                             ),
                             catchError(() => of('failed' as const)),
                         ),
@@ -101,6 +108,8 @@ export class RoomStore {
                     this.votes.set(result.votes);
                     this.notes.set(result.notes);
                     this.syncBoards(result.boards);
+                    this.reports.set(result.reports);
+                    this.reportVotes.set(result.reportVotes);
                     this.loadState.set(result.room ? 'ready' : 'missing');
                     if (result.room && !this.stopWatching) this.watch(result.room.id);
                 }),
@@ -169,6 +178,18 @@ export class RoomStore {
 
     putBoard(board: Whiteboard): void {
         this.boards.update(list => [...list.filter(b => b.player_id !== board.player_id), board]);
+    }
+
+    putReport(report: Report): void {
+        this.reports.update(list => [...list.filter(r => r.id !== report.id), report]);
+    }
+
+    addReportVote(vote: ReportVote): void {
+        this.reportVotes.update(list => [...list.filter(v => !(v.report_id === vote.report_id && v.voter_id === vote.voter_id)), vote]);
+    }
+
+    patchCharacter(id: string, changes: Partial<Character>): void {
+        this.characters.update(list => list.map(c => (c.id === id ? { ...c, ...changes } : c)));
     }
 
     /** Boards whose picture is being downloaded, by player, with the version asked for. */

@@ -35,6 +35,8 @@ export class RealtimeService {
             .on('postgres_changes', { event: '*', schema: 'public', table: 'questions', filter: inRoom }, changed)
             .on('postgres_changes', { event: '*', schema: 'public', table: 'notes', filter: inRoom }, changed)
             .on('postgres_changes', { event: '*', schema: 'public', table: 'whiteboards', filter: inRoom }, changed)
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'reports', filter: inRoom }, changed)
+            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'report_votes', filter: inRoom }, changed)
             // Votes have no room_id; Row Level Security only sends the ones from rooms you're in.
             .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'votes' }, changed)
             // Deleted rows can't be filtered by room, so any deletion (a player leaving the lobby,

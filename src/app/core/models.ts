@@ -121,3 +121,31 @@ export interface Whiteboard {
 
 /** A board without its picture: enough to know if it changed. */
 export type WhiteboardInfo = Omit<Whiteboard, 'image'>;
+
+/** A reported (troll) character: the room votes, then the writer rewrites it (game design, section 4). */
+export type ReportStatus = 'voting' | 'kept' | 'replaced' | 'rewritten';
+/** Second time a writer's character is replaced: the Admin or a Helper decides. */
+export type ReportDecision = 'pending' | 'chance' | 'kicked';
+
+export interface Report {
+  id: string;
+  room_id: string;
+  character_id: string;
+  receiver_id: string;
+  writer_id: string | null;
+  reporter_id: string;
+  character_name: string;
+  status: ReportStatus;
+  admin_decision: ReportDecision | null;
+  created_at: string;
+}
+
+export type ReportVoteValue = 'keep' | 'replace';
+
+export interface ReportVote {
+  report_id: string;
+  voter_id: string;
+  room_id: string;
+  value: ReportVoteValue;
+  created_at: string;
+}
