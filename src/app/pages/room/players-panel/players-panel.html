@@ -1,0 +1,91 @@
+<section class="panel" aria-label="Players and clues" data-menu-anchor>
+  <div class="head">
+    <h2>Players &amp; clues</h2>
+    <span class="hint">tap a card to open it</span>
+    <button type="button" class="icon-btn" aria-label="Search clues" [attr.aria-pressed]="searching()"
+      (click)="searching.set(!searching()); search.set('')">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /></svg>
+    </button>
+  </div>
+
+  @if (searching()) {
+    <input class="search" type="search" placeholder="Search clues (e.g. real)" aria-label="Search clues"
+      [value]="search()" (input)="search.set($any($event.target).value)">
+  }
+
+  <div class="filters" role="group" aria-label="Filter the clues">
+    @for (f of filters; track f.value) {
+      <button type="button" class="chip" [attr.aria-pressed]="filter() === f.value" (click)="filter.set(f.value)">{{ f.label }}</button>
+    }
+    <button type="button" class="names" [attr.aria-pressed]="prefs.hideNames()" (click)="prefs.toggleHideNames()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" /><circle cx="12" cy="12" r="3" />
+        @if (prefs.hideNames()) { <line x1="3" y1="3" x2="21" y2="21" /> }
+      </svg>
+      {{ prefs.hideNames() ? 'Show names' : 'Hide names' }}
+    </button>
+  </div>
+
+  <div class="cards">
+    <div class="group">PLAYING · TURN ORDER</div>
+    @for (p of stillPlaying(); track p.id) {
+      <ng-container *ngTemplateOutlet="card; context: { $implicit: p }" />
+    }
+    @if (done().length) {
+      <div class="group">FINISHED</div>
+      @for (p of done(); track p.id) {
+        <ng-container *ngTemplateOutlet="card; context: { $implicit: p }" />
+      }
+    }
+  </div>
+</section>
+
+<ng-template #card let-p>
+  <div class="pcard" [class.current]="p.id === room.current_player_id" [class.mine]="isMine(p)" [class.away]="!isOnline(p)">
+    <div class="card-row">
+      <button type="button" class="card-top" [attr.aria-expanded]="open().has(p.id)" (click)="toggle(p)">
+        <span class="avatar" [class.dashed]="!isOnline(p)" [style.background]="isOnline(p) ? p.color : 'transparent'" [style.color]="isOnline(p) ? null : p.color">
+          {{ p.name.charAt(0) }}
+          <span class="dot" [class.on]="isOnline(p)"></span>
+        </span>
+        <span class="who">
+          @if (characterOf(p); as character) {
+            <span class="char" [class.hidden]="isMine(p) && p.status === 'playing'">{{ character }}</span>
+          }
+          <span class="sub" [class.lead]="characterOf(p) === null">
+            <span class="name">{{ isMine(p) ? 'You' : p.name }}</span>
+            @if (p.role === 'admin' || p.role === 'helper') { <span class="role" [class]="'role ' + p.role">{{ p.role === 'admin' ? 'ADMIN' : 'HELPER' }}</span> }
+            <span class="state" [class]="'state ' + state(p).tone">· {{ state(p).text }}</span>
+          </span>
+        </span>
+        <span class="counts" [attr.aria-label]="count(p, 'yes') + ' yes, ' + count(p, 'no') + ' no, ' + count(p, 'unsure') + ' unsure'">
+          <span class="c-yes">✓ {{ count(p, 'yes') }}</span><span class="c-no">✗ {{ count(p, 'no') }}</span><span class="c-unsure">? {{ count(p, 'unsure') }}</span>
+        </span>
+      </button>
+      @if (!isMine(p)) {
+        <app-player-menu [player]="p" [context]="menuContext(p)" [contextAlert]="!isOnline(p)" [note]="menuNote()"
+          [canSkip]="canSkip(p)" [canKick]="canKick(p)" [canChangeHelpers]="canChangeRoles(p)" [canHandOver]="canChangeRoles(p)"
+          [canReport]="reportable.includes(p.id)"
+          (skip)="skip.emit()" (kick)="kick.emit($event)" (toggleHelper)="toggleHelper.emit($event)"
+          (handOver)="handOver.emit($event)" (report)="report.emit($event)" />
+      }
+    </div>
+
+    @if (open().has(p.id)) {
+      <div class="clues">
+        @for (g of shownGroups(p); track g.answer) {
+          <div class="clue-group">
+            <b [class]="'label-' + g.answer">{{ g.answer === 'yes' ? 'YES' : g.answer === 'no' ? 'NO' : 'UNSURE' }} · {{ g.items.length }}</b>
+            @for (q of g.items; track q.id) {
+              <span class="clue">{{ q.kind === 'guess' ? 'Guess: ' + q.text : q.text }}</span>
+            }
+          </div>
+        } @empty {
+          <span class="empty">{{ groups(p).length ? 'No clues match the filter.' : 'No answers yet.' }}</span>
+        }
+      </div>
+    } @else if (last(p); as l) {
+      <div class="last">Last: {{ l.text }} <strong [class]="'label-' + l.answer">{{ l.answer === 'yes' ? 'YES' : l.answer === 'no' ? 'NO' : 'UNSURE' }}</strong></div>
+    }
+  </div>
+</ng-template>

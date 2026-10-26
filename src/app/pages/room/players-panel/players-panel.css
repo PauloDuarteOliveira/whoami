@@ -1,0 +1,77 @@
+/* Players & clues (design Layout A). Fills its grid cell; the cards scroll inside, never the page. */
+:host { display: block; min-height: 0; min-width: 0; }
+
+.panel {
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  border-radius: 22px;
+  background: var(--glass);
+  border: 1px solid var(--border);
+  /* No backdrop-filter here: it would trap the floating ⋯ menu inside the panel. */
+}
+
+.head { display: flex; align-items: center; gap: 8px; }
+.head h2 { font-size: 18px; }
+.hint { font-size: 12px; color: var(--muted); }
+@media (max-width: 1180px) { .hint { display: none; } }
+.icon-btn { margin-left: auto; width: 34px; height: 34px; flex: none; border-radius: 10px; border: 1px solid var(--border-strong); background: transparent; color: var(--text-2); display: grid; place-items: center; cursor: pointer; }
+.icon-btn[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.search { height: 36px; padding: 0 12px; border-radius: 10px; border: 1px solid var(--border-strong); background: var(--bg); color: var(--text); font: 500 14px var(--font); }
+.search:focus { outline: none; border-color: var(--accent); }
+
+.filters { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.chip { height: 30px; padding: 0 12px; border-radius: 15px; border: 1px solid var(--border-strong); background: transparent; color: var(--text-2); font: 700 12px var(--font); cursor: pointer; }
+.chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.names { margin-left: auto; height: 32px; padding: 0 12px; border-radius: 10px; border: 1px solid var(--border-strong); background: transparent; color: var(--text-2); font: 700 12px var(--font); display: flex; align-items: center; gap: 6px; cursor: pointer; }
+.names[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.chip:focus-visible, .names:focus-visible, .icon-btn:focus-visible, .card-top:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.cards { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding: 2px; }
+.group { padding: 4px 2px 0; font-size: 11px; font-weight: 700; letter-spacing: 1px; color: var(--muted); }
+
+.pcard { flex: none; border-radius: 16px; background: var(--surface-2); border: 1px solid var(--border); }
+.pcard.current { background: var(--accent-tint); border-color: var(--accent); }
+.pcard.mine { border-color: var(--border-strong); }
+.pcard.away { opacity: .72; }
+.pcard:has(app-player-menu .more[aria-expanded="true"]) { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+.card-row { display: flex; align-items: center; gap: 4px; padding-right: 8px; }
+.card-top { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: none; border-radius: 16px; background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+
+.avatar { position: relative; width: 34px; height: 34px; flex: none; border-radius: 50%; color: var(--on-accent); font-weight: 800; text-transform: uppercase; display: grid; place-items: center; }
+.avatar.dashed { border: 2px dashed currentColor; }
+.dot { position: absolute; right: -2px; bottom: -2px; width: 11px; height: 11px; border-radius: 50%; border: 2px solid var(--surface); background: var(--faint); }
+.dot.on { background: var(--yes); }
+
+.who { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.char { font-weight: 800; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.char.hidden { color: var(--faint); }
+.sub { display: flex; align-items: center; gap: 6px; min-width: 0; font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; }
+.sub.lead .name { font-weight: 800; font-size: 15px; color: var(--text); }
+.state { overflow: hidden; text-overflow: ellipsis; }
+.state.now { color: var(--accent-text); }
+.state.done { color: var(--yes-text); }
+.state.off { color: var(--no-text); }
+.role { flex: none; padding: 1px 6px; border-radius: 5px; font-size: 10px; font-weight: 800; letter-spacing: .4px; }
+.role.admin { background: var(--accent-soft); color: var(--accent-text); }
+.role.helper { background: var(--unsure-soft); color: var(--unsure-text); }
+
+.counts { flex: none; display: flex; gap: 4px; font-size: 12px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.counts span { padding: 2px 7px; border-radius: 8px; }
+.c-yes { background: var(--yes-soft); color: var(--yes-text); }
+.c-no { background: var(--no-soft); color: var(--no-text); }
+.c-unsure { background: var(--unsure-soft); color: var(--unsure-text); }
+
+.last { padding: 0 12px 10px 56px; margin-top: -4px; font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.clues { display: flex; flex-direction: column; gap: 8px; margin: 0 12px; padding: 10px 0 12px; border-top: 1px dashed var(--border-strong); }
+.clue-group { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
+.clue-group b { width: 74px; flex: none; font-size: 11px; letter-spacing: 1px; }
+.clue { padding: 5px 9px; border-radius: 10px; background: var(--bg); color: var(--text-3); font-size: 12px; overflow-wrap: anywhere; }
+.label-yes { color: var(--yes-text); }
+.label-no { color: var(--no-text); }
+.label-unsure { color: var(--unsure-text); }
+.empty { font-size: 12px; color: var(--faint); }
