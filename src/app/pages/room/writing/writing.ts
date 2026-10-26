@@ -3,6 +3,7 @@ import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { Character, Player, Room } from '../../../core/models';
 import { SkySwitch } from '../../../shared/sky-switch/sky-switch';
 import { characterNameValidators } from '../../../shared/validators';
+import { plural } from '../../../shared/format';
 
 @Component({
   selector: 'app-writing',
@@ -11,6 +12,8 @@ import { characterNameValidators } from '../../../shared/validators';
   styleUrl: './writing.css',
 })
 export class Writing implements OnChanges {
+  protected readonly plural = plural;
+
   @Input({ required: true }) room!: Room;
   @Input({ required: true }) players: Player[] = [];
   @Input({ required: true }) me!: Player;

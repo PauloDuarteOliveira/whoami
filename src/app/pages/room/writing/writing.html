@@ -42,7 +42,7 @@
             @else { {{ missing().length }} players are still writing }
           </h1>
           <p class="muted">
-            You can start now with the {{ doneCount() }} characters already written.
+            You can start now with the {{ plural(doneCount(), 'character') }} already written.
             Players who haven't written will watch this game.
           </p>
           <div class="choices">
@@ -59,7 +59,7 @@
             }
             <button type="button" class="choice primary" (click)="startWithout.emit()" [disabled]="busy || doneCount() < 2">
               <span class="choice-title">Start without them</span>
-              <span class="choice-text">{{ doneCount() }} players, {{ doneCount() }} characters. Shuffle now.</span>
+              <span class="choice-text">{{ plural(doneCount(), 'player') }}, {{ plural(doneCount(), 'character') }}. Shuffle now.</span>
             </button>
           </div>
           @if (doneCount() < 2) {
