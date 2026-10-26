@@ -1,13 +1,15 @@
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, signal } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { Character, Player, Room } from '../../../core/models';
-import { SkySwitch } from '../../../shared/sky-switch/sky-switch';
 import { characterNameValidators } from '../../../shared/validators';
 import { plural } from '../../../shared/format';
+import { RoomTop } from '../room-top/room-top';
+import { Roster } from '../roster/roster';
 
+/** The writing phase (design Layout A): the Players rail with who's done, and your character to write. */
 @Component({
   selector: 'app-writing',
-  imports: [ReactiveFormsModule, SkySwitch],
+  imports: [ReactiveFormsModule, RoomTop, Roster],
   templateUrl: './writing.html',
   styleUrl: './writing.css',
 })
@@ -21,10 +23,18 @@ export class Writing implements OnChanges {
   @Input() now = Date.now();
   @Input() busy = false;
   @Input() notice: string | null = null;
+  /** Everyone still in the room, watchers included (for the Players rail). */
+  @Input({ required: true }) everyone: Player[] = [];
+  @Input({ required: true }) isOnline!: (player: Player) => boolean;
+  @Input() connectionLost = false;
 
   @Output() write = new EventEmitter<string>();
   @Output() startWithout = new EventEmitter<void>();
   @Output() addTime = new EventEmitter<void>();
+  @Output() leave = new EventEmitter<void>();
+  @Output() kick = new EventEmitter<Player>();
+  @Output() toggleHelper = new EventEmitter<Player>();
+  @Output() handOver = new EventEmitter<Player>();
 
   protected readonly character = new FormControl('', { nonNullable: true, validators: characterNameValidators });
   protected readonly bounced = signal<string | null>(null);

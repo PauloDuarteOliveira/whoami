@@ -1,15 +1,16 @@
 import { DatePipe } from '@angular/common';
 import { Component, EventEmitter, Input, Output, signal } from '@angular/core';
 import { Player, Room } from '../../../core/models';
-import { PlayerRow } from '../../../shared/player-row/player-row';
-import { SkySwitch } from '../../../shared/sky-switch/sky-switch';
 import { SettingsSummary } from '../../../shared/settings-summary/settings-summary';
+import { RoomTop } from '../room-top/room-top';
+import { Roster } from '../roster/roster';
 
 export const MIN_PLAYERS = 2;
 
+/** The lobby (design Layout A): the Players rail, the code to share, the settings and Start. */
 @Component({
   selector: 'app-lobby',
-  imports: [DatePipe, PlayerRow, SettingsSummary, SkySwitch],
+  imports: [DatePipe, RoomTop, Roster, SettingsSummary],
   templateUrl: './lobby.html',
   styleUrl: './lobby.css',
 })
@@ -35,20 +36,8 @@ export class Lobby {
     return this.me.role === 'admin';
   }
 
-  protected get canManage(): boolean {
-    return this.me.role === 'admin' || this.me.role === 'helper';
-  }
-
   protected get playing(): Player[] {
     return this.players.filter(p => p.role !== 'spectator');
-  }
-
-  protected get watching(): Player[] {
-    return this.players.filter(p => p.role === 'spectator');
-  }
-
-  protected canManagePlayer(p: Player): boolean {
-    return this.canManage && p.role !== 'admin';
   }
 
   protected inviteLink(): string {

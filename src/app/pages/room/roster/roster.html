@@ -1,0 +1,47 @@
+<section class="panel" aria-label="Players" data-menu-anchor>
+  <div class="head">
+    <h2>Players</h2>
+    <span class="count">{{ count() }}</span>
+  </div>
+
+  <div class="cards">
+    <div class="group">{{ phase === 'lobby' ? 'IN THE LOBBY' : 'WRITING A CHARACTER' }}</div>
+    @for (p of playing(); track p.id) {
+      <ng-container *ngTemplateOutlet="card; context: { $implicit: p }" />
+    }
+    @if (phase === 'lobby') {
+      <div class="waiting"><span class="plus" aria-hidden="true">+</span>Waiting for friends…</div>
+    }
+
+    @if (watching().length) {
+      <div class="group">WATCHING · {{ watching().length }}</div>
+      @for (p of watching(); track p.id) {
+        <ng-container *ngTemplateOutlet="card; context: { $implicit: p }" />
+      }
+    }
+  </div>
+</section>
+
+<ng-template #card let-p>
+  <div class="pcard" [class.mine]="p.id === me.id" [class.away]="!isOnline(p)">
+    <span class="avatar" [class.dashed]="!isOnline(p)" [style.background]="isOnline(p) ? p.color : 'transparent'"
+      [style.color]="isOnline(p) ? null : p.color">
+      {{ p.name.charAt(0) }}
+      <span class="dot" [class.on]="isOnline(p)" [attr.aria-label]="isOnline(p) ? 'Online' : 'Offline'"></span>
+    </span>
+    <span class="who">
+      <span class="name">{{ p.id === me.id ? 'You' : p.name }}</span>
+      <span class="sub">
+        @if (p.role === 'admin' || p.role === 'helper') {
+          <span [class]="'role ' + p.role">{{ p.role === 'admin' ? 'ADMIN' : 'HELPER' }}</span>
+        }
+        <span [class]="'state ' + state(p).tone">{{ state(p).text }}</span>
+      </span>
+    </span>
+    @if (p.id !== me.id) {
+      <app-player-menu [player]="p" [context]="menuContext(p)" [contextAlert]="!isOnline(p)" [note]="menuNote()"
+        [canKick]="canKick(p)" [canChangeHelpers]="canChangeRoles(p)" [canHandOver]="canChangeRoles(p)"
+        (kick)="kick.emit($event)" (toggleHelper)="toggleHelper.emit($event)" (handOver)="handOver.emit($event)" />
+    }
+  </div>
+</ng-template>
