@@ -17,18 +17,9 @@
     </div>
 
     @if (canManage && !isMe) {
-    <button type="button" class="more" [attr.aria-label]="'Options for ' + player.name"
-        [attr.aria-expanded]="menuOpen()" (click)="menuOpen.set(!menuOpen())">⋯</button>
-
-    @if (menuOpen()) {
-    <div class="menu" role="menu">
-        @if (canChangeHelpers && player.role !== 'spectator') {
-        <button type="button" role="menuitem" (click)="onToggleHelper()">
-            {{ player.role === 'helper' ? 'Remove Helper' : 'Make Helper' }}
-        </button>
-        }
-        <button type="button" role="menuitem" class="danger" (click)="onKick()">Kick from room</button>
-    </div>
-    }
+    <app-player-menu [player]="player" [canKick]="true"
+        [canChangeHelpers]="canChangeHelpers && player.role !== 'spectator'"
+        [canHandOver]="canHandOver && player.role !== 'spectator'"
+        (kick)="kick.emit($event)" (toggleHelper)="toggleHelper.emit($event)" (handOver)="handOver.emit($event)" />
     }
 </div>

@@ -361,8 +361,37 @@ export class RoomPage implements OnInit, OnDestroy {
 
     protected kick(player: Player): void {
         if (!confirm(`Kick ${player.name} from the room?`)) return;
+        const room = this.store.room();
+        const steps: Observable<unknown>[] = [];
+        // Kicking the player whose turn it is: pass the turn first, so nobody waits for someone who's gone.
+        if (room?.status === 'playing' && room.current_player_id === player.id) {
+            const players = this.store.players().map(p => (p.id === player.id ? { ...p, status: 'kicked' as const } : p));
+            if (players.filter(p => p.status === 'playing' && p.role !== 'spectator').length >= 2) {
+                steps.push(this.game.nextTurn(room, players));
+            }
+        }
+        steps.push(this.playerService.kick(player.id));
         this.store.patchPlayer(player.id, { status: 'kicked' });
-        this.run(this.playerService.kick(player.id));
+        this.run(concat(...steps));
+    }
+
+    /** The Admin or a Helper passes the turn of a player who's away or stuck. */
+    protected skipTurn(): void {
+        const room = this.store.room();
+        if (!room || room.status !== 'playing') return;
+        const current = this.store.players().find(p => p.id === room.current_player_id);
+        if (!confirm(`Skip ${current?.name ?? 'this player'}'s turn?`)) return;
+        this.run(this.game.nextTurn(room, this.store.players()));
+    }
+
+    /** The Admin makes someone else Admin and becomes a Helper, so they can still help run the room. */
+    protected handOver(player: Player): void {
+        const me = this.store.me();
+        if (!me || me.role !== 'admin') return;
+        if (!confirm(`Make ${player.name} the Admin? You'll become a Helper.`)) return;
+        this.store.patchPlayer(player.id, { role: 'admin' });
+        this.store.patchPlayer(me.id, { role: 'helper' });
+        this.run(concat(this.playerService.setRole(player.id, 'admin'), this.playerService.setRole(me.id, 'helper')));
     }
 
     protected toggleHelper(player: Player): void {

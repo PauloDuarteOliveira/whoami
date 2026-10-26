@@ -34,9 +34,9 @@
 
     <main class="main">
       @if (showDecision()) {
-        <!-- Admin decision (W06) -->
+        <!-- Admin and Helpers decision (W06) -->
         <section class="card decision" aria-label="Admin decision">
-          <span class="label">ONLY YOU SEE THIS · ADMIN</span>
+          <span class="label">ONLY THE ADMIN AND HELPERS SEE THIS</span>
           <h1>
             @if (missing().length === 1) { {{ missing()[0].name }} is still writing }
             @else { {{ missing().length }} players are still writing }

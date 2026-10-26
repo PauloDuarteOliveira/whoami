@@ -30,7 +30,7 @@
 .list { padding: 16px 12px; display: flex; flex-direction: column; gap: 4px; }
 .group { padding: 8px; font-size: 11px; font-weight: 600; letter-spacing: 1px; color: var(--muted); }
 
-.row { display: flex; align-items: center; gap: 10px; padding: 8px; border-radius: 12px; border: 1px solid transparent; }
+.row { position: relative; display: flex; align-items: center; gap: 10px; padding: 8px; border-radius: 12px; border: 1px solid transparent; }
 .row.me { background: var(--surface-2); }
 .row.current { border-color: var(--accent); background: var(--accent-tint); }
 
@@ -61,7 +61,7 @@
 
 .dot.on { background: var(--yes); }
 
-.info { min-width: 0; }
+.info { flex: 1; min-width: 0; }
 .char { font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .char.hidden { color: var(--faint); }
 .sub { font-size: 12px; color: var(--muted); }
@@ -176,9 +176,9 @@ app-clue-board { grid-column: 1 / -1; }
 .tools ~ .sky { margin-left: 0; }
 .tool { height: 40px; }
 .tool.on { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
-/* On desktop, Notes and History are always on screen, so only the Board button is needed. */
+/* On desktop, Notes and History are always on screen, so only Skip turn and Board are needed. */
 @media (min-width: 1181px) {
-  .tools .tool:not(.board-tool) { display: none; }
+  .tools .tool:not(.board-tool):not(.skip-tool) { display: none; }
 }
 
 /* The Board: hidden until opened. On desktop and tablet it's a large window over the game. */

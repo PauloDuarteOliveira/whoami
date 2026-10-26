@@ -22,6 +22,10 @@
                 }
             </div>
         </div>
+        <app-player-menu [player]="p" [canSkip]="canSkip(p)" [canKick]="canKick(p)"
+            [canChangeHelpers]="canChangeRoles(p)" [canHandOver]="canChangeRoles(p)"
+            (skip)="skipTurn.emit()" (kick)="kick.emit($event)" (toggleHelper)="toggleHelper.emit($event)"
+            (handOver)="handOver.emit($event)" />
     </div>
 </ng-template>
 
@@ -69,6 +73,9 @@
 
             <!-- Desktop: the Board button. Tablet: Notes and History open in a drawer, the Board over the game. -->
             <div class="tools">
+                @if (canManage() && !isMyTurn()) {
+                <button type="button" class="btn btn-ghost tool skip-tool" [disabled]="busy" (click)="skipTurn.emit()">Skip turn</button>
+                }
                 <button type="button" class="btn btn-ghost tool" [class.on]="pane() === 'notes'"
                     [attr.aria-pressed]="pane() === 'notes'" (click)="toggleTool('notes')">Notes</button>
                 <button type="button" class="btn btn-ghost tool board-tool" [class.on]="pane() === 'board'"

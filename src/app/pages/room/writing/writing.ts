@@ -75,7 +75,8 @@ export class Writing implements OnChanges {
   }
 
   protected showDecision(): boolean {
-    if (this.me.role !== 'admin' || !this.mine() || this.missing().length === 0) return false;
+    const runsTheRoom = this.me.role === 'admin' || this.me.role === 'helper';
+    if (!runsTheRoom || !this.mine() || this.missing().length === 0) return false;
     const left = this.secondsLeft();
     if (left !== null) return left === 0;
     return this.dismissedAt() !== this.doneCount();

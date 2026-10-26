@@ -26,6 +26,7 @@ export class Lobby {
   @Output() leave = new EventEmitter<void>();
   @Output() kick = new EventEmitter<Player>();
   @Output() toggleHelper = new EventEmitter<Player>();
+  @Output() handOver = new EventEmitter<Player>();
 
   protected readonly copied = signal<'code' | 'link' | null>(null);
   protected readonly minPlayers = MIN_PLAYERS;

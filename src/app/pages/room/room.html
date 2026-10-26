@@ -38,7 +38,8 @@
               (start)="start()"
               (leave)="leave()"
               (kick)="kick($event)"
-              (toggleHelper)="toggleHelper($event)" />
+              (toggleHelper)="toggleHelper($event)"
+              (handOver)="handOver($event)" />
           }
           @case ('writing') {
             <app-writing
@@ -79,7 +80,11 @@
               [notes]="store.notes()"
               (saveNote)="saveNote($event)"
               [boards]="store.boards()"
-              (saveBoard)="saveBoard($event)" />
+              (saveBoard)="saveBoard($event)"
+              (skipTurn)="skipTurn()"
+              (kick)="kick($event)"
+              (toggleHelper)="toggleHelper($event)"
+              (handOver)="handOver($event)" />
           }
           @case ('finished') {
             <app-results

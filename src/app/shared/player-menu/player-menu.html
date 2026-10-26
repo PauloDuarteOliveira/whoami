@@ -1,0 +1,23 @@
+@if (hasActions()) {
+<button type="button" class="more" [attr.aria-label]="'Options for ' + player.name" [attr.aria-expanded]="open()"
+    (click)="open.set(!open())">⋯</button>
+
+@if (open()) {
+<div class="menu" role="menu" [attr.aria-label]="'Options for ' + player.name">
+    @if (canSkip) {
+    <button type="button" role="menuitem" (click)="choose(skip)">Skip their turn</button>
+    }
+    @if (canChangeHelpers) {
+    <button type="button" role="menuitem" (click)="choose(toggleHelper)">
+        {{ player.role === 'helper' ? 'Remove Helper' : 'Make Helper' }}
+    </button>
+    }
+    @if (canHandOver) {
+    <button type="button" role="menuitem" (click)="choose(handOver)">Make Admin</button>
+    }
+    @if (canKick) {
+    <button type="button" role="menuitem" class="danger" (click)="choose(kick)">Kick from room</button>
+    }
+</div>
+}
+}
