@@ -17,7 +17,8 @@
     </div>
 
     @if (canManage && !isMe) {
-    <app-player-menu [player]="player" [canKick]="true"
+    <app-player-menu [player]="player" [canKick]="true" [context]="online ? 'In the lobby' : 'Offline'" [contextAlert]="!online"
+        [note]="canChangeHelpers ? 'Helpers see the same menu, except Make Helper and Hand over Admin.' : ''"
         [canChangeHelpers]="canChangeHelpers && player.role !== 'spectator'"
         [canHandOver]="canHandOver && player.role !== 'spectator'"
         (kick)="kick.emit($event)" (toggleHelper)="toggleHelper.emit($event)" (handOver)="handOver.emit($event)" />
