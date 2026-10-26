@@ -1,10 +1,18 @@
+/* Palm shadows theme. Night is the default; html[data-sky="day"] switches every colour to its day version.
+   Fills (--accent, --yes…) and text (--accent-text, --yes-text…) are separate, because a colour that
+   works as a button on a dark night sky is too light to read as text on a bright day sky. */
 :root {
+  --page-bg: radial-gradient(circle at 82% 19%, rgba(255, 248, 236, 0.10), transparent 30%),
+    radial-gradient(circle at 9% 13%, rgba(255, 201, 60, 0.14), transparent 22%),
+    linear-gradient(180deg, #082C37 0%, #0A3A47 55%, #0D4A52 100%);
   --bg: #0A3440;
   --surface: #0F4553;
   --surface-2: #135260;
   --surface-3: #186070;
+  --glass: rgba(15, 69, 83, 0.78);
   --border: #1E5A68;
   --border-strong: #2C7383;
+  --btn-shadow: rgba(0, 0, 0, 0.38);
 
   --text: #F4FBF9;
   --text-2: #BFE3E3;
@@ -13,32 +21,80 @@
   --faint: #5A9AA0;
 
   --accent: #FFC93C;
+  --accent-text: #FFC93C;
+  --on-accent: #0A3440;
   --accent-hover: #FFDA75;
   --accent-soft: #4D5124;
   --accent-tint: #3A4B2C;
   --accent-deep: #B8861C;
 
   --yes: #5CF2C2;
+  --yes-text: #5CF2C2;
   --yes-soft: #0F4A42;
   --no: #FF9A9A;
+  --no-text: #FF9A9A;
   --no-soft: #4A2E3A;
   --unsure: #A8CBFF;
+  --unsure-text: #A8CBFF;
   --unsure-soft: #14406A;
+
+  --palm: #05222A;
+  --palm-opacity: 1;
 
   --radius: 14px;
   --radius-lg: 18px;
   --font: 'Fredoka', system-ui, sans-serif;
   --font-display: 'Titan One', system-ui, sans-serif;
+
+  color-scheme: dark;
+}
+
+html[data-sky="day"] {
+  --page-bg: radial-gradient(circle at 82% 19%, rgba(255, 214, 94, 0.32), transparent 30%),
+    linear-gradient(180deg, #BDE7F0 0%, #E3F6F4 55%, #FFEFD3 100%);
+  --bg: rgba(255, 255, 255, 0.92);
+  --surface: rgba(255, 255, 255, 0.74);
+  --surface-2: rgba(11, 52, 64, 0.07);
+  --surface-3: #F2FAF8;
+  --glass: rgba(255, 255, 255, 0.66);
+  --border: rgba(11, 52, 64, 0.14);
+  --border-strong: rgba(11, 52, 64, 0.28);
+  --btn-shadow: rgba(11, 52, 64, 0.18);
+
+  --text: #0B3440;
+  --text-2: #1A4751;
+  --text-3: #224E56;
+  --muted: #2C585E;
+  --faint: #3E666B;
+
+  --accent-text: #7A5000;
+  --accent-hover: #8A5A00;
+  --accent-soft: #FFE7A3;
+  --accent-tint: #FFF1C7;
+
+  --yes-text: #0E6A4D;
+  --yes-soft: #DDF7EE;
+  --no-text: #A33232;
+  --no-soft: #FFE3E3;
+  --unsure-text: #2453B3;
+  --unsure-soft: #E2ECFF;
+
+  --palm: #2C8C78;
+  --palm-opacity: 0.35;
+
+  color-scheme: light;
 }
 
 *, *::before, *::after { box-sizing: border-box; }
 
 html, body { height: 100%; }
 
+html { background: var(--page-bg) fixed; }
+
 body {
   margin: 0;
-    background: linear-gradient(180deg, #082C37 0%, #0A3A47 55%, #0D4A52 100%) fixed;
   color: var(--text);
+  transition: color 0.6s;
   font-family: var(--font);
   font-size: 14px;
   -webkit-font-smoothing: antialiased;
@@ -46,7 +102,7 @@ body {
 
 h1, h2, h3 { margin: 0; font-family: var(--font-display); font-weight: 400; letter-spacing: 0.5px; }
 
-a:not(.btn) { color: var(--accent); }
+a:not(.btn) { color: var(--accent-text); }
 a:not(.btn):hover { color: var(--accent-hover); }
 
 /* Buttons ----------------------------------------------------------------- */
@@ -70,12 +126,12 @@ a:not(.btn):hover { color: var(--accent-hover); }
 .btn:disabled { opacity: .45; cursor: not-allowed; }
 .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-.btn-primary { background: var(--accent); color: var(--bg); font-weight: 800; }
+.btn-primary { background: var(--accent); color: var(--on-accent); font-weight: 800; }
 .btn-ghost { background: transparent; border-color: var(--border-strong); color: var(--text-2); }
-.btn-danger { background: transparent; color: var(--no); }
+.btn-danger { background: transparent; color: var(--no-text); }
 
-.btn:not(.btn-ghost):not(.btn-danger) { box-shadow: 0 4px 0 rgba(0, 0, 0, .38); transition: transform .08s; }
-.btn:not(.btn-ghost):not(.btn-danger):active:not(:disabled) { transform: translateY(3px); box-shadow: 0 1px 0 rgba(0, 0, 0, .38); }
+.btn:not(.btn-ghost):not(.btn-danger) { box-shadow: 0 4px 0 var(--btn-shadow); transition: transform .08s; }
+.btn:not(.btn-ghost):not(.btn-danger):active:not(:disabled) { transform: translateY(3px); box-shadow: 0 1px 0 var(--btn-shadow); }
 .btn-primary { box-shadow: 0 5px 0 var(--accent-deep) !important; }
 
 /* Form fields ------------------------------------------------------------- */
@@ -102,7 +158,7 @@ a:not(.btn):hover { color: var(--accent-hover); }
 .input:focus { outline: none; border-color: var(--accent); }
 .input.ng-invalid.ng-touched { border-color: var(--no); }
 
-.error-text { font-size: 12px; color: var(--no); }
+.error-text { font-size: 12px; color: var(--no-text); }
 
 /* Surfaces and small parts ------------------------------------------------ */
 
@@ -122,8 +178,8 @@ a:not(.btn):hover { color: var(--accent-hover); }
   line-height: 16px;
 }
 
-.tag-admin { background: var(--accent-soft); color: var(--accent); }
-.tag-helper { background: var(--unsure-soft); color: var(--unsure); }
+.tag-admin { background: var(--accent-soft); color: var(--accent-text); }
+.tag-helper { background: var(--unsure-soft); color: var(--unsure-text); }
 .tag-supporter, .tag-spectator { background: var(--surface-2); color: var(--text-2); }
 
 * { scrollbar-width: thin; scrollbar-color: var(--border-strong) transparent; }
