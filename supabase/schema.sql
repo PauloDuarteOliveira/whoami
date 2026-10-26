@@ -148,8 +148,9 @@ create trigger rooms_touch before update on rooms
   for each row execute function touch_updated_at();
 
 -- Access ---------------------------------------------------------------------
--- 25/10 version: anyone with the app can read and write (like JSON Server).
--- The Lab replaces these open policies with real rules (Auth + hidden characters).
+-- First version: anyone with the app can read and write (like JSON Server).
+-- After this file, run supabase/migrations/ in order: 001 links players to Supabase Auth users,
+-- 002 replaces these open policies with Row Level Security rules based on auth.uid().
 
 grant usage on schema public to anon, authenticated;
 grant select, insert, update, delete on all tables in schema public to anon, authenticated;
