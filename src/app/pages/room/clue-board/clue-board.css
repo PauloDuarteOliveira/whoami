@@ -7,3 +7,10 @@
 .filter.active { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
 
 .cards { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 6px; }
+
+/* Phone: one card per row, full width, in a normal scrolling list. */
+@media (max-width: 900px) {
+  .board { padding: 16px; }
+  .cards { flex-direction: column; overflow: visible; }
+  .cards app-clue-card { flex: 0 0 auto; }
+}
