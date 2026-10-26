@@ -14,8 +14,10 @@ export class AuthService {
     private readonly client = createClient(environment.supabaseUrl, environment.supabaseKey, {
         auth: {
             // One session per tab, like the player sessions, so two tabs are two different players.
+            // The key is unique per tab because supabase-js also shares sign-ins between tabs with the same key
+            // (a BroadcastChannel named after it): with one shared key, a new tab would switch the others to its user.
             storage: browserSessionStorage(),
-            storageKey: 'whoami.auth',
+            storageKey: `whoami.auth.${tabId()}`,
             persistSession: true,
             autoRefreshToken: true,
         },
@@ -50,6 +52,20 @@ export class AuthService {
 
     accessToken(): string | null {
         return this.session()?.access_token ?? null;
+    }
+}
+
+/** A random id for this tab, kept in sessionStorage so it survives a reload but isn't shared with other tabs. */
+function tabId(): string {
+    try {
+        let id = sessionStorage.getItem('whoami.tab');
+        if (!id) {
+            id = crypto.randomUUID();
+            sessionStorage.setItem('whoami.tab', id);
+        }
+        return id;
+    } catch {
+        return crypto.randomUUID();
     }
 }
 
