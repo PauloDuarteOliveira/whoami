@@ -62,7 +62,7 @@
 }
 
 .room-card.ok { background: var(--yes-soft); border-color: rgba(92, 242, 194, 0.35); }
-.room-card.bad { background: var(--no-soft); border-color: rgba(255, 154, 154, 0.35); color: var(--no); }
+.room-card.bad { background: var(--no-soft); border-color: rgba(255, 154, 154, 0.35); color: var(--no-text); }
 
 .badge {
   width: 40px;
@@ -70,7 +70,7 @@
   flex: none;
   border-radius: 50%;
   background: var(--yes);
-  color: var(--bg);
+  color: var(--on-accent);
   font-weight: 800;
   display: flex;
   align-items: center;

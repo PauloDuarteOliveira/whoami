@@ -38,6 +38,7 @@
         <header class="top">
             <span class="strong">Turn {{ room.turn_number }}</span>
             <span class="muted">No-Voice mode · {{ ordered().length }} playing</span>
+            <app-sky-switch class="sky" [compact]="true" />
             <button type="button" class="btn btn-ghost eye" [attr.aria-pressed]="prefs.hideNames()"
                 (click)="prefs.toggleHideNames()">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"

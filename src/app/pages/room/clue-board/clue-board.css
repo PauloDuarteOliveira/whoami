@@ -4,6 +4,6 @@
 
 .filters { display: flex; gap: 6px; }
 .filter { height: 32px; padding: 0 14px; border-radius: 16px; border: 1px solid var(--border-strong); background: transparent; color: var(--text-2); font-weight: 600; }
-.filter.active { background: var(--accent); border-color: var(--accent); color: var(--bg); }
+.filter.active { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
 
 .cards { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 6px; }

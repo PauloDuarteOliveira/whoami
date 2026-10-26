@@ -2,13 +2,14 @@ import { DatePipe } from '@angular/common';
 import { Component, EventEmitter, Input, Output, signal } from '@angular/core';
 import { Player, Room } from '../../../core/models';
 import { PlayerRow } from '../../../shared/player-row/player-row';
+import { SkySwitch } from '../../../shared/sky-switch/sky-switch';
 import { SettingsSummary } from '../../../shared/settings-summary/settings-summary';
 
 export const MIN_PLAYERS = 2;
 
 @Component({
   selector: 'app-lobby',
-  imports: [DatePipe, PlayerRow, SettingsSummary],
+  imports: [DatePipe, PlayerRow, SettingsSummary, SkySwitch],
   templateUrl: './lobby.html',
   styleUrl: './lobby.css',
 })

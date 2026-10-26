@@ -1,14 +1,16 @@
 import { Component, Input } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { SkySwitch } from '../sky-switch/sky-switch';
 
 @Component({
   selector: 'app-page-header',
-  imports: [RouterLink],
+  imports: [RouterLink, SkySwitch],
   template: `
     <header class="bar">
       <a routerLink="/" class="back">← Back</a>
       <span class="logo">?</span>
       <span class="title">{{ title }}</span>
+      <app-sky-switch class="sky" />
     </header>
   `,
   styles: `
@@ -28,13 +30,14 @@ import { RouterLink } from '@angular/router';
       height: 30px;
       border-radius: 8px;
       background: var(--accent);
-      color: var(--bg);
+      color: var(--on-accent);
       font-weight: 800;
       display: flex;
       align-items: center;
       justify-content: center;
     }
     .title { font-weight: 800; font-size: 17px; }
+    .sky { margin-left: auto; }
     @media (max-width: 600px) { .bar { padding: 0 16px; } }
   `,
 })

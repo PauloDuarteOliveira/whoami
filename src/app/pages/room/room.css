@@ -22,6 +22,6 @@
   border-radius: 14px;
   background: var(--no-soft);
   border: 1px solid rgba(255, 154, 154, 0.35);
-  color: var(--no);
+  color: var(--no-text);
   font-weight: 600;
 }

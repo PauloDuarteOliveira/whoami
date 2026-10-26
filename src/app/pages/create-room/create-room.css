@@ -32,7 +32,7 @@ h2 { font-size: 16px; margin-bottom: 4px; }
 
 .choice:hover { border-color: var(--border-strong); }
 .choice.on { border: 2px solid var(--accent); background: var(--accent-tint); padding: 15px; }
-.choice.on .choice-title::after { content: ' ✓'; color: var(--accent); }
+.choice.on .choice-title::after { content: ' ✓'; color: var(--accent-text); }
 
 .choice-title { font-weight: 800; font-size: 16px; }
 .choice-text { color: var(--muted); line-height: 1.45; }
@@ -52,7 +52,7 @@ h2 { font-size: 16px; margin-bottom: 4px; }
   cursor: pointer;
 }
 
-.chip.on { background: var(--accent); border-color: var(--accent); color: var(--bg); }
+.chip.on { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
 
 /* Setting cards */
 .card-title { font-weight: 800; margin-bottom: 4px; }
@@ -93,7 +93,7 @@ h2 { font-size: 16px; margin-bottom: 4px; }
   white-space: nowrap;
 }
 
-.seg.on { background: var(--accent); color: var(--bg); font-weight: 800; }
+.seg.on { background: var(--accent); color: var(--on-accent); font-weight: 800; }
 
 /* Summary panel on the right */
 .summary {
@@ -112,7 +112,7 @@ h2 { font-size: 16px; margin-bottom: 4px; }
 .summary .hint { margin: 0; }
 
 .divider { height: 1px; background: var(--border); }
-.accent { color: var(--accent); }
+.accent { color: var(--accent-text); }
 
 .create { height: 52px; border-radius: 12px; font-size: 16px; }
 

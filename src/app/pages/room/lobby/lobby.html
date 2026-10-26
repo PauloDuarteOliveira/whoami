@@ -36,6 +36,7 @@
       @if (connectionLost) {
         <span class="lost" role="status">Reconnecting…</span>
       }
+      <app-sky-switch class="sky" [compact]="true" />
       <button type="button" class="btn btn-ghost leave" (click)="leave.emit()">Leave room</button>
     </header>
 
