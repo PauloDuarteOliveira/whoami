@@ -32,6 +32,22 @@
 
 .how:hover { color: var(--text); }
 
+.account {
+  margin-left: 16px;
+  padding: 8px 14px;
+  border: 1px solid var(--border-strong);
+  border-radius: 12px;
+  color: var(--text-2);
+  font: 600 14px var(--font);
+  text-decoration: none;
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.account:hover { color: var(--text); border-color: var(--accent); }
+
 .layout {
   min-height: calc(100vh - 64px);
   max-width: 1280px;

@@ -37,8 +37,6 @@ Then open http://localhost:4200.
 
 ## Deploy
 
-## Deploy
-
 Every pull request is checked by GitHub Actions (install → lint → build).
 Every merge into `main` is built and published to GitHub Pages automatically.
 The Supabase URL and key come from the repository secrets `SUPABASE_URL` and `SUPABASE_KEY`.

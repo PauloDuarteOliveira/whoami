@@ -1,5 +1,5 @@
 import { Injectable, computed, signal } from '@angular/core';
-import { Session, createClient } from '@supabase/supabase-js';
+import { AuthError, Session, createClient } from '@supabase/supabase-js';
 import { environment } from '../../environments/environment';
 
 export type AuthStatus = 'loading' | 'ready' | 'error';
@@ -26,6 +26,11 @@ export class AuthService {
     readonly session = signal<Session | null>(null);
     readonly status = signal<AuthStatus>('loading');
     readonly userId = computed(() => this.session()?.user.id ?? null);
+    /** True for the invisible guest account; false once the player has an email account. */
+    readonly isAnonymous = computed(() => this.session()?.user.is_anonymous ?? true);
+    readonly email = computed(() => this.session()?.user.email ?? null);
+    /** The name saved with the account, so it follows the player to other devices. */
+    readonly accountName = computed(() => (this.session()?.user.user_metadata?.['name'] as string | undefined) ?? null);
 
     constructor() {
         // Keeps the token fresh: Supabase refreshes it about every hour and tells us here.
@@ -52,6 +57,52 @@ export class AuthService {
 
     accessToken(): string | null {
         return this.session()?.access_token ?? null;
+    }
+
+    /**
+     * Turns this tab's guest account into an email account. It stays the same user,
+     * so the players it already owns keep working. Returns an error message, or null when it worked.
+     */
+    async createAccount(email: string, password: string, name: string): Promise<string | null> {
+        const withEmail = await this.client.auth.updateUser({ email, data: { name } });
+        if (withEmail.error) return friendlyError(withEmail.error);
+        const withPassword = await this.client.auth.updateUser({ password });
+        if (withPassword.error) return friendlyError(withPassword.error);
+        return null;
+    }
+
+    /** Signs this tab in to an existing email account (instead of the guest account). */
+    async signInWithEmail(email: string, password: string): Promise<string | null> {
+        const result = await this.client.auth.signInWithPassword({ email, password });
+        return result.error ? friendlyError(result.error) : null;
+    }
+
+    /** Leaves the email account and goes back to a fresh guest account, so the app keeps working. */
+    async signOut(): Promise<void> {
+        await this.client.auth.signOut();
+        await this.signIn();
+    }
+}
+
+/** Supabase's error codes turned into short messages for the player. */
+function friendlyError(error: AuthError): string {
+    switch (error.code) {
+        case 'email_exists':
+        case 'user_already_exists':
+            return 'There is already an account with this email. Sign in instead.';
+        case 'invalid_credentials':
+            return 'Wrong email or password.';
+        case 'weak_password':
+            return 'That password is too weak. Use at least 6 characters.';
+        case 'email_address_invalid':
+            return 'That email address is not valid.';
+        case 'over_email_send_rate_limit':
+        case 'over_request_rate_limit':
+            return 'Too many attempts. Wait a minute and try again.';
+        case 'email_not_confirmed':
+            return 'Confirm your email first, using the link we sent you.';
+        default:
+            return 'Something went wrong. Check your connection and try again.';
     }
 }
 

@@ -1,0 +1,95 @@
+<app-page-header title="Your account" />
+
+<main class="layout">
+  <section class="intro" aria-label="About accounts">
+    <span class="pill">Optional</span>
+    <h1>Keep your name<br>on any device.</h1>
+    <p class="lead">You can play without an account: the game signs you in as a guest. An account adds an email and
+      password to that guest, so your name follows you when you play on another device.</p>
+  </section>
+
+  @if (!auth.isAnonymous()) {
+    <section class="card panel" aria-label="Signed in">
+      <h2>You're signed in</h2>
+      <p class="muted">Email: <strong>{{ auth.email() }}</strong></p>
+      @if (auth.accountName(); as name) {
+        <p class="muted">Name: <strong>{{ name }}</strong></p>
+      }
+      <div class="actions">
+        <button type="button" class="btn btn-primary" (click)="goHome()">Play</button>
+        <button type="button" class="btn btn-ghost" [disabled]="busy()" (click)="signOut()">Sign out</button>
+      </div>
+    </section>
+  } @else {
+    <section class="card panel" aria-label="Account form">
+      <div class="tabs" role="tablist" aria-label="Create or sign in">
+        <button type="button" role="tab" class="tab" [class.active]="mode() === 'create'" [attr.aria-selected]="mode() === 'create'" (click)="switchTo('create')">Create account</button>
+        <button type="button" role="tab" class="tab" [class.active]="mode() === 'signin'" [attr.aria-selected]="mode() === 'signin'" (click)="switchTo('signin')">Sign in</button>
+      </div>
+
+      @if (mode() === 'create') {
+        <form class="form" [formGroup]="createForm" (ngSubmit)="create()">
+          <div class="field">
+            <label for="create-email">Email</label>
+            <input id="create-email" class="box" type="email" formControlName="email" autocomplete="email" placeholder="you@example.com">
+            @if (createForm.controls.email.touched && createForm.controls.email.hasError('required')) {
+              <span class="error-text">Enter your email.</span>
+            } @else if (createForm.controls.email.touched && createForm.controls.email.hasError('email')) {
+              <span class="error-text">That doesn't look like an email address.</span>
+            }
+          </div>
+
+          <div class="field">
+            <label for="create-password">Password</label>
+            <input id="create-password" class="box" type="password" formControlName="password" autocomplete="new-password">
+            @if (createForm.controls.password.touched && createForm.controls.password.hasError('required')) {
+              <span class="error-text">Choose a password.</span>
+            } @else if (createForm.controls.password.touched && createForm.controls.password.hasError('minlength')) {
+              <span class="error-text">Use at least 6 characters.</span>
+            }
+          </div>
+
+          <div class="field">
+            <label for="create-confirm">Repeat the password</label>
+            <input id="create-confirm" class="box" type="password" formControlName="confirm" autocomplete="new-password">
+            @if (createForm.controls.confirm.touched && createForm.controls.confirm.hasError('required')) {
+              <span class="error-text">Repeat your password.</span>
+            } @else if (createForm.controls.confirm.touched && createForm.hasError('passwordsDiffer')) {
+              <span class="error-text">The passwords are different.</span>
+            }
+          </div>
+
+          <button type="submit" class="btn btn-primary" [disabled]="busy()">{{ busy() ? 'Creating…' : 'Create account' }}</button>
+          <p class="hint">Your current games in this tab keep going.</p>
+        </form>
+      } @else {
+        <form class="form" [formGroup]="signInForm" (ngSubmit)="signIn()">
+          <div class="field">
+            <label for="signin-email">Email</label>
+            <input id="signin-email" class="box" type="email" formControlName="email" autocomplete="email" placeholder="you@example.com">
+            @if (signInForm.controls.email.touched && signInForm.controls.email.hasError('required')) {
+              <span class="error-text">Enter your email.</span>
+            } @else if (signInForm.controls.email.touched && signInForm.controls.email.hasError('email')) {
+              <span class="error-text">That doesn't look like an email address.</span>
+            }
+          </div>
+
+          <div class="field">
+            <label for="signin-password">Password</label>
+            <input id="signin-password" class="box" type="password" formControlName="password" autocomplete="current-password">
+            @if (signInForm.controls.password.touched && signInForm.controls.password.hasError('required')) {
+              <span class="error-text">Enter your password.</span>
+            }
+          </div>
+
+          <button type="submit" class="btn btn-primary" [disabled]="busy()">{{ busy() ? 'Signing in…' : 'Sign in' }}</button>
+          <p class="hint">Signing in leaves the games you joined as a guest in this tab.</p>
+        </form>
+      }
+
+      @if (error(); as message) {
+        <p class="error-text form-error" role="alert">{{ message }}</p>
+      }
+    </section>
+  }
+</main>

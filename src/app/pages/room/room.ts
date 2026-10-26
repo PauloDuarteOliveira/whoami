@@ -163,12 +163,8 @@ export class RoomPage implements OnInit, OnDestroy {
     }
 
     ngOnInit(): void {
+        // roomSessionGuard already checked that this tab joined the room.
         this.code = (this.route.snapshot.paramMap.get('code') ?? '').toUpperCase();
-
-        if (!this.session.getPlayerId(this.code)) {
-            this.router.navigate(['/join', this.code]);
-            return;
-        }
         this.store.start(this.code);
 
         this.decks.getDecks().subscribe({
