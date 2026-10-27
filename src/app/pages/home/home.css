@@ -180,3 +180,10 @@ h1 {
   .account { max-width: 150px; }
   .play { padding: 20px; }
 }
+
+/* Continue playing: a room you're still in, at the top of the Play card. */
+.continue { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 16px; background: var(--accent-tint); border: 1px solid var(--accent); }
+.room-code { flex: none; padding: 6px 10px; border-radius: 10px; background: var(--bg); font-family: var(--font-display); font-size: 18px; letter-spacing: 3px; color: var(--accent-text); }
+.continue-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.continue-text span { font-size: 13px; color: var(--text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rejoin { flex: none; height: 40px; padding: 0 16px; }

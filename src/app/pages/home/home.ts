@@ -2,7 +2,9 @@ import { Component, ElementRef, HostListener, inject, signal, viewChild } from '
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth.service';
+import { HistoryService, OpenRoom } from '../../core/history.service';
 import { ProfileService } from '../../core/profile.service';
+import { SessionService } from '../../core/session.service';
 import { SkySwitch } from '../../shared/sky-switch/sky-switch';
 import { Logo } from '../../shared/logo/logo';
 import { HomeLink } from '../../shared/home-link';
@@ -26,6 +28,27 @@ export class Home {
   protected readonly form = new FormGroup({
     name: new FormControl(this.profile.name(), { nonNullable: true, validators: playerNameValidators }),
   });
+
+  private readonly history = inject(HistoryService);
+  private readonly sessions = inject(SessionService);
+
+  /** Rooms you're still in, for "Continue playing". */
+  protected readonly openRooms = signal<OpenRoom[]>([]);
+  protected readonly phaseLabel: Record<OpenRoom['room']['status'], string> = { lobby: 'Lobby', writing: 'Writing characters', playing: 'Game in progress' };
+
+  constructor() {
+    const userId = this.auth.userId();
+    if (userId) {
+      // Nothing to show when it fails: Home works as before.
+      this.history.openRooms(userId).subscribe({ next: rooms => this.openRooms.set(rooms), error: () => undefined });
+    }
+  }
+
+  /** Back into a room: this tab remembers you're that player, then the room opens. */
+  protected rejoin(r: OpenRoom): void {
+    this.sessions.save(r.room.code, r.id);
+    this.router.navigate(['/room', r.room.code]);
+  }
 
   /** The "How to play" dialog. */
   protected readonly rulesOpen = signal(false);
