@@ -14,13 +14,22 @@ export class PreferencesService {
     /** Hide the other players' characters, for people sitting side by side or playing on a phone. */
     readonly hideNames = signal(read(HIDE_NAMES_KEY) === 'true');
 
-    /** Palm shadows Day / Night. Night is the default. */
-    readonly sky = signal<Sky>(read(SKY_KEY) === 'day' ? 'day' : 'night');
+    /** Whether this device picked Day or Night with the switch. Until it does, the sky follows the device. */
+    private chosen = isSky(read(SKY_KEY));
+
+    /** Palm shadows Day / Night: the saved choice, or on a first visit the device's light or dark mode. */
+    readonly sky = signal<Sky>(this.chosen ? (read(SKY_KEY) as Sky) : deviceSky());
 
     constructor() {
-        // The page's colours follow html[data-sky] (see styles.css).
+        // The page's colours follow html[data-sky] (see styles.css), and the phone's browser bar matches.
         effect(() => {
-            this.document.documentElement.dataset['sky'] = this.sky();
+            const sky = this.sky();
+            this.document.documentElement.dataset['sky'] = sky;
+            this.document.querySelector('meta[name="theme-color"]')?.setAttribute('content', sky === 'day' ? '#BDE7F0' : '#0A3440');
+        });
+        // If the device switches between light and dark while the app is open, follow it, unless you chose.
+        lightMode()?.addEventListener('change', event => {
+            if (!this.chosen) this.sky.set(event.matches ? 'day' : 'night');
         });
     }
 
@@ -30,9 +39,23 @@ export class PreferencesService {
     }
 
     setSky(sky: Sky): void {
+        this.chosen = true;
         this.sky.set(sky);
         write(SKY_KEY, sky);
     }
+}
+
+function isSky(value: string | null): value is Sky {
+    return value === 'day' || value === 'night';
+}
+
+function lightMode(): MediaQueryList | null {
+    return typeof matchMedia === 'function' ? matchMedia('(prefers-color-scheme: light)') : null;
+}
+
+/** Day for a device in light mode, Night for dark mode (and when the browser doesn't say). */
+function deviceSky(): Sky {
+    return lightMode()?.matches ? 'day' : 'night';
 }
 
 function read(key: string): string | null {
