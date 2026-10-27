@@ -19,10 +19,11 @@ export interface GameRecord {
     room_id: string;
     code: string;
     mode: 'voice' | 'novoice';
-    character_source: 'custom' | 'deck';
+    character_source: 'custom' | 'deck' | 'list';
     started_at: string;
     ended_at: string;
     name: string;
+    role: 'admin' | 'helper' | 'player';
     avatar: string | null;
     color: string;
     status: PlayerStatus;
