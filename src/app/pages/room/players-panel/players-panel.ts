@@ -4,6 +4,7 @@ import { Answer, Character, ClueGroup, Player, Question, Room } from '../../../c
 import { PreferencesService } from '../../../core/preferences.service';
 import { clueGroups } from '../../../core/question.service';
 import { PlayerMenu } from '../../../shared/player-menu/player-menu';
+import { AvatarFace } from '../../../shared/avatar-face';
 import { placeLabel } from '../../../shared/format';
 
 type Filter = Answer | 'all';
@@ -15,7 +16,7 @@ type Filter = Answer | 'all';
  */
 @Component({
     selector: 'app-players-panel',
-    imports: [PlayerMenu, NgTemplateOutlet],
+    imports: [PlayerMenu, NgTemplateOutlet, AvatarFace],
     templateUrl: './players-panel.html',
     styleUrl: './players-panel.css',
 })
@@ -36,6 +37,7 @@ export class PlayersPanel implements OnChanges {
     @Output() toggleHelper = new EventEmitter<Player>();
     @Output() handOver = new EventEmitter<Player>();
     @Output() report = new EventEmitter<Player>();
+    @Output() toggleMute = new EventEmitter<Player>();
 
     protected readonly filter = signal<Filter>('all');
     protected readonly filters: { value: Filter; label: string }[] = [
@@ -44,8 +46,6 @@ export class PlayersPanel implements OnChanges {
         { value: 'no', label: 'No' },
         { value: 'unsure', label: 'Unsure' },
     ];
-    protected readonly searching = signal(false);
-    protected readonly search = signal('');
     /** The cards that are open. */
     protected readonly open = signal<Set<string>>(new Set());
     private shownTurn: string | null = null;
@@ -86,9 +86,9 @@ export class PlayersPanel implements OnChanges {
         return p.id === this.me.id;
     }
 
-    /** Your own character stays hidden while you play; with Hide names on, the others' are removed. */
+    /** Your own character stays hidden (???) while you play; with Hide names on, the others' are removed. */
     protected characterOf(p: Player): string | null {
-        if (this.isMine(p) && p.status === 'playing') return 'Hidden';
+        if (this.isMine(p) && p.status === 'playing') return '???';
         if (this.prefs.hideNames() && !this.isMine(p)) return null;
         return this.characters.find(c => c.assigned_to === p.id)?.name ?? '—';
     }
@@ -97,25 +97,9 @@ export class PlayersPanel implements OnChanges {
         return clueGroups(p.id, this.questions);
     }
 
-    protected count(p: Player, answer: Answer): number {
-        return this.groups(p).find(g => g.answer === answer)?.items.length ?? 0;
-    }
-
-    /** The clues shown in an open card, after the filter and the search. */
+    /** The clues shown in an open card, after the Yes / No / Unsure filter. */
     protected shownGroups(p: Player): ClueGroup[] {
-        const term = this.search().trim().toLowerCase();
-        return this.groups(p)
-            .filter(g => this.filter() === 'all' || g.answer === this.filter())
-            .map(g => ({ ...g, items: g.items.filter(q => !term || q.text.toLowerCase().includes(term)) }))
-            .filter(g => g.items.length > 0);
-    }
-
-    protected last(p: Player): { text: string; answer: Answer } | null {
-        const answered = this.questions.filter(q => q.player_id === p.id && q.result !== null);
-        const q = answered[answered.length - 1];
-        if (!q) return null;
-        const answer: Answer = q.result === 'correct' ? 'yes' : q.result === 'wrong' ? 'no' : (q.result as Answer);
-        return { text: q.kind === 'guess' ? `Guess: ${q.text}` : q.text, answer };
+        return this.groups(p).filter(g => this.filter() === 'all' || g.answer === this.filter());
     }
 
     /** The status after the name: asking now, next, offline, ★ 1st, gave up… */
@@ -142,6 +126,10 @@ export class PlayersPanel implements OnChanges {
 
     protected canKick(p: Player): boolean {
         return this.canManage() && p.id !== this.me.id && p.role !== 'admin';
+    }
+
+    protected canMute(p: Player): boolean {
+        return this.canKick(p);
     }
 
     protected canChangeRoles(p: Player): boolean {

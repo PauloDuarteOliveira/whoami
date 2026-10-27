@@ -35,6 +35,7 @@ export class Writing implements OnChanges {
   @Output() kick = new EventEmitter<Player>();
   @Output() toggleHelper = new EventEmitter<Player>();
   @Output() handOver = new EventEmitter<Player>();
+  @Output() toggleMute = new EventEmitter<Player>();
 
   protected readonly character = new FormControl('', { nonNullable: true, validators: characterNameValidators });
   protected readonly bounced = signal<string | null>(null);

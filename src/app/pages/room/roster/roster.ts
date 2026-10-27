@@ -1,7 +1,9 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output, signal } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
 import { Character, Player } from '../../../core/models';
 import { PlayerMenu } from '../../../shared/player-menu/player-menu';
+import { AvatarFace } from '../../../shared/avatar-face';
+import { AvatarPicker } from '../../../shared/avatar-picker';
 
 type Tone = 'yes' | 'now' | 'off' | '';
 
@@ -11,7 +13,7 @@ type Tone = 'yes' | 'now' | 'off' | '';
  */
 @Component({
     selector: 'app-roster',
-    imports: [PlayerMenu, NgTemplateOutlet],
+    imports: [PlayerMenu, NgTemplateOutlet, AvatarFace, AvatarPicker],
     templateUrl: './roster.html',
     styleUrl: './roster.css',
 })
@@ -29,6 +31,16 @@ export class Roster {
     @Output() kick = new EventEmitter<Player>();
     @Output() toggleHelper = new EventEmitter<Player>();
     @Output() handOver = new EventEmitter<Player>();
+    @Output() toggleMute = new EventEmitter<Player>();
+    /** Lobby: you picked another animal. */
+    @Output() changeAvatar = new EventEmitter<string>();
+
+    protected readonly picking = signal(false);
+
+    /** Animals the others in the room already have. */
+    protected takenAvatars(): (string | null)[] {
+        return this.players.filter(p => p.id !== this.me.id).map(p => p.avatar ?? null);
+    }
 
     private rank(p: Player): number {
         if (p.id === this.me.id) return 0;
@@ -75,6 +87,10 @@ export class Roster {
 
     protected canKick(p: Player): boolean {
         return (this.me.role === 'admin' || this.me.role === 'helper') && p.id !== this.me.id && p.role !== 'admin';
+    }
+
+    protected canMute(p: Player): boolean {
+        return this.canKick(p);
     }
 
     protected canChangeRoles(p: Player): boolean {

@@ -2,7 +2,13 @@
   <div class="head">
     <h2>Players</h2>
     <span class="count">{{ count() }}</span>
+    @if (phase === 'lobby') {
+      <button type="button" class="change" [attr.aria-expanded]="picking()" (click)="picking.set(!picking())">Change avatar</button>
+    }
   </div>
+  @if (picking()) {
+    <app-avatar-picker class="picker" [selected]="me.avatar ?? null" [taken]="takenAvatars()" (pick)="changeAvatar.emit($event); picking.set(false)" />
+  }
 
   <div class="cards">
     <div class="group">{{ phase === 'lobby' ? 'IN THE LOBBY' : 'WRITING A CHARACTER' }}</div>
@@ -26,7 +32,7 @@
   <div class="pcard" [class.mine]="p.id === me.id" [class.away]="!isOnline(p)">
     <span class="avatar" [class.dashed]="!isOnline(p)" [style.background]="isOnline(p) ? p.color : 'transparent'"
       [style.color]="isOnline(p) ? null : p.color">
-      {{ p.name.charAt(0) }}
+      <app-face [player]="p" [players]="players" />
       <span class="dot" [class.on]="isOnline(p)" [attr.aria-label]="isOnline(p) ? 'Online' : 'Offline'"></span>
     </span>
     <span class="who">
@@ -40,7 +46,7 @@
     </span>
     @if (p.id !== me.id) {
       <app-player-menu [player]="p" [context]="menuContext(p)" [contextAlert]="!isOnline(p)" [note]="menuNote()"
-        [canKick]="canKick(p)" [canChangeHelpers]="canChangeRoles(p)" [canHandOver]="canChangeRoles(p)"
+        [canKick]="canKick(p)" [canChangeHelpers]="canChangeRoles(p)" [canHandOver]="canChangeRoles(p)" [canMute]="canMute(p)" (mute)="toggleMute.emit($event)"
         (kick)="kick.emit($event)" (toggleHelper)="toggleHelper.emit($event)" (handOver)="handOver.emit($event)" />
     }
   </div>

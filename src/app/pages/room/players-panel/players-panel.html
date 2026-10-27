@@ -1,17 +1,8 @@
 <section class="panel" aria-label="Players and clues" data-menu-anchor>
   <div class="head">
     <h2>Players &amp; clues</h2>
-    <span class="hint">tap a card to open it</span>
-    <button type="button" class="icon-btn" aria-label="Search clues" [attr.aria-pressed]="searching()"
-      (click)="searching.set(!searching()); search.set('')">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /></svg>
-    </button>
+    <span class="hint">tap a card to see its clues</span>
   </div>
-
-  @if (searching()) {
-    <input class="search" type="search" placeholder="Search clues (e.g. real)" aria-label="Search clues"
-      [value]="search()" (input)="search.set($any($event.target).value)">
-  }
 
   <div class="filters" role="group" aria-label="Filter the clues">
     @for (f of filters; track f.value) {
@@ -45,7 +36,7 @@
     <div class="card-row">
       <button type="button" class="card-top" [attr.aria-expanded]="open().has(p.id)" (click)="toggle(p)">
         <span class="avatar" [class.dashed]="!isOnline(p)" [style.background]="isOnline(p) ? p.color : 'transparent'" [style.color]="isOnline(p) ? null : p.color">
-          {{ p.name.charAt(0) }}
+          <app-face [player]="p" [players]="players" />
           <span class="dot" [class.on]="isOnline(p)"></span>
         </span>
         <span class="who">
@@ -58,14 +49,13 @@
             <span class="state" [class]="'state ' + state(p).tone">· {{ state(p).text }}</span>
           </span>
         </span>
-        <span class="counts" [attr.aria-label]="count(p, 'yes') + ' yes, ' + count(p, 'no') + ' no, ' + count(p, 'unsure') + ' unsure'">
-          <span class="c-yes">✓ {{ count(p, 'yes') }}</span><span class="c-no">✗ {{ count(p, 'no') }}</span><span class="c-unsure">? {{ count(p, 'unsure') }}</span>
-        </span>
+        <svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
+          stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg>
       </button>
       @if (!isMine(p)) {
         <app-player-menu [player]="p" [context]="menuContext(p)" [contextAlert]="!isOnline(p)" [note]="menuNote()"
           [canSkip]="canSkip(p)" [canKick]="canKick(p)" [canChangeHelpers]="canChangeRoles(p)" [canHandOver]="canChangeRoles(p)"
-          [canReport]="reportable.includes(p.id)"
+          [canReport]="reportable.includes(p.id)" [canMute]="canMute(p)" (mute)="toggleMute.emit($event)"
           (skip)="skip.emit()" (kick)="kick.emit($event)" (toggleHelper)="toggleHelper.emit($event)"
           (handOver)="handOver.emit($event)" (report)="report.emit($event)" />
       }
@@ -84,8 +74,6 @@
           <span class="empty">{{ groups(p).length ? 'No clues match the filter.' : 'No answers yet.' }}</span>
         }
       </div>
-    } @else if (last(p); as l) {
-      <div class="last">Last: {{ l.text }} <strong [class]="'label-' + l.answer">{{ l.answer === 'yes' ? 'YES' : l.answer === 'no' ? 'NO' : 'UNSURE' }}</strong></div>
     }
   </div>
 </ng-template>

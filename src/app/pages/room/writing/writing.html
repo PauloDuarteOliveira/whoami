@@ -7,7 +7,8 @@
   <div class="body">
     <app-roster class="rail" phase="writing" [players]="everyone" [me]="me" [isOnline]="isOnline"
       [characters]="characters" [needsNew]="!!bounced()"
-      (kick)="kick.emit($event)" (toggleHelper)="toggleHelper.emit($event)" (handOver)="handOver.emit($event)" />
+      (kick)="kick.emit($event)" (toggleHelper)="toggleHelper.emit($event)" (handOver)="handOver.emit($event)"
+      (toggleMute)="toggleMute.emit($event)" />
 
     <main class="main">
       @if (showDecision()) {
@@ -24,17 +25,17 @@
           </p>
           <div class="choices">
             @if (secondsLeft() === 0) {
-              <button type="button" class="choice" (click)="addTime.emit()" [disabled]="busy">
+              <button type="button" class="choice press" (click)="addTime.emit()" [disabled]="busy">
                 <span class="choice-title">+30 seconds</span>
                 <span class="choice-text">Give them a little more time.</span>
               </button>
             } @else {
-              <button type="button" class="choice" (click)="dismissedAt.set(doneCount())">
+              <button type="button" class="choice press" (click)="dismissedAt.set(doneCount())">
                 <span class="choice-title">Keep waiting</span>
                 <span class="choice-text">The game starts by itself when everyone has written.</span>
               </button>
             }
-            <button type="button" class="choice primary" (click)="startWithout.emit()" [disabled]="busy || doneCount() < 2">
+            <button type="button" class="choice press primary" (click)="startWithout.emit()" [disabled]="busy || doneCount() < 2">
               <span class="choice-title">Start without them</span>
               <span class="choice-text">{{ plural(doneCount(), 'player') }}, {{ plural(doneCount(), 'character') }}. Shuffle now.</span>
             </button>

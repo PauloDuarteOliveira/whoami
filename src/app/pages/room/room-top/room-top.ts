@@ -51,7 +51,7 @@ import { Logo } from '../../../shared/logo/logo';
       .top { padding: 10px 16px; gap: 10px; }
       .brand, .divider { display: none; }
     }
-    @media (max-width: 760px) {
+    @media (max-width: 760px), (orientation: landscape) and (max-height: 500px) {
       .top { min-height: 56px; padding: 0 12px; gap: 8px; }
       .subtitle { display: none; }
       .leave { padding: 0 12px; }

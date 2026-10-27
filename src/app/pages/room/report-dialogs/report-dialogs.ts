@@ -16,9 +16,11 @@ export interface DecisionEvent { report: Report; choice: 'chance' | 'kick'; }
  * the Admin or a Helper after a second strike (7.4), the writer who has to rewrite (7.3),
  * a player who hasn't voted yet (7.2), and the receiver, who only learns their character is being replaced (7.5).
  */
+import { AvatarFace } from '../../../shared/avatar-face';
+
 @Component({
     selector: 'app-report-dialogs',
-    imports: [ReactiveFormsModule, DialogIcon],
+    imports: [ReactiveFormsModule, DialogIcon, AvatarFace],
     templateUrl: './report-dialogs.html',
     styleUrl: './report-dialogs.css',
 })
