@@ -20,7 +20,7 @@
 .vote { display: inline-flex; align-items: center; gap: 6px; }
 .note { margin: 0; font-size: 12px; color: var(--muted); }
 .note.error { color: var(--no-text); }
-.retry { border: none; background: none; padding: 0; color: var(--accent-text); font: inherit; font-size: 12px; text-decoration: underline; }
+.retry { height: 30px; padding: 0 10px; font-size: 12px; }
 
 .tag-answer { padding: 2px 8px; border-radius: 8px; font-weight: 700; font-size: 11px; }
 .tag-answer.yes, .tag-answer.correct { background: var(--yes-soft); color: var(--yes-text); }

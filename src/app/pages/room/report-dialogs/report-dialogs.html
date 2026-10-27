@@ -71,7 +71,7 @@
     </p>
     <div class="dialog-card">
       @if (player(r.receiver_id); as receiver) {
-        <span class="avatar-dot" [style.background]="receiver.color">{{ receiver.name.charAt(0) }}</span>
+        <span class="avatar-dot" [style.background]="receiver.color"><app-face [player]="receiver" [players]="players" /></span>
       }
       <div class="who">
         <div class="card-label">{{ nameOf(r.receiver_id) }}'s character · written by {{ writerName(r) }}</div>
@@ -82,7 +82,7 @@
     <div class="voters">
       @for (p of voters(r); track p.id) {
         <span class="voter">
-          <span class="mini" [style.background]="p.color">{{ p.name.charAt(0) }}</span>
+          <span class="mini" [style.background]="p.color"><app-face [player]="p" [players]="players" /></span>
           {{ p.id === me.id ? 'You' : p.name }}
           @switch (voteOf(r, p)) {
             @case ('replace') { <span class="said replace">Replace</span> }

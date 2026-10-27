@@ -8,7 +8,7 @@
 
 .voters { display: flex; flex-wrap: wrap; gap: 8px; }
 .voter { height: 34px; padding: 0 12px 0 4px; border-radius: 17px; background: var(--surface-2); display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; }
-.mini { width: 26px; height: 26px; border-radius: 50%; color: var(--on-accent); font-size: 12px; font-weight: 800; text-transform: uppercase; display: flex; align-items: center; justify-content: center; }
+.mini { width: 26px; height: 26px; border-radius: 50%; color: var(--on-accent); font-size: 12px; font-weight: 800; display: flex; align-items: center; justify-content: center; }
 .said { color: var(--muted); }
 .said.replace { color: var(--no-text); }
 .said.keep { color: var(--yes-text); }

@@ -1,7 +1,8 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { Subject, Subscription, catchError, debounceTime, filter, forkJoin, map, merge, of, switchMap, timer } from 'rxjs';
 import { CharacterService } from './character.service';
-import { Character, Note, Player, Question, Report, ReportVote, Room, Vote, Whiteboard, WhiteboardInfo } from './models';
+import { CHAT_LIMIT, ChatService } from './chat.service';
+import { Character, ChatMessage, Note, Player, Question, Report, ReportVote, Room, Vote, Whiteboard, WhiteboardInfo } from './models';
 import { ReportService } from './report.service';
 import { NoteService } from './note.service';
 import { PlayerService } from './player.service';
@@ -32,6 +33,7 @@ export class RoomStore {
     private readonly realtime = inject(RealtimeService);
     private readonly whiteboardService = inject(WhiteboardService);
     private readonly reportService = inject(ReportService);
+    private readonly chatService = inject(ChatService);
 
     readonly room = signal<Room | null>(null);
     readonly players = signal<Player[]>([]);
@@ -44,6 +46,8 @@ export class RoomStore {
     /** Reported (troll) characters and their votes. */
     readonly reports = signal<Report[]>([]);
     readonly reportVotes = signal<ReportVote[]>([]);
+    /** The last 100 chat messages, oldest first. */
+    readonly messages = signal<ChatMessage[]>([]);
     readonly loadState = signal<LoadState>('loading');
     readonly connectionLost = signal(false);
     /** True while Supabase Realtime is connected for this room. */
@@ -80,6 +84,7 @@ export class RoomStore {
                                         boards: this.whiteboardService.getInfo(room.id),
                                         reports: this.reportService.getReports(room.id),
                                         reportVotes: this.reportService.getVotes(room.id),
+                                        messages: this.chatService.getRecent(room.id),
                                     }).pipe(
                                         switchMap(data =>
                                             this.questionService
@@ -87,7 +92,7 @@ export class RoomStore {
                                                 .pipe(map(votes => ({ room, ...data, votes }))),
                                         ),
                                     )
-                                    : of({ room: null, players: [] as Player[], characters: [] as Character[], questions: [] as Question[], notes: [] as Note[], boards: [] as WhiteboardInfo[], reports: [] as Report[], reportVotes: [] as ReportVote[], votes: [] as Vote[] }),
+                                    : of({ room: null, players: [] as Player[], characters: [] as Character[], questions: [] as Question[], notes: [] as Note[], boards: [] as WhiteboardInfo[], reports: [] as Report[], reportVotes: [] as ReportVote[], messages: [] as ChatMessage[], votes: [] as Vote[] }),
                             ),
                             catchError(() => of('failed' as const)),
                         ),
@@ -110,6 +115,7 @@ export class RoomStore {
                     this.syncBoards(result.boards);
                     this.reports.set(result.reports);
                     this.reportVotes.set(result.reportVotes);
+                    this.syncMessages(result.messages);
                     this.loadState.set(result.room ? 'ready' : 'missing');
                     if (result.room && !this.stopWatching) this.watch(result.room.id);
                 }),
@@ -141,6 +147,7 @@ export class RoomStore {
         this.stopWatching = this.realtime.watchRoom(roomId, {
             changed: () => this.changes.next(),
             player: player => this.putPlayer(player),
+            message: message => this.addMessage(message),
             live: connected => this.live.set(connected),
         });
     }
@@ -150,6 +157,22 @@ export class RoomStore {
         this.players.update(list =>
             list.some(p => p.id === player.id) ? list.map(p => (p.id === player.id ? player : p)) : [...list, player],
         );
+    }
+
+    /** Adds a message once (it can arrive live and with a reload), keeping the last 100 in order. */
+    addMessage(message: ChatMessage): void {
+        this.messages.update(list =>
+            list.some(m => m.id === message.id)
+                ? list
+                : [...list, message].sort((a, b) => a.created_at.localeCompare(b.created_at)).slice(-CHAT_LIMIT),
+        );
+    }
+
+    /** A reload brings the latest 100; messages that arrived since (live, or your own) are kept. */
+    private syncMessages(loaded: ChatMessage[]): void {
+        const newest = loaded[loaded.length - 1]?.created_at ?? '';
+        const later = this.messages().filter(m => m.created_at > newest && !loaded.some(l => l.id === m.id));
+        this.messages.set([...loaded, ...later].slice(-CHAT_LIMIT));
     }
 
     patchPlayer(id: string, changes: Partial<Player>): void {

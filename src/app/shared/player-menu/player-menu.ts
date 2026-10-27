@@ -25,18 +25,21 @@ export class PlayerMenu {
     @Input() canChangeHelpers = false;
     @Input() canHandOver = false;
     @Input() canReport = false;
+    /** The Admin and Helpers can mute someone in the chat. */
+    @Input() canMute = false;
 
     @Output() skip = new EventEmitter<Player>();
     @Output() kick = new EventEmitter<Player>();
     @Output() toggleHelper = new EventEmitter<Player>();
     @Output() handOver = new EventEmitter<Player>();
     @Output() report = new EventEmitter<Player>();
+    @Output() mute = new EventEmitter<Player>();
 
     protected readonly open = signal(false);
     protected readonly place = signal({ left: 0, top: 0 });
 
     protected hasActions(): boolean {
-        return this.canSkip || this.canReport || this.canKick || this.canChangeHelpers || this.canHandOver;
+        return this.canSkip || this.canReport || this.canMute || this.canKick || this.canChangeHelpers || this.canHandOver;
     }
 
     protected toggle(): void {

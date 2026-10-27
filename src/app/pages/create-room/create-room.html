@@ -56,9 +56,9 @@
         <div class="card-title">Give up allowed after</div>
         <p class="hint">Questions a player must ask first.</p>
         <div class="stepper">
-          <button type="button" class="step" aria-label="Fewer questions" (click)="stepGiveUp(-1)" [disabled]="form.value.giveUpAfter === 1">−</button>
+          <button type="button" class="step press" aria-label="Fewer questions" (click)="stepGiveUp(-1)" [disabled]="form.value.giveUpAfter === 1">−</button>
           <strong>{{ form.value.giveUpAfter }}</strong>
-          <button type="button" class="step" aria-label="More questions" (click)="stepGiveUp(1)" [disabled]="form.value.giveUpAfter === 99">+</button>
+          <button type="button" class="step press" aria-label="More questions" (click)="stepGiveUp(1)" [disabled]="form.value.giveUpAfter === 99">+</button>
           <span class="hint">{{ form.value.giveUpAfter === 1 ? 'question' : 'questions' }}</span>
         </div>
       </div>

@@ -1,6 +1,6 @@
-import { Component, EventEmitter, Input, Output, inject, signal } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, Output, inject, signal } from '@angular/core';
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Answer, Character, GuessVerdict, Note, Player, Question, Room, Vote, Whiteboard } from '../../../core/models';
+import { Answer, Character, ChatMessage, GuessVerdict, Note, Player, Question, Room, Vote, Whiteboard } from '../../../core/models';
 import { NgTemplateOutlet, UpperCasePipe } from '@angular/common';
 import { characterNameValidators } from '../../../shared/validators';
 import { PlayersPanel } from '../players-panel/players-panel';
@@ -11,17 +11,23 @@ import { PreferencesService } from '../../../core/preferences.service';
 import { ConfirmService } from '../../../core/confirm.service';
 import { SkySwitch } from '../../../shared/sky-switch/sky-switch';
 import { Logo } from '../../../shared/logo/logo';
+import { Chat } from '../chat/chat';
+import { AvatarFace } from '../../../shared/avatar-face';
 
-type GamePane = 'play' | 'clues' | 'board' | 'history' | 'notes';
-type GameTool = 'notes' | 'board' | 'history';
+type GamePane = 'play' | 'clues' | 'board' | 'history' | 'notes' | 'chat';
+type GameTool = 'notes' | 'board' | 'history' | 'chat';
+type DockTool = 'notes' | 'history' | 'chat';
+
+/** Phones (upright or sideways) and tablets held upright show one part at a time, with the tab bar. */
+const PHONE_LAYOUT = '(max-width: 900px), (orientation: landscape) and (max-height: 500px)';
 
 @Component({
     selector: 'app-game',
-    imports: [ReactiveFormsModule, UpperCasePipe, NgTemplateOutlet, PlayersPanel, Notes, History, Board, SkySwitch, Logo],
+    imports: [ReactiveFormsModule, UpperCasePipe, NgTemplateOutlet, PlayersPanel, Notes, History, Board, SkySwitch, Logo, Chat, AvatarFace],
     templateUrl: './game.html',
     styleUrl: './game.css',
 })
-export class Game {
+export class Game implements OnChanges {
     protected readonly prefs = inject(PreferencesService);
     private readonly confirm = inject(ConfirmService);
 
@@ -44,6 +50,9 @@ export class Game {
     @Input() reportable: string[] = [];
     /** True while this player's character is being rewritten: their turn waits. */
     @Input() waitingForCharacter = false;
+    /** The room chat, and everyone who has been in the room (so old messages keep their author). */
+    @Input() messages: ChatMessage[] = [];
+    @Input() everyone: Player[] = [];
 
     @Output() ask = new EventEmitter<string>();
     @Output() vote = new EventEmitter<Answer>();
@@ -60,6 +69,8 @@ export class Game {
     @Output() toggleHelper = new EventEmitter<Player>();
     @Output() handOver = new EventEmitter<Player>();
     @Output() report = new EventEmitter<Player>();
+    @Output() sendMessage = new EventEmitter<string>();
+    @Output() toggleMute = new EventEmitter<Player>();
 
     protected readonly questionText = new FormControl('', {
         nonNullable: true,
@@ -81,7 +92,7 @@ export class Game {
      * Panels that aren't shown are only hidden, so unsaved notes and drawings survive a switch.
      */
     protected readonly pane = signal<GamePane>('play');
-    protected readonly dock = signal<'notes' | 'history'>('notes');
+    protected readonly dock = signal<DockTool>('notes');
     protected readonly dockOpen = signal(window.innerWidth > 1180);
     protected readonly tabs: { value: GamePane; label: string }[] = [
         { value: 'play', label: 'Play' },
@@ -89,7 +100,33 @@ export class Game {
         { value: 'board', label: 'Board' },
         { value: 'history', label: 'History' },
         { value: 'notes', label: 'Notes' },
+        { value: 'chat', label: 'Chat' },
     ];
+
+    /** Messages from the others since you last had the chat open (the Lobby's count as read). */
+    private readonly chatSeenAt = signal('');
+    protected readonly unread = signal(0);
+
+    ngOnChanges(): void {
+        if (!this.chatSeenAt()) this.chatSeenAt.set(this.messages[this.messages.length - 1]?.created_at ?? ' ');
+        this.updateUnread();
+    }
+
+    protected openPane(pane: GamePane): void {
+        this.pane.set(pane);
+        this.updateUnread();
+    }
+
+    private chatOpen(): boolean {
+        if (matchMedia(PHONE_LAYOUT).matches) return this.pane() === 'chat';
+        return this.dockOpen() && this.dock() === 'chat' && this.pane() !== 'board';
+    }
+
+    private updateUnread(): void {
+        if (this.chatOpen()) this.chatSeenAt.set(this.messages[this.messages.length - 1]?.created_at ?? this.chatSeenAt());
+        const seen = this.chatSeenAt();
+        this.unread.set(this.messages.filter(m => m.player_id !== this.me.id && m.created_at > seen).length);
+    }
 
     /** Header tools: Board opens or closes the board; Notes and History open the dock, or close it if already open. */
     protected toggleTool(tool: GameTool): void {
@@ -101,6 +138,17 @@ export class Game {
         this.dock.set(tool);
         this.dockOpen.set(!sameOpen);
         if (this.pane() === 'board') this.pane.set('play');
+        this.updateUnread();
+    }
+
+    /** Any player can pass their own turn without asking (it only costs them that turn). */
+    protected async passTurn(): Promise<void> {
+        const yes = await this.confirm.ask({
+            tone: 'normal', icon: 'skip', title: 'Pass your turn?',
+            text: 'The turn goes to the next player, and you ask again on your next turn.',
+            confirmLabel: 'Pass my turn',
+        });
+        if (yes && this.isMyTurn() && this.room.turn_phase === 'question') this.endTurn.emit();
     }
 
     /** True when the game is waiting for this player, to flag the Play tab while another tab is open. */
@@ -126,7 +174,7 @@ export class Game {
     }
 
     protected characterOf(p: Player): string {
-        if (p.id === this.me.id && p.status === 'playing') return 'Hidden';
+        if (p.id === this.me.id && p.status === 'playing') return '???';
         return this.characters.find(c => c.assigned_to === p.id)?.name ?? '—';
     }
 

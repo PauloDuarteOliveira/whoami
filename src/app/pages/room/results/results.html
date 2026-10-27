@@ -23,7 +23,7 @@
       @for (r of ranking(); track r.player.id) {
         <div class="rank-row" [class.me]="r.player.id === me.id">
           <span class="place">{{ r.place }}</span>
-          <span class="avatar" [style.background]="r.player.color">{{ r.player.name.charAt(0) }}</span>
+          <span class="avatar" [style.background]="r.player.color"><app-face [player]="r.player" [players]="players" /></span>
           <div class="who">
             <strong>{{ nameOf(r) }}</strong>
             <span class="muted">{{ r.player.id === me.id ? 'were' : 'was' }} {{ r.character }}</span>

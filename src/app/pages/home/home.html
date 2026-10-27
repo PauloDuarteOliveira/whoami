@@ -32,9 +32,11 @@
     </div>
   </section>
 
-  <form class="play" aria-label="Play" [formGroup]="form" (ngSubmit)="join()">
+  <form class="play" aria-label="Play" [formGroup]="form" (ngSubmit)="create()">
     <h2>Start playing</h2>
 
+    <div class="who-row">
+    <app-avatar-choice [selected]="profile.avatar()" (pick)="setAvatar($event)" />
     <div class="field">
       <label for="name">Your name</label>
       <input id="name" class="box" formControlName="name" maxlength="16" autocomplete="nickname"
@@ -47,21 +49,12 @@
       <span class="error-text">Use only letters and numbers.</span>
       }
     </div>
-
-    <button type="button" class="btn btn-primary create" (click)="create()">Create a room</button>
-
-    <div class="or"><span></span>OR JOIN FRIENDS<span></span></div>
-
-    <div class="join-row">
-      <div class="field grow">
-        <label for="code">Room code</label>
-        <input id="code" class="box code" formControlName="code" maxlength="4" autocomplete="off" spellcheck="false"
-          placeholder="K7QX" (input)="upperCaseCode()">
-      </div>
-      <button type="submit" class="btn join">Join</button>
     </div>
-    @if (code.touched && code.invalid) {
-    <span class="error-text">Room codes have 4 letters or numbers.</span>
-    }
+
+    <div class="actions">
+      <button type="submit" class="btn btn-primary create">Create a room</button>
+      <button type="button" class="btn join" (click)="join()">Join a room</button>
+    </div>
+    <p class="hint">Got an invite link or a QR code from a friend? Open it and you'll go straight to their room.</p>
   </form>
 </main>

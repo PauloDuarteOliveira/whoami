@@ -40,8 +40,8 @@
       <div class="tools" role="group" aria-label="Tools">
         <button type="button" class="tool" [class.on]="tool() === 'pen'" [attr.aria-pressed]="tool() === 'pen'" (click)="tool.set('pen')">✎ Pen</button>
         <button type="button" class="tool" [class.on]="tool() === 'eraser'" [attr.aria-pressed]="tool() === 'eraser'" (click)="tool.set('eraser')">Eraser</button>
-        <button type="button" class="tool" [disabled]="!canUndo()" (click)="undoStep()">↶ Undo</button>
-        <button type="button" class="tool" [disabled]="blank()" (click)="clear()">Clear</button>
+        <button type="button" class="tool press" [disabled]="!canUndo()" (click)="undoStep()">↶ Undo</button>
+        <button type="button" class="tool press" [disabled]="blank()" (click)="clear()">Clear</button>
       </div>
       <div class="colors" role="group" aria-label="Colours">
         @for (c of colors; track c.value) {

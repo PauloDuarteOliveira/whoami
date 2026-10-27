@@ -12,7 +12,7 @@ export interface ConfirmOptions {
     tone?: DialogTone;
     icon?: DialogIconName;
     /** Shows a character (or another thing being decided on) as a card under the text. */
-    card?: { label: string; name: string; avatar?: { letter: string; color: string } };
+    card?: { label: string; name: string; avatar?: { letter: string; color: string; image?: string | null } };
     /** A highlighted line under the text, in the tone's colour. */
     note?: string;
 }

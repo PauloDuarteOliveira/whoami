@@ -1,0 +1,37 @@
+/* The room chat: a card that fills its space; the messages scroll inside, the box stays at the bottom. */
+:host { display: flex; flex-direction: column; min-height: 0; }
+
+.chat {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  border-radius: 22px;
+  background: var(--glass);
+  border: 1px solid var(--border);
+}
+
+.head { display: flex; align-items: baseline; gap: 8px; }
+.head h2 { font-size: 18px; }
+.count { margin-left: auto; font-size: 12px; color: var(--muted); }
+
+.list { flex: 1; min-height: 80px; margin: 0; padding: 2px; list-style: none; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+.msg { display: flex; align-items: flex-start; gap: 8px; }
+.msg.mine { flex-direction: row-reverse; }
+.avatar { width: 26px; height: 26px; flex: none; border-radius: 50%; color: var(--on-accent); font-size: 12px; font-weight: 800; display: grid; place-items: center; }
+.bubble { max-width: 80%; padding: 7px 12px; border-radius: 14px; background: var(--surface-2); display: flex; flex-direction: column; gap: 2px; }
+.mine .bubble { background: var(--accent-tint); }
+.who { font-size: 11px; font-weight: 800; color: var(--text-2); }
+.who time { font-weight: 600; color: var(--faint); }
+.text { line-height: 1.4; overflow-wrap: anywhere; }
+.system .text { margin: 0 auto; font-size: 12px; color: var(--muted); }
+.empty { margin: auto; font-size: 13px; color: var(--faint); }
+
+.write { display: flex; gap: 8px; }
+.box { flex: 1; min-width: 0; height: 44px; padding: 0 14px; border-radius: 12px; border: 1px solid var(--border-strong); background: var(--bg); color: var(--text); font: 500 15px var(--font); }
+.box:focus { outline: none; border-color: var(--accent); }
+.write .btn { height: 44px; }
+.muted-note { margin: 0; padding: 10px 12px; border-radius: 12px; background: var(--no-soft); color: var(--no-text); font-size: 13px; }
+.note { margin: 0; font-size: 11px; color: var(--faint); }

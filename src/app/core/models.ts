@@ -54,6 +54,8 @@ export interface Player {
   finish_place: number | null;
   finish_turn: number | null;
   muted: boolean;
+  /** One of the 30 animals (shared/avatars.ts); null for players from before avatars. */
+  avatar?: string | null;
   last_seen: string;
   joined_at: string;
   user_id: string | null;
@@ -147,5 +149,15 @@ export interface ReportVote {
   voter_id: string;
   room_id: string;
   value: ReportVoteValue;
+  created_at: string;
+}
+
+/** A chat message in a room (see supabase/migrations/006). */
+export interface ChatMessage {
+  id: string;
+  room_id: string;
+  /** Null for a message from the app itself. */
+  player_id: string | null;
+  text: string;
   created_at: string;
 }

@@ -15,6 +15,9 @@
     @if (canReport) {
     <button type="button" role="menuitem" (click)="choose(report)">Report their character</button>
     }
+    @if (canMute) {
+    <button type="button" role="menuitem" (click)="choose(mute)">{{ player.muted ? 'Unmute in chat' : 'Mute in chat' }}</button>
+    }
     @if (canChangeHelpers) {
     <button type="button" role="menuitem" (click)="choose(toggleHelper)">
         {{ player.role === 'helper' ? 'Remove Helper' : 'Make Helper' }}

@@ -23,10 +23,10 @@
         </div>
 
         <!-- Phone: the players as a row of avatars; a tap opens the Clues tab. -->
-        <button type="button" class="avatars" aria-label="Players and clues" (click)="pane.set('clues')">
+        <button type="button" class="avatars" aria-label="Players and clues" (click)="openPane('clues')">
             @for (p of ordered(); track p.id) {
             <span class="mini" [class.current]="p.id === room.current_player_id"
-                [style.background]="p.color">{{ p.name.charAt(0) }}</span>
+                [style.background]="p.color"><app-face [player]="p" [players]="players" /></span>
             }
             <span class="chevron" aria-hidden="true">▾</span>
         </button>
@@ -39,6 +39,10 @@
                 <button type="button" [attr.aria-pressed]="pane() !== 'board' && dock() === 'notes' && dockOpen()" (click)="toggleTool('notes')">Notes</button>
                 <button type="button" [attr.aria-pressed]="pane() === 'board'" (click)="toggleTool('board')">Board</button>
                 <button type="button" [attr.aria-pressed]="pane() !== 'board' && dock() === 'history' && dockOpen()" (click)="toggleTool('history')">History</button>
+                <button type="button" [attr.aria-pressed]="pane() !== 'board' && dock() === 'chat' && dockOpen()" (click)="toggleTool('chat')">
+                    Chat
+                    @if (unread()) { <span class="count-badge" [attr.aria-label]="unread() + ' new messages'">{{ unread() }}</span> }
+                </button>
             </div>
         </div>
 
@@ -55,7 +59,7 @@
         <app-players-panel class="rail" [room]="room" [players]="players" [me]="me" [characters]="characters"
             [questions]="questions" [isOnline]="isOnline" [reportable]="reportable"
             (skip)="skipTurn.emit()" (kick)="kick.emit($event)" (toggleHelper)="toggleHelper.emit($event)"
-            (handOver)="handOver.emit($event)" (report)="report.emit($event)" />
+            (handOver)="handOver.emit($event)" (report)="report.emit($event)" (toggleMute)="toggleMute.emit($event)" />
 
         <main class="main">
             @if (me.status === 'finished' || me.status === 'gave_up') {
@@ -83,6 +87,7 @@
                 @if (questionText.touched && questionText.invalid) {
                 <span class="error-text">Write a question (3 to 140 characters).</span>
                 }
+                <button type="button" class="btn btn-ghost pass" [disabled]="busy" (click)="passTurn()">Pass my turn</button>
                 } @else {
                 <span class="pill">{{ currentName() }}'s turn</span>
                 <h1>{{ currentName() }} is thinking of a question…</h1>
@@ -205,12 +210,13 @@
             </div>
             }
             <app-board [me]="me" [players]="players" [boards]="boards" [open]="pane() === 'board'"
-                (save)="saveBoard.emit($event)" (closed)="pane.set('play')" />
+                (save)="saveBoard.emit($event)" (closed)="openPane('play')" />
         </main>
 
-        <aside class="dock" aria-label="Notes and history">
+        <aside class="dock" aria-label="Notes, history and chat">
             <app-history [questions]="questions" [players]="players" [me]="me" />
             <app-notes [me]="me" [players]="players" [notes]="notes" (save)="saveNote.emit($event)" />
+            <app-chat [messages]="messages" [players]="everyone" [me]="me" [busy]="busy" (send)="sendMessage.emit($event)" />
         </aside>
     </div>
 
@@ -218,10 +224,13 @@
     <nav class="tabbar" aria-label="Game sections">
         @for (t of tabs; track t.value) {
         <button type="button" [class.on]="pane() === t.value" [attr.aria-pressed]="pane() === t.value"
-            (click)="pane.set(t.value)">
+            (click)="openPane(t.value)">
             {{ t.label }}
             @if (t.value === 'play' && pane() !== 'play' && needsMe()) {
             <span class="badge" aria-label="Your move"></span>
+            }
+            @if (t.value === 'chat' && unread()) {
+            <span class="badge" [attr.aria-label]="unread() + ' new messages'"></span>
             }
         </button>
         }

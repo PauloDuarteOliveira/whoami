@@ -22,7 +22,7 @@ import { trapFocus } from '../focus';
           <p id="confirm-text" class="dialog-text">{{ r.text }}</p>
           @if (r.card; as card) {
             <div class="dialog-card">
-              @if (card.avatar; as a) { <span class="avatar-dot" [style.background]="a.color">{{ a.letter }}</span> }
+              @if (card.avatar; as a) { <span class="avatar-dot" [style.background]="a.color">@if (a.image) { <img [src]="a.image" alt="" style="width: 78%; height: 78%"> } @else { {{ a.letter }} }</span> }
               <div class="who"><div class="card-label">{{ card.label }}</div><div class="card-name">{{ card.name }}</div></div>
             </div>
           }

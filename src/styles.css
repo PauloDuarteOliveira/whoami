@@ -148,11 +148,18 @@ a:not(.btn):hover { color: var(--accent-hover); }
 
 .btn-primary { background: var(--accent); color: var(--on-accent); font-weight: 800; }
 .btn-ghost { background: transparent; border-color: var(--border-strong); color: var(--text-2); }
-.btn-danger { background: transparent; color: var(--no-text); }
 
-.btn:not(.btn-ghost):not(.btn-danger) { box-shadow: 0 4px 0 var(--btn-shadow); transition: transform .08s; }
-.btn:not(.btn-ghost):not(.btn-danger):active:not(:disabled) { transform: translateY(3px); box-shadow: 0 1px 0 var(--btn-shadow); }
-.btn-primary { box-shadow: 0 5px 0 var(--accent-deep) !important; }
+/*
+ * One rule for every button: an ACTION (it does something: Create, Start, Copy, Skip, Leave…) has a
+ * 3D bottom edge and sinks when pressed. A CHOICE (filters, tabs, Night/Day, options you pick) is flat,
+ * with the picked one filled yellow. Actions that aren't a .btn take the .press class.
+ */
+.btn, .press { box-shadow: 0 4px 0 var(--btn-shadow); transition: transform .08s, box-shadow .08s; }
+.btn:active:not(:disabled), .press:active:not(:disabled) { transform: translateY(3px); box-shadow: 0 1px 0 var(--btn-shadow); }
+.btn-primary { box-shadow: 0 5px 0 var(--accent-deep); }
+.btn-primary:active:not(:disabled) { box-shadow: 0 2px 0 var(--accent-deep); }
+.btn-ghost { box-shadow: 0 3px 0 var(--border-strong); }
+.btn-ghost:active:not(:disabled) { box-shadow: 0 1px 0 var(--border-strong); }
 
 /* Form fields ------------------------------------------------------------- */
 
@@ -206,7 +213,8 @@ a:not(.btn):hover { color: var(--accent-hover); }
 *:hover { scrollbar-color: var(--accent) transparent; }
 
 /* Red button for actions you can't take back (Kick, Give up, Replace) */
-.btn-destructive { background: var(--destructive); color: var(--on-destructive); font-weight: 800; box-shadow: 0 5px 0 var(--destructive-deep) !important; }
+.btn-destructive { background: var(--destructive); color: var(--on-destructive); font-weight: 800; box-shadow: 0 5px 0 var(--destructive-deep); }
+.btn-destructive:active:not(:disabled) { box-shadow: 0 2px 0 var(--destructive-deep); }
 
 /* Dialogs (confirmation boxes, troll-character votes): the Palm shadows design, sections 6 and 7 ------ */
 

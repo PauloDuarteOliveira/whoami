@@ -27,7 +27,7 @@
                   <span class="note">Loading votes…</span>
                 } @else if (failed().has(q.id)) {
                   <span class="note error">Couldn't load the votes.</span>
-                  <button type="button" class="retry" (click)="retry(q)">Try again</button>
+                  <button type="button" class="btn btn-ghost retry" (click)="retry(q)">Try again</button>
                 } @else {
                   @for (v of votes()[q.id] ?? []; track v.id) {
                     <span class="vote">{{ nameOf(v.voter_id) }} <span [class]="'tag-answer ' + v.value">{{ v.value | uppercase }}</span></span>

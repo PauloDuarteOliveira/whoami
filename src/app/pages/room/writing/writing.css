@@ -91,7 +91,8 @@
   gap: 4px;
 }
 
-.choice.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.choice.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); box-shadow: 0 5px 0 var(--accent-deep); }
+.choice.primary:active:not(:disabled) { box-shadow: 0 2px 0 var(--accent-deep); }
 .choice:disabled { opacity: .45; cursor: not-allowed; }
 .choice-title { font-weight: 700; font-size: 16px; }
 .choice-text { font-size: 13px; opacity: .85; }
@@ -106,7 +107,7 @@
 }
 
 /* Phone: one column that scrolls: the writing card first, then who's done. */
-@media (max-width: 760px) {
+@media (max-width: 760px), (orientation: landscape) and (max-height: 500px) {
   .writing { height: auto; min-height: 100dvh; overflow: visible; }
   .body { display: flex; flex-direction: column; gap: 16px; padding: 16px; }
   .main { order: 1; overflow: visible; }

@@ -6,9 +6,11 @@ import { placeLabel, plural } from '../../../shared/format';
 import { SkySwitch } from '../../../shared/sky-switch/sky-switch';
 import { Logo } from '../../../shared/logo/logo';
 
+import { AvatarFace } from '../../../shared/avatar-face';
+
 @Component({
     selector: 'app-results',
-    imports: [DatePipe, DecimalPipe, SkySwitch, Logo],
+    imports: [DatePipe, DecimalPipe, SkySwitch, Logo, AvatarFace],
     templateUrl: './results.html',
     styleUrl: './results.css',
 })
