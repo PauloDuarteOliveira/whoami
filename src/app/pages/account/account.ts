@@ -6,6 +6,7 @@ import { AuthService, OAuthProvider, PROVIDER_LABEL } from '../../core/auth.serv
 import { ProfileService } from '../../core/profile.service';
 import { SessionService } from '../../core/session.service';
 import { PageHeader } from '../../shared/page-header/page-header';
+import { GameHistory } from './game-history';
 
 type Mode = 'create' | 'signin';
 
@@ -18,7 +19,7 @@ function passwordsMatch(group: AbstractControl): ValidationErrors | null {
 
 @Component({
     selector: 'app-account',
-    imports: [ReactiveFormsModule, PageHeader, NgTemplateOutlet],
+    imports: [ReactiveFormsModule, PageHeader, NgTemplateOutlet, GameHistory],
     templateUrl: './account.html',
     styleUrl: './account.css',
 })

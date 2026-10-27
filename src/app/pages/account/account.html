@@ -134,6 +134,11 @@
       }
     </section>
   }
+
+  <!-- Signed in: your numbers and every finished game, across the full width. -->
+  @if (!auth.isAnonymous()) {
+    <app-game-history class="full" />
+  }
 </main>
 
 <!-- The providers' own marks, as their brand guides ask for on sign-in buttons. -->
