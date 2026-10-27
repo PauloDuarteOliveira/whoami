@@ -20,8 +20,18 @@
           @if (canShare) {
             <button type="button" class="btn btn-primary share-btn" (click)="share()">Share invite</button>
           }
+          <!-- Phones: the QR code opens full screen, big enough for friends to scan from across the table. -->
+          <button type="button" class="btn qr-btn" [disabled]="!qr()" (click)="openQr()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
+              <rect x="3" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="3" width="7" height="7" rx="1.5" /><rect x="3" y="14" width="7" height="7" rx="1.5" />
+              <path d="M14 14h3v3M21 14v.01M14 21h7M21 17v4" />
+            </svg>
+            QR code
+          </button>
           <button type="button" class="btn" (click)="copy('code')">{{ copied() === 'code' ? 'Copied ✓' : 'Copy code' }}</button>
-          <button type="button" class="btn" (click)="copy('link')">{{ copied() === 'link' ? 'Copied ✓' : 'Copy invite link' }}</button>
+          <button type="button" class="btn" (click)="copy('link')">
+            @if (copied() === 'link') { Copied ✓ } @else { <span>Copy <span class="wide-only">invite </span>link</span> }
+          </button>
         </div>
         <p class="muted">Friends join from the home page with this code. You need at least {{ minPlayers }} players to start.</p>
       </div>
@@ -70,3 +80,19 @@
     </aside>
   </div>
 </div>
+
+@if (qrOpen()) {
+  @if (qr(); as src) {
+    <div class="dialog-layer qr-layer">
+      <button type="button" class="dialog-backdrop" tabindex="-1" aria-label="Close" (click)="closeQr()"></button>
+      <section #qrBox class="dialog qr-dialog" role="dialog" aria-modal="true" aria-labelledby="qr-title" aria-describedby="qr-text">
+        <h2 id="qr-title">Scan to join</h2>
+        <p id="qr-text" class="dialog-text">Friends point their phone camera here. The room code fills in by itself.</p>
+        <img class="qr-big" [src]="src" width="300" height="300" [alt]="'QR code to join room ' + room.code">
+        <div class="qr-code">{{ room.code }}</div>
+        <p class="dialog-foot">No camera? Type the code on the Join page.</p>
+        <button type="button" class="btn qr-done" (click)="closeQr()">Done</button>
+      </section>
+    </div>
+  }
+}
