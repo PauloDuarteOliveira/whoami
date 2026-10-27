@@ -22,6 +22,10 @@ import { ConfirmService } from '../../core/confirm.service';
 import { ReportService } from '../../core/report.service';
 import { openReport, reportResult, reportVoters, strikes, writerOf } from '../../core/report-rules';
 import { DecisionEvent, ReportDialogs, ReportVoteEvent, RewriteEvent } from './report-dialogs/report-dialogs';
+import { ChatService } from '../../core/chat.service';
+import { ProfileService } from '../../core/profile.service';
+import { initials } from '../../shared/initials';
+import { avatarUrl, isAvatar } from '../../shared/avatars';
 
 @Component({
     selector: 'app-room',
@@ -46,6 +50,8 @@ export class RoomPage implements OnInit, OnDestroy {
     private readonly whiteboardService = inject(WhiteboardService);
     private readonly confirm = inject(ConfirmService);
     private readonly reportService = inject(ReportService);
+    private readonly chatService = inject(ChatService);
+    private readonly profile = inject(ProfileService);
 
     protected code = '';
     private readonly deckList = signal<Deck[]>([]);
@@ -143,7 +149,7 @@ export class RoomPage implements OnInit, OnDestroy {
         const yes = await this.confirm.ask({
             tone: 'warn', icon: 'flag', title: `Report ${player.name}'s character?`,
             text: `Use this for a character that's offensive, or a joke nobody could guess. The room votes, and ${player.name} never sees it.`,
-            card: { label: `${player.name}'s character · written by ${writer?.name ?? 'someone'}`, name: character.name, avatar: { letter: player.name.charAt(0), color: player.color } },
+            card: { label: `${player.name}'s character · written by ${writer?.name ?? 'someone'}`, name: character.name, avatar: { letter: initials(player, this.store.players()), color: player.color, image: isAvatar(player.avatar) ? avatarUrl(player.avatar) : null } },
             note: 'Everyone sees who reported it. If most players say it\'s fine, the character stays.',
             confirmLabel: 'Report it',
         });
@@ -549,6 +555,40 @@ export class RoomPage implements OnInit, OnDestroy {
         this.store.patchPlayer(player.id, { role: 'admin' });
         this.store.patchPlayer(me.id, { role: 'helper' });
         this.run(concat(this.playerService.setRole(player.id, 'admin'), this.playerService.setRole(me.id, 'helper')));
+    }
+
+    /** Sends a chat message; it shows straight away, and again (once) when the live update arrives. */
+    protected sendMessage(text: string): void {
+        const room = this.store.room();
+        const me = this.store.me();
+        if (!room || !me) return;
+        this.chatService.send(room.id, me.id, text).subscribe({
+            next: message => this.store.addMessage(message),
+            error: () => this.actionError.set(me.muted ? 'The Admin muted you in the chat.' : 'Could not send your message. Try again.'),
+        });
+    }
+
+    /** Lobby: you pick another animal (remembered for your next rooms too). */
+    protected changeAvatar(avatar: string): void {
+        const me = this.store.me();
+        if (!me || !isAvatar(avatar)) return;
+        this.profile.setAvatar(avatar);
+        this.store.patchPlayer(me.id, { avatar });
+        this.run(this.playerService.setAvatar(me.id, avatar));
+    }
+
+    /** The Admin or a Helper mutes or unmutes someone in the chat. */
+    protected async toggleMute(player: Player): Promise<void> {
+        if (!player.muted) {
+            const yes = await this.confirm.ask({
+                tone: 'normal', icon: 'warn', title: `Mute ${player.name} in the chat?`,
+                text: `${player.name} can still read the chat and play, but can't write until you unmute them.`,
+                confirmLabel: `Mute ${player.name}`,
+            });
+            if (!yes) return;
+        }
+        this.store.patchPlayer(player.id, { muted: !player.muted });
+        this.run(this.playerService.setMuted(player.id, !player.muted));
     }
 
     protected toggleHelper(player: Player): void {

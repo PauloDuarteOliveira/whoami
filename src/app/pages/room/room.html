@@ -39,7 +39,12 @@
               (leave)="leave()"
               (kick)="kick($event)"
               (toggleHelper)="toggleHelper($event)"
-              (handOver)="handOver($event)" />
+              (handOver)="handOver($event)"
+              [messages]="store.messages()"
+              [everyone]="store.players()"
+              (sendMessage)="sendMessage($event)"
+              (toggleMute)="toggleMute($event)"
+              (changeAvatar)="changeAvatar($event)" />
           }
           @case ('writing') {
             <app-writing
@@ -59,7 +64,8 @@
               (leave)="leave()"
               (kick)="kick($event)"
               (toggleHelper)="toggleHelper($event)"
-              (handOver)="handOver($event)" />
+              (handOver)="handOver($event)"
+              (toggleMute)="toggleMute($event)" />
           }
           @case ('playing') {
             <app-game
@@ -92,6 +98,10 @@
               (kick)="kick($event)"
               (toggleHelper)="toggleHelper($event)"
               (handOver)="handOver($event)"
+              [messages]="store.messages()"
+              [everyone]="store.players()"
+              (sendMessage)="sendMessage($event)"
+              (toggleMute)="toggleMute($event)"
               [reportable]="reportable()"
               [waitingForCharacter]="waitingForCharacter()"
               (report)="report($event)" />
