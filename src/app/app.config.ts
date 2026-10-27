@@ -3,6 +3,7 @@ import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/
 import { provideRouter, withHashLocation } from '@angular/router';
 import { routes } from './app.routes';
 import { AuthService } from './core/auth.service';
+import { AccountSync } from './core/account-sync.service';
 import { authInterceptor } from './core/auth.interceptor';
 
 export const appConfig: ApplicationConfig = {
@@ -11,6 +12,10 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes, withHashLocation()),
     provideHttpClient(withFetch(), withInterceptors([authInterceptor])),
     // Sign in before the first screen loads, so every request already carries the player's token.
-    provideAppInitializer(() => inject(AuthService).signIn()),
+    provideAppInitializer(() => {
+      // Signed-in players: their name, avatar and Day/Night follow them to every device.
+      inject(AccountSync);
+      return inject(AuthService).signIn();
+    }),
   ]
 };

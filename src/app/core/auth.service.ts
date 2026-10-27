@@ -1,7 +1,6 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { AuthError, Session } from '@supabase/supabase-js';
 import { SUPABASE } from './supabase.client';
-import { ProfileService } from './profile.service';
 import { isDigit, isLetter } from '../shared/validators';
 
 export type AuthStatus = 'loading' | 'ready' | 'error';
@@ -26,7 +25,6 @@ const PENDING_KEY = 'whoami.oauth';
 @Injectable({ providedIn: 'root' })
 export class AuthService {
     private readonly client = inject(SUPABASE);
-    private readonly profile = inject(ProfileService);
 
     readonly session = signal<Session | null>(null);
     readonly status = signal<AuthStatus>('loading');
@@ -143,13 +141,8 @@ export class AuthService {
             return;
         }
         clearPending();
-        if (errorCode || errorText) {
-            this.oauthError.set(returnError(errorCode, pending?.provider ?? null));
-            return;
-        }
-        // Signed in: a guest who hasn't typed a name yet gets the one from Google / Discord.
-        const name = playerName(this.accountName());
-        if (name && !this.profile.name()) this.profile.setName(name);
+        // Signed in: AccountSync brings in the account's name, avatar and sky.
+        if (errorCode || errorText) this.oauthError.set(returnError(errorCode, pending?.provider ?? null));
     }
 }
 
@@ -209,7 +202,7 @@ function accountNameOf(session: Session | null): string | null {
 }
 
 /** A provider name made fit for the game: letters, numbers and spaces, 2 to 16 characters ("maya_99" → "maya99"). */
-function playerName(name: string | null): string | null {
+export function playerName(name: string | null): string | null {
     if (!name) return null;
     const kept = [...name].filter(char => char === ' ' || isLetter(char) || isDigit(char)).join('');
     const clean = kept.split(' ').filter(word => word !== '').join(' ').slice(0, 16).trim();
