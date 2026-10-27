@@ -49,9 +49,20 @@
         <button type="button" class="btn btn-primary" (click)="goHome()">Play</button>
         <button type="button" class="btn btn-ghost" [disabled]="busy()" (click)="signOut()">Sign out</button>
       </div>
+
+      <div class="danger">
+        <div>
+          <strong>Delete my account</strong>
+          <span>Removes your email, sign-ins, history and saved settings.</span>
+        </div>
+        <button type="button" class="btn btn-ghost delete" [disabled]="busy()" (click)="openDelete()">Delete account…</button>
+      </div>
     </section>
   } @else {
     <section class="card panel" aria-label="Account form">
+      @if (accountDeleted()) {
+        <p class="deleted" role="status">Your account was deleted. You're playing as a guest again.</p>
+      }
       <h2>Sign in in one tap</h2>
       <button type="button" class="quick google" [disabled]="busy()" (click)="continueWith('google')">
         <ng-container *ngTemplateOutlet="googleIcon" />Continue with Google
@@ -140,6 +151,34 @@
     <app-game-history class="full" />
   }
 </main>
+
+@if (deleting()) {
+  <div class="dialog-layer">
+    <button type="button" class="dialog-backdrop" tabindex="-1" aria-label="Cancel" (click)="closeDelete()"></button>
+    <section #deleteBox class="dialog" role="alertdialog" aria-modal="true" aria-labelledby="delete-title" aria-describedby="delete-text">
+      <div class="dialog-head">
+        <span class="dialog-badge danger" aria-hidden="true">!</span>
+        <h2 id="delete-title">Delete your account?</h2>
+      </div>
+      <p id="delete-text" class="dialog-text">This can't be undone. Your email, your Google and Discord sign-ins, your game
+        history and your saved settings are removed. The games you're in right now go on without you.</p>
+      <div class="field">
+        <label for="delete-confirm">Type <strong>{{ confirmWord() }}</strong> to confirm</label>
+        <input id="delete-confirm" class="box" autocomplete="off" spellcheck="false" [value]="typed()"
+          (input)="typed.set($any($event.target).value)">
+      </div>
+      @if (deleteError(); as message) {
+        <p class="error-text" role="alert">{{ message }}</p>
+      }
+      <div class="dialog-actions">
+        <button type="button" class="btn btn-ghost" data-cancel (click)="closeDelete()">Cancel</button>
+        <button type="button" class="btn btn-destructive" [disabled]="!canDelete() || busy()" (click)="deleteAccount()">
+          {{ busy() ? 'Deleting…' : 'Delete account' }}
+        </button>
+      </div>
+    </section>
+  </div>
+}
 
 <!-- The providers' own marks, as their brand guides ask for on sign-in buttons. -->
 <ng-template #googleIcon>

@@ -34,6 +34,14 @@ export interface GameRecord {
     others: GameRival[];
 }
 
+/** A room you're still in: your player there, and the room. */
+export interface OpenRoom {
+    id: string;
+    name: string;
+    role: 'admin' | 'helper' | 'player' | 'spectator';
+    room: { code: string; status: 'lobby' | 'writing' | 'playing'; updated_at: string };
+}
+
 /** Your numbers, worked out from your games. */
 export interface GameStats {
     played: number;
@@ -56,6 +64,24 @@ export class HistoryService {
     /** Your last 100 finished games, newest first. Row Level Security keeps it to your own. */
     myGames(): Observable<GameRecord[]> {
         return this.api.select<GameRecord>('my_games', { order: 'ended_at.desc', limit: '100' });
+    }
+
+    /**
+     * Rooms you're still in (lobby, writing or playing) that moved in the last 12 hours, newest first:
+     * Home's "Continue playing". Your account's players, so it works on any device you're signed in on.
+     */
+    openRooms(userId: string): Observable<OpenRoom[]> {
+        const since = new Date(Date.now() - 12 * 3600 * 1000).toISOString();
+        return this.api.select<OpenRoom>('players', {
+            // players → rooms through the player's room (rooms also points back at its current player).
+            select: 'id,name,role,room:rooms!players_room_id_fkey!inner(code,status,updated_at)',
+            user_id: `eq.${userId}`,
+            status: 'not.in.(kicked,left)',
+            'room.status': 'neq.finished',
+            'room.updated_at': `gte.${since}`,
+            order: 'joined_at.desc',
+            limit: '3',
+        });
     }
 }
 

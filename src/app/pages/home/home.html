@@ -36,6 +36,17 @@
   </section>
 
   <form class="play" aria-label="Play" [formGroup]="form" (ngSubmit)="create()">
+    <!-- Rooms you're still in: back in one tap (on any device, when signed in). -->
+    @for (r of openRooms(); track r.id) {
+      <div class="continue">
+        <span class="room-code">{{ r.room.code }}</span>
+        <div class="continue-text">
+          <strong>Continue playing</strong>
+          <span>{{ phaseLabel[r.room.status] }} · {{ r.role === 'admin' ? "you're the Admin" : 'as ' + r.name }}</span>
+        </div>
+        <button type="button" class="btn btn-primary rejoin" (click)="rejoin(r)">Rejoin</button>
+      </div>
+    }
     <h2>Start playing</h2>
 
     <div class="who-row">
