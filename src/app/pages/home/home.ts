@@ -5,6 +5,7 @@ import { AuthService } from '../../core/auth.service';
 import { ProfileService } from '../../core/profile.service';
 import { SkySwitch } from '../../shared/sky-switch/sky-switch';
 import { Logo } from '../../shared/logo/logo';
+import { HomeLink } from '../../shared/home-link';
 import { playerNameValidators } from '../../shared/validators';
 import { AvatarChoice } from '../../shared/avatar-choice';
 import { isAvatar } from '../../shared/avatars';
@@ -12,7 +13,7 @@ import { trapFocus } from '../../shared/focus';
 
 @Component({
   selector: 'app-home',
-  imports: [ReactiveFormsModule, RouterLink, SkySwitch, Logo, AvatarChoice],
+  imports: [ReactiveFormsModule, RouterLink, SkySwitch, Logo, AvatarChoice, HomeLink],
   templateUrl: './home.html',
   styleUrl: './home.css',
 })

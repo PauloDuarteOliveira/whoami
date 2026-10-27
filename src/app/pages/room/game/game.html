@@ -13,8 +13,10 @@
      for Notes or History. The Board takes the middle and the dock. Phones use the tab bar instead. -->
 <div class="game" [attr.data-pane]="pane()" [attr.data-dock]="dock()" [class.dock-open]="dockOpen()">
     <header class="top">
-        <app-logo class="logo" />
-        <span class="brand">Who<span class="am">Am</span>I</span>
+        <a appHomeLink [askFirst]="true">
+            <app-logo class="logo" />
+            <span class="brand">Who<span class="am">Am</span>I</span>
+        </a>
         <span class="code">{{ room.code }}</span>
         <span class="divider" aria-hidden="true"></span>
         <div class="turn-info">

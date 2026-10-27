@@ -11,6 +11,7 @@ import { PreferencesService } from '../../../core/preferences.service';
 import { ConfirmService } from '../../../core/confirm.service';
 import { SkySwitch } from '../../../shared/sky-switch/sky-switch';
 import { Logo } from '../../../shared/logo/logo';
+import { HomeLink } from '../../../shared/home-link';
 import { Chat } from '../chat/chat';
 import { AvatarFace } from '../../../shared/avatar-face';
 
@@ -23,7 +24,7 @@ const PHONE_LAYOUT = '(max-width: 900px), (orientation: landscape) and (max-heig
 
 @Component({
     selector: 'app-game',
-    imports: [ReactiveFormsModule, UpperCasePipe, NgTemplateOutlet, PlayersPanel, Notes, History, Board, SkySwitch, Logo, Chat, AvatarFace],
+    imports: [ReactiveFormsModule, UpperCasePipe, NgTemplateOutlet, PlayersPanel, Notes, History, Board, SkySwitch, Logo, Chat, AvatarFace, HomeLink],
     templateUrl: './game.html',
     styleUrl: './game.css',
 })

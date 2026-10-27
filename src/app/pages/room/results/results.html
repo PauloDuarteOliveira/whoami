@@ -1,7 +1,9 @@
 <div class="results">
   <header class="head">
-    <app-logo class="logo" />
-    <span class="brand">Who<span class="am">Am</span>I</span>
+    <a appHomeLink>
+      <app-logo class="logo" />
+      <span class="brand">Who<span class="am">Am</span>I</span>
+    </a>
     <span class="muted">Room {{ room.code }} · game over after {{ plural(turnsPlayed(), 'turn') }} · {{ room.created_at | date: 'd MMM y, HH:mm' }}</span>
     <app-sky-switch class="sky" />
   </header>

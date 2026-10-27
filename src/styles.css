@@ -125,6 +125,11 @@ h1, h2, h3 { margin: 0; font-family: var(--font-display); font-weight: 400; lett
 a:not(.btn) { color: var(--accent-text); }
 a:not(.btn):hover { color: var(--accent-hover); }
 
+/* The header logo + WhoAmI, as a link to Home (shared/home-link.ts): looks like the logo, not like a link. */
+a.home-link { display: inline-flex; align-items: center; gap: 10px; flex: none; color: inherit; text-decoration: none; border-radius: 10px; }
+a.home-link:hover { color: inherit; }
+a.home-link:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+
 /* Buttons ----------------------------------------------------------------- */
 
 .btn {

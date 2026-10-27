@@ -1,6 +1,7 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { SkySwitch } from '../../../shared/sky-switch/sky-switch';
 import { Logo } from '../../../shared/logo/logo';
+import { HomeLink } from '../../../shared/home-link';
 
 /**
  * The header of the Lobby and the Writing phase (design Layout A): the room on the left, the screen's
@@ -8,11 +9,13 @@ import { Logo } from '../../../shared/logo/logo';
  */
 @Component({
     selector: 'app-room-top',
-    imports: [SkySwitch, Logo],
+    imports: [SkySwitch, Logo, HomeLink],
     template: `
     <header class="top">
-      <app-logo class="logo" />
-      <span class="brand">Who<span class="am">Am</span>I</span>
+      <a appHomeLink [askFirst]="true">
+        <app-logo class="logo" />
+        <span class="brand">Who<span class="am">Am</span>I</span>
+      </a>
       <span class="code">{{ code }}</span>
       <span class="divider" aria-hidden="true"></span>
       <div class="info">
