@@ -38,11 +38,16 @@
                   game in progress
                 }
               </div>
-            </div>
-            <div class="avatars" aria-hidden="true">
-              @for (p of present().slice(0, 5); track p.id) {
-                <span [style.background]="p.color"></span>
-              }
+              <ul class="avatars" [attr.aria-label]="'Waiting: ' + waitingNames()">
+                @for (p of present().slice(0, 5); track p.id) {
+                  <li [style.background]="p.color" [title]="p.name" aria-hidden="true">
+                    <app-face [player]="p" [players]="present()" />
+                  </li>
+                }
+                @if (present().length > 5) {
+                  <li class="more" aria-hidden="true">+{{ present().length - 5 }}</li>
+                }
+              </ul>
             </div>
           </div>
         }
