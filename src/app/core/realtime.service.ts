@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { Player } from './models';
+import { ChatMessage, Player } from './models';
 import { SUPABASE } from './supabase.client';
 
 export interface RoomWatchers {
@@ -7,6 +7,8 @@ export interface RoomWatchers {
     changed: () => void;
     /** A player row changed (status, role, heartbeat…): the new row is applied without reloading everything. */
     player: (player: Player) => void;
+    /** A new chat message: added straight away, without reloading the room. */
+    message: (message: ChatMessage) => void;
     /** Whether the live connection is up, so the app can fall back to frequent polling when it isn't. */
     live: (connected: boolean) => void;
 }
@@ -37,6 +39,9 @@ export class RealtimeService {
             .on('postgres_changes', { event: '*', schema: 'public', table: 'whiteboards', filter: inRoom }, changed)
             .on('postgres_changes', { event: '*', schema: 'public', table: 'reports', filter: inRoom }, changed)
             .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'report_votes', filter: inRoom }, changed)
+            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: inRoom }, payload =>
+                on.message(payload.new as ChatMessage),
+            )
             // Votes have no room_id; Row Level Security only sends the ones from rooms you're in.
             .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'votes' }, changed)
             // Deleted rows can't be filtered by room, so any deletion (a player leaving the lobby,

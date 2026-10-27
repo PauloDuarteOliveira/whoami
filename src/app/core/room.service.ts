@@ -27,10 +27,10 @@ export class RoomService {
         return this.api.update<Room>('rooms', { id: `eq.${roomId}` }, changes).pipe(map(rows => rows[0]));
     }
 
-    create(settings: RoomSettings, adminName: string): Observable<{ room: Room; admin: Player }> {
+    create(settings: RoomSettings, adminName: string, avatar: string | null = null): Observable<{ room: Room; admin: Player }> {
         return this.insertWithFreeCode(settings, 5).pipe(
             switchMap(room =>
-                this.players.join(room.id, adminName, 'admin').pipe(map(admin => ({ room, admin }))),
+                this.players.join(room.id, adminName, 'admin', [], avatar).pipe(map(admin => ({ room, admin }))),
             ),
         );
     }
