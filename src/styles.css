@@ -274,6 +274,6 @@ a:not(.btn):hover { color: var(--accent-hover); }
 
 @media (prefers-reduced-motion: reduce) { .dialog { animation: none; } }
 
-/* The WhoAmI wordmark: "Am" in the logo's yellow (a deeper gold by day, so it shows on the light sky). */
+/* The WhoAmI wordmark: "Am" in the logo's yellow, by night and by day. It sits on the left of the
+   header, away from the sun (top right), so the yellow never lands on the yellow sun. */
 .brand .am { color: var(--accent); }
-html[data-sky="day"] .brand .am { color: var(--accent-deep); }
