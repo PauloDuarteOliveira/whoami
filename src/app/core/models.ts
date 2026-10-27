@@ -1,7 +1,8 @@
 // Interfaces for the main WhoAmI entities. They mirror the tables in supabase/schema.sql.
 
 export type GameMode = 'voice' | 'novoice';
-export type CharacterSource = 'deck' | 'custom';
+/** custom: everyone writes · deck: a pre-made deck · list: one of the host's own lists (migration 009). */
+export type CharacterSource = 'deck' | 'custom' | 'list';
 export type RoomStatus = 'lobby' | 'writing' | 'playing' | 'finished';
 export type TurnPhase = 'question' | 'answer_vote' | 'guess' | 'guess_vote';
 export type PlayerRole = 'admin' | 'helper' | 'player' | 'spectator';
@@ -29,6 +30,8 @@ export interface Room {
   mode: GameMode;
   character_source: CharacterSource;
   deck_id: string | null;
+  /** The host's character list, when character_source is 'list'. */
+  list_id?: string | null;
   give_up_after: number;
   turn_timer_sec: 60 | 120 | 180 | null;
   writing_timer_sec: 30 | 60 | 90 | null;

@@ -13,6 +13,7 @@ import { plural } from '../format';
           @switch (settings.character_source) {
             @case ('custom') { Custom Pool }
             @case ('deck') { {{ deckName || 'Pre-made deck' }} }
+            @case ('list') { {{ listName ? 'My list · ' + listName : 'My list' }} }
           }
         </dd>
       </div>
@@ -33,6 +34,7 @@ import { plural } from '../format';
 export class SettingsSummary {
   @Input({ required: true }) settings!: RoomSettings;
   @Input() deckName: string | null = null;
+  @Input() listName: string | null = null;
 
   protected readonly plural = plural;
 }

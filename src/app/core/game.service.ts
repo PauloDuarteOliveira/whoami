@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
-import { Observable, forkJoin, map, switchMap } from 'rxjs';
+import { Observable, forkJoin, switchMap, throwError } from 'rxjs';
 import { DeckService } from './deck.service';
+import { ListService } from './list.service';
 import { Character, Player, Question, RankedPlayer, Room } from './models';
 import { RoomService } from './room.service';
 import { SupabaseApiService } from './supabase-api.service';
@@ -36,6 +37,7 @@ export class GameService {
     private readonly api = inject(SupabaseApiService);
     private readonly rooms = inject(RoomService);
     private readonly decks = inject(DeckService);
+    private readonly lists = inject(ListService);
 
 
     startCustom(room: Room, writers: Player[], characters: Character[]): Observable<Room> {
@@ -50,12 +52,27 @@ export class GameService {
 
     startDeck(room: Room, players: Player[]): Observable<Room> {
         return this.decks.getCards(room.deck_id!).pipe(
-            map(cards => shuffle(cards).slice(0, players.length)),
-            switchMap(cards =>
-                this.api.insert<Character>('characters', players.map((p, i) => ({ room_id: room.id, name: cards[i].name, assigned_to: p.id }))),
-            ),
-            switchMap(() => this.begin(room, players)),
+            switchMap(cards => this.deal(room, players, cards.map(c => c.name))),
         );
+    }
+
+    /** Starts with characters from the host's own list (only the host can read it, and only the host starts). */
+    startList(room: Room, players: Player[]): Observable<Room> {
+        return this.lists.get(room.list_id!).pipe(
+            switchMap(list => {
+                if (!list) return throwError(() => new Error('LIST_MISSING'));
+                if (list.characters.length < players.length) return throwError(() => new Error('LIST_TOO_SHORT'));
+                return this.deal(room, players, list.characters);
+            }),
+        );
+    }
+
+    /** Shuffles the names, gives each player one, then starts the first turn. */
+    private deal(room: Room, players: Player[], names: string[]): Observable<Room> {
+        const picked = shuffle(names).slice(0, players.length);
+        return this.api
+            .insert<Character>('characters', players.map((p, i) => ({ room_id: room.id, name: picked[i], assigned_to: p.id })))
+            .pipe(switchMap(() => this.begin(room, players)));
     }
 
     private begin(room: Room, players: Player[]): Observable<Room> {

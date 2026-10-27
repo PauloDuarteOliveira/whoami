@@ -8,7 +8,7 @@ import { SupabaseApiService } from './supabase-api.service';
 export type RoomSettings = Pick<
     Room,
     'mode' | 'character_source' | 'deck_id' | 'give_up_after' | 'turn_timer_sec' | 'writing_timer_sec'
->;
+> & { list_id?: string | null };
 
 const CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 
@@ -37,7 +37,10 @@ export class RoomService {
 
 
     private insertWithFreeCode(settings: RoomSettings, attemptsLeft: number): Observable<Room> {
-        return defer(() => this.api.insertOne<Room>('rooms', { ...settings, code: this.randomCode() })).pipe(
+        // list_id only goes with a list, so rooms can still be created before migration 009 runs.
+        const { list_id, ...rest } = settings;
+        const row: Partial<Room> = settings.character_source === 'list' ? { ...rest, list_id } : rest;
+        return defer(() => this.api.insertOne<Room>('rooms', { ...row, code: this.randomCode() })).pipe(
             catchError((err: HttpErrorResponse) =>
                 err.status === 409 && attemptsLeft > 1
                     ? this.insertWithFreeCode(settings, attemptsLeft - 1)

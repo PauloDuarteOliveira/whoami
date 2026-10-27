@@ -147,3 +147,8 @@ h2 { font-size: 16px; margin-bottom: 4px; }
   /* Solid when disabled, so the page doesn't show through it. */
   .create:disabled { opacity: 1; background: var(--surface-3); color: var(--muted); box-shadow: 0 5px 0 var(--btn-shadow), 0 10px 24px rgba(0, 0, 0, 0.25); }
 }
+/* Signed in: a third choice, My lists. */
+.pair.trio { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.chip-count { opacity: .7; font-weight: 600; }
+.small-hint { display: block; margin: 8px 0 0; font-size: 12px; }
+@media (max-width: 600px) { .pair.trio { grid-template-columns: 1fr; } }

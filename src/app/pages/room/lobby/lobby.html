@@ -58,7 +58,7 @@
             @if (room.character_source === 'custom') {
               Everyone writes a character, and the game starts as soon as all of them are in.
             } @else {
-              Everyone gets a character from the deck.
+              Everyone gets a character from the {{ room.character_source === 'list' ? 'list' : 'deck' }}.
             }
           </p>
           <button type="button" class="btn btn-primary go" [disabled]="playing.length < minPlayers || starting" (click)="start.emit()">
