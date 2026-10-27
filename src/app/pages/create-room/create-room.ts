@@ -11,7 +11,7 @@ import { PageHeader } from '../../shared/page-header/page-header';
 import { SettingsSummary } from '../../shared/settings-summary/settings-summary';
 
 /** Questions a player must ask before they can give up. */
-const DEFAULT_GIVE_UP_AFTER = 15;
+const DEFAULT_GIVE_UP_AFTER = 10;
 
 /** A deck must be picked when the room uses a pre-made deck. */
 function deckRequired(group: AbstractControl): ValidationErrors | null {
