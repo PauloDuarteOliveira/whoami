@@ -2,14 +2,15 @@ import { Component, Input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { SkySwitch } from '../sky-switch/sky-switch';
 import { Logo } from '../logo/logo';
+import { HomeLink } from '../home-link';
 
 @Component({
   selector: 'app-page-header',
-  imports: [RouterLink, SkySwitch, Logo],
+  imports: [RouterLink, SkySwitch, Logo, HomeLink],
   template: `
     <header class="bar">
       <a routerLink="/" class="back">← Back</a>
-      <app-logo class="logo" />
+      <a appHomeLink class="logo"><app-logo /></a>
       <span class="title">{{ title }}</span>
       <app-sky-switch class="sky" />
     </header>

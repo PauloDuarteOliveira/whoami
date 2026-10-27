@@ -5,12 +5,13 @@ import { Character, Player, Question, RankedPlayer, Room } from '../../../core/m
 import { placeLabel, plural } from '../../../shared/format';
 import { SkySwitch } from '../../../shared/sky-switch/sky-switch';
 import { Logo } from '../../../shared/logo/logo';
+import { HomeLink } from '../../../shared/home-link';
 
 import { AvatarFace } from '../../../shared/avatar-face';
 
 @Component({
     selector: 'app-results',
-    imports: [DatePipe, DecimalPipe, SkySwitch, Logo, AvatarFace],
+    imports: [DatePipe, DecimalPipe, SkySwitch, Logo, AvatarFace, HomeLink],
     templateUrl: './results.html',
     styleUrl: './results.css',
 })
