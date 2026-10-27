@@ -85,7 +85,8 @@
 .room-card.bad .badge { background: var(--no); }
 
 .grow { flex: 1; min-width: 0; }
-.room-name { font-weight: 700; }
+/* A long name with no spaces ("Wwwwwwwwwwwwwwww's room") breaks inside the word instead of leaving the card. */
+.room-name { font-weight: 700; overflow-wrap: anywhere; }
 .room-meta { font-size: 13px; color: var(--text-3); }
 .hint { color: var(--muted); }
 
@@ -114,4 +115,10 @@
 
 @media (max-width: 600px) {
   .panel { padding: 22px; }
+}
+
+/* Small phones (320 px): a little less padding, so "How friends know you" fits in the name box. */
+@media (max-width: 360px) {
+  .panel { padding: 16px; }
+  .box { padding: 0 12px; font-size: 14px; }
 }
