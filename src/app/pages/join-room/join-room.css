@@ -89,16 +89,24 @@
 .room-meta { font-size: 13px; color: var(--text-3); }
 .hint { color: var(--muted); }
 
-.avatars { display: flex; }
+/* The players already waiting: their animals in overlapping circles, like the lobby. */
+.avatars { display: flex; margin: 8px 0 0; padding: 0; list-style: none; }
 
-.avatars span {
-  width: 28px;
-  height: 28px;
+.avatars li {
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   border: 2px solid var(--yes-soft);
+  display: grid;
+  place-items: center;
+  color: var(--on-accent);
+  font-weight: 800;
+  font-size: 13px;
 }
 
-.avatars span + span { margin-left: -8px; }
+.avatars li + li { margin-left: -10px; }
+
+.avatars .more { background: var(--surface-3); color: var(--text); font-size: 12px; }
 
 .join { height: 52px; border-radius: 16px; font-size: 16px; }
 

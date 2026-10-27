@@ -11,6 +11,7 @@ import { RoomService } from '../../core/room.service';
 import { SessionService } from '../../core/session.service';
 import { PageHeader } from '../../shared/page-header/page-header';
 import { AvatarChoice } from '../../shared/avatar-choice';
+import { AvatarFace } from '../../shared/avatar-face';
 import { avatarLabel, freeAvatar, isAvatar } from '../../shared/avatars';
 import { isCodeChar, playerNameValidators, roomCodeValidators } from '../../shared/validators';
 
@@ -18,7 +19,7 @@ type LookupState = 'idle' | 'checking' | 'found' | 'missing' | 'error';
 
 @Component({
     selector: 'app-join-room',
-    imports: [ReactiveFormsModule, PageHeader, AvatarChoice],
+    imports: [ReactiveFormsModule, PageHeader, AvatarChoice, AvatarFace],
     templateUrl: './join-room.html',
     styleUrl: './join-room.css',
 })
@@ -49,6 +50,9 @@ export class JoinRoom implements OnInit {
     );
 
     /** Animals already taken in this room; yours moves to a free one if it's among them. */
+    /** "Ana, Rui and Sofia", read by screen readers instead of the faces. */
+    protected readonly waitingNames = computed(() => this.present().map(p => p.name).join(', '));
+
     protected readonly takenAvatars = computed(() => this.present().map(p => p.avatar ?? null).filter(a => a !== null));
     private readonly chosenAvatar = signal<string | null>(null);
     protected readonly avatar = computed(() => this.chosenAvatar() ?? freeAvatar(this.profile.avatar(), this.takenAvatars()));
