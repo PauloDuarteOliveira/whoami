@@ -9,7 +9,7 @@
 
 .logo { flex: none; }
 
-.brand { font-weight: 800; font-size: 17px; }
+.brand { font-family: var(--font-display); font-size: 17px; }
 
 .how {
   margin-left: auto;

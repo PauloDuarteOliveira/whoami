@@ -12,7 +12,7 @@ import { Logo } from '../../../shared/logo/logo';
     template: `
     <header class="top">
       <app-logo class="logo" />
-      <span class="brand">WhoAmI</span>
+      <span class="brand">Who<span class="am">Am</span>I</span>
       <span class="code">{{ code }}</span>
       <span class="divider" aria-hidden="true"></span>
       <div class="info">
