@@ -2,19 +2,49 @@
 
 <main class="layout">
   <section class="intro" aria-label="About accounts">
-    <span class="pill">Optional</span>
-    <h1>Keep your name<br>on any device.</h1>
-    <p class="lead">You can play without an account: the game signs you in as a guest. An account adds an email and
-      password to that guest, so your name follows you when you play on another device.</p>
+    <span class="pill">Optional · you can always play as a guest</span>
+    <h1>Keep your games.<br><span class="accent">Play anywhere.</span></h1>
+    <p class="lead">The game signs you in as a guest. Sign in with Google, Discord or an email, and that guest
+      becomes your account: the games you're playing keep going, and your name follows you to other devices.</p>
   </section>
 
   @if (!auth.isAnonymous()) {
     <section class="card panel" aria-label="Signed in">
       <h2>You're signed in</h2>
-      <p class="muted">Email: <strong>{{ auth.email() }}</strong></p>
       @if (auth.accountName(); as name) {
         <p class="muted">Name: <strong>{{ name }}</strong></p>
       }
+      @if (auth.email(); as email) {
+        <p class="muted">Email: <strong>{{ email }}</strong></p>
+      }
+
+      <div class="methods" aria-label="Sign in with">
+        <span class="label">SIGN IN WITH</span>
+        @for (p of quick; track p) {
+          <div class="method">
+            <span class="method-icon" [class.google]="p === 'google'" [class.discord]="p === 'discord'">
+              @if (p === 'google') { <ng-container *ngTemplateOutlet="googleIcon" /> } @else { <ng-container *ngTemplateOutlet="discordIcon" /> }
+            </span>
+            <strong>{{ label[p] }}</strong>
+            @if (auth.providers().includes(p)) {
+              <span class="connected">✓ Connected</span>
+            } @else {
+              <button type="button" class="btn btn-ghost connect" [disabled]="busy()" (click)="continueWith(p)">Connect</button>
+            }
+          </div>
+        }
+        @if (auth.providers().includes('email')) {
+          <div class="method">
+            <span class="method-icon email" aria-hidden="true">@</span>
+            <strong>Email and password</strong>
+            <span class="connected">✓ Connected</span>
+          </div>
+        }
+      </div>
+      @if (auth.oauthError(); as message) {
+        <p class="error-text form-error" role="alert">{{ message }}</p>
+      }
+
       <div class="actions">
         <button type="button" class="btn btn-primary" (click)="goHome()">Play</button>
         <button type="button" class="btn btn-ghost" [disabled]="busy()" (click)="signOut()">Sign out</button>
@@ -22,6 +52,18 @@
     </section>
   } @else {
     <section class="card panel" aria-label="Account form">
+      <h2>Sign in in one tap</h2>
+      <button type="button" class="quick google" [disabled]="busy()" (click)="continueWith('google')">
+        <ng-container *ngTemplateOutlet="googleIcon" />Continue with Google
+      </button>
+      <button type="button" class="quick discord" [disabled]="busy()" (click)="continueWith('discord')">
+        <ng-container *ngTemplateOutlet="discordIcon" />Continue with Discord
+      </button>
+      @if (auth.oauthError(); as message) {
+        <p class="error-text form-error" role="alert">{{ message }}</p>
+      }
+      <div class="or"><span>or with email</span></div>
+
       <div class="tabs" role="tablist" aria-label="Create or sign in">
         <button type="button" role="tab" class="tab" [class.active]="mode() === 'create'" [attr.aria-selected]="mode() === 'create'" (click)="switchTo('create')">Create account</button>
         <button type="button" role="tab" class="tab" [class.active]="mode() === 'signin'" [attr.aria-selected]="mode() === 'signin'" (click)="switchTo('signin')">Sign in</button>
@@ -93,3 +135,18 @@
     </section>
   }
 </main>
+
+<!-- The providers' own marks, as their brand guides ask for on sign-in buttons. -->
+<ng-template #googleIcon>
+  <svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true">
+    <path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z" />
+    <path fill="#FF3D00" d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 16.318 4 9.656 8.337 6.306 14.691z" />
+    <path fill="#4CAF50" d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238A11.91 11.91 0 0 1 24 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z" />
+    <path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303a12.04 12.04 0 0 1-4.087 5.571l6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z" />
+  </svg>
+</ng-template>
+<ng-template #discordIcon>
+  <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
+    <path fill="currentColor" d="M20.317 4.37a19.79 19.79 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.74 19.74 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.1 13.1 0 0 1-1.872-.892.077.077 0 0 1-.008-.128c.126-.094.252-.192.372-.291a.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.3 12.3 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.84 19.84 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z" />
+  </svg>
+</ng-template>

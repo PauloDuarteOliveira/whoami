@@ -19,6 +19,41 @@
 .actions { display: flex; gap: 10px; }
 .actions .btn { height: 46px; padding: 0 22px; }
 
+.accent { color: var(--accent-text); }
+
+/* Continue with Google / Discord: the providers' own colours, as their brand guides ask. */
+.quick {
+  height: 52px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  font: 700 16px var(--font);
+  cursor: pointer;
+  box-shadow: 0 4px 0 var(--btn-shadow);
+  transition: transform .08s, box-shadow .08s;
+}
+.quick:active:not(:disabled) { transform: translateY(3px); box-shadow: 0 1px 0 var(--btn-shadow); }
+.quick:disabled { opacity: .6; cursor: wait; }
+.quick:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.quick.google { background: #FFFFFF; color: #1F1F1F; border: 1px solid #DADCE0; }
+.quick.discord { background: #5865F2; color: #FFFFFF; border: none; }
+.quick svg { flex: none; }
+
+.or { display: flex; align-items: center; gap: 12px; color: var(--muted); font-size: 13px; font-weight: 600; }
+.or::before, .or::after { content: ''; flex: 1; height: 1px; background: var(--border-strong); }
+
+/* Signed in: how this account can sign in. */
+.methods { display: flex; flex-direction: column; gap: 10px; }
+.methods .label { font-size: 12px; font-weight: 700; letter-spacing: .5px; color: var(--muted); }
+.method { display: flex; align-items: center; gap: 10px; min-height: 36px; }
+.method-icon { width: 32px; height: 32px; flex: none; border-radius: 9px; display: grid; place-items: center; background: var(--surface-2); color: var(--text-2); font-weight: 800; }
+.method-icon.google { background: #FFFFFF; }
+.method-icon.discord { background: #5865F2; color: #FFFFFF; }
+.connected { margin-left: auto; font-size: 13px; font-weight: 800; color: var(--yes-text); white-space: nowrap; }
+.connect { margin-left: auto; height: 34px; padding: 0 14px; font-size: 13px; }
+
 .tabs { display: flex; gap: 6px; padding: 4px; border-radius: 16px; background: var(--surface-2); }
 .tab { flex: 1; height: 38px; border: none; border-radius: 12px; background: transparent; color: var(--text-2); font: 600 14px var(--font); cursor: pointer; }
 .tab.active { background: var(--accent); color: var(--on-accent); }

@@ -1,7 +1,8 @@
+import { NgTemplateOutlet } from '@angular/common';
 import { Component, inject, signal } from '@angular/core';
 import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { AuthService } from '../../core/auth.service';
+import { AuthService, OAuthProvider, PROVIDER_LABEL } from '../../core/auth.service';
 import { ProfileService } from '../../core/profile.service';
 import { SessionService } from '../../core/session.service';
 import { PageHeader } from '../../shared/page-header/page-header';
@@ -17,7 +18,7 @@ function passwordsMatch(group: AbstractControl): ValidationErrors | null {
 
 @Component({
     selector: 'app-account',
-    imports: [ReactiveFormsModule, PageHeader],
+    imports: [ReactiveFormsModule, PageHeader, NgTemplateOutlet],
     templateUrl: './account.html',
     styleUrl: './account.css',
 })
@@ -30,6 +31,22 @@ export class Account {
     protected readonly mode = signal<Mode>('create');
     protected readonly busy = signal(false);
     protected readonly error = signal<string | null>(null);
+    /** The quick sign-ins, in the order they're shown. */
+    protected readonly quick: OAuthProvider[] = ['google', 'discord'];
+    protected readonly label = PROVIDER_LABEL;
+
+    /** Leaves for Google or Discord; comes back to this page signed in (or with a message). */
+    protected async continueWith(provider: OAuthProvider): Promise<void> {
+        if (this.busy()) return;
+        this.busy.set(true);
+        this.error.set(null);
+        const message = await this.auth.continueWith(provider);
+        // No message: the browser is on its way, so the buttons stay disabled.
+        if (message) {
+            this.auth.oauthError.set(message);
+            this.busy.set(false);
+        }
+    }
 
     protected readonly createForm = new FormGroup(
         {
