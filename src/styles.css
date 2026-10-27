@@ -1,4 +1,4 @@
-/* Palm shadows theme. Night is the default; html[data-sky="day"] switches every colour to its day version.
+/* Palm shadows theme. Night is the base (a first visit follows the device's light or dark mode); html[data-sky="day"] switches every colour to its day version.
    Fills (--accent, --yes…) and text (--accent-text, --yes-text…) are separate, because a colour that
    works as a button on a dark night sky is too light to read as text on a bright day sky. */
 :root {
