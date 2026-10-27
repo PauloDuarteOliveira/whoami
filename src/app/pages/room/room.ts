@@ -327,6 +327,17 @@ export class RoomPage implements OnInit, OnDestroy {
             this.run(this.game.startDeck(room, this.playing()));
             return;
         }
+        if (room.character_source === 'list') {
+            const players = this.playing().length;
+            this.run(this.game.startList(room, this.playing()), (e: Error) =>
+                e.message === 'LIST_TOO_SHORT'
+                    ? `Your list has fewer characters than the ${players} players. Add more in Your account, or start fewer players.`
+                    : e.message === 'LIST_MISSING'
+                        ? "This room's character list was deleted. Create a new room with another list."
+                        : null,
+            );
+            return;
+        }
         const writingEndsAt = room.writing_timer_sec
             ? new Date(Date.now() + room.writing_timer_sec * 1000).toISOString()
             : null;
@@ -626,14 +637,15 @@ export class RoomPage implements OnInit, OnDestroy {
         this.router.navigate(['/']);
     }
 
-    private run(action: Observable<unknown>): void {
+    /** Runs an action with the busy state; `explain` can turn a known error into a clearer message. */
+    private run(action: Observable<unknown>, explain?: (error: Error) => string | null): void {
         this.busy.set(true);
         this.actionError.set(null);
         action.subscribe({
             next: () => this.busy.set(false),
-            error: () => {
+            error: (error: Error) => {
                 this.busy.set(false);
-                this.actionError.set('That didn\'t work. Check your connection and try again.');
+                this.actionError.set(explain?.(error) ?? 'That didn\'t work. Check your connection and try again.');
             },
         });
     }

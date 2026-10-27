@@ -4,6 +4,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { RouterLink } from '@angular/router';
 import { GameRecord, GameRival, HistoryService, statsOf } from '../../core/history.service';
 import { avatarUrl, isAvatar } from '../../shared/avatars';
+import { BadgeGrid } from './badge-grid';
 
 type LoadState = 'loading' | 'ready' | 'error' | 'missing';
 
@@ -13,7 +14,7 @@ type LoadState = 'loading' | 'ready' | 'error' | 'missing';
  */
 @Component({
     selector: 'app-game-history',
-    imports: [DatePipe, RouterLink],
+    imports: [DatePipe, RouterLink, BadgeGrid],
     template: `
     <section class="history card" aria-labelledby="history-title">
       <div class="head">
@@ -67,7 +68,7 @@ type LoadState = 'loading' | 'ready' | 'error' | 'missing';
                     <div class="detail">
                       <p class="small">
                         Room {{ g.code }} · {{ g.mode === 'voice' ? 'Voice' : 'No-Voice' }} ·
-                        {{ g.character_source === 'custom' ? 'Custom Pool' : 'Pre-made deck' }} ·
+                        {{ g.character_source === 'custom' ? 'Custom Pool' : g.character_source === 'list' ? 'Character list' : 'Pre-made deck' }} ·
                         you asked {{ g.questions_asked }} {{ g.questions_asked === 1 ? 'question' : 'questions' }}
                         and made {{ g.guesses }} {{ g.guesses === 1 ? 'guess' : 'guesses' }}
                       </p>
@@ -91,6 +92,9 @@ type LoadState = 'loading' | 'ready' | 'error' | 'missing';
               <button type="button" class="btn btn-ghost more" (click)="showAll.set(true)">Show all {{ games().length }} games</button>
             }
           }
+          <!-- Also with no games yet: all locked, each saying how to unlock it. -->
+          <div class="divider" aria-hidden="true"></div>
+          <app-badge-grid [games]="games()" />
         }
       }
     </section>
@@ -138,6 +142,7 @@ type LoadState = 'loading' | 'ready' | 'error' | 'missing';
     .who { flex: 1; min-width: 0; display: flex; flex-direction: column; }
     .who .small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .more { align-self: center; }
+    .divider { height: 1px; background: var(--border); margin: 6px 0; }
 
     @media (max-width: 700px) {
       .history { padding: 18px; }

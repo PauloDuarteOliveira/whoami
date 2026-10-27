@@ -5,6 +5,7 @@ import { Router, RouterLink } from '@angular/router';
 import { AccountSync } from '../../core/account-sync.service';
 import { AuthService } from '../../core/auth.service';
 import { DeckService } from '../../core/deck.service';
+import { CharacterList, ListService } from '../../core/list.service';
 import { CharacterSource, Deck, GameMode } from '../../core/models';
 import { ProfileService } from '../../core/profile.service';
 import { RoomService, RoomSettings } from '../../core/room.service';
@@ -15,13 +16,15 @@ import { SettingsSummary } from '../../shared/settings-summary/settings-summary'
 /** Questions a player must ask before they can give up. */
 const DEFAULT_GIVE_UP_AFTER = 10;
 
-/** A deck must be picked when the room uses a pre-made deck. */
+/** A deck must be picked when the room uses a pre-made deck, and a list when it uses one of yours. */
 function deckRequired(group: AbstractControl): ValidationErrors | null {
-  const { characterSource, deckId } = group.value;
-  return characterSource === 'deck' && !deckId ? { deckRequired: true } : null;
+  const { characterSource, deckId, listId } = group.value;
+  if (characterSource === 'deck' && !deckId) return { deckRequired: true };
+  if (characterSource === 'list' && !listId) return { listRequired: true };
+  return null;
 }
 
-type OptionControl = 'mode' | 'characterSource' | 'deckId' | 'turnTimer' | 'writingTimer';
+type OptionControl = 'mode' | 'characterSource' | 'deckId' | 'listId' | 'turnTimer' | 'writingTimer';
 
 @Component({
   selector: 'app-create-room',
@@ -43,6 +46,9 @@ export class CreateRoom implements OnInit {
   /** The form started from the account's saved settings. */
   protected readonly fromSaved = signal(false);
   protected readonly saveAsMine = signal(true);
+  private readonly listService = inject(ListService);
+  /** Your character lists for "My lists" (null while loading; empty without any or before migration 009). */
+  protected readonly myLists = signal<CharacterList[] | null>(null);
 
   protected readonly turnTimers = [null, 60, 120, 180];
   protected readonly writingTimers = [null, 30, 60, 90];
@@ -52,6 +58,7 @@ export class CreateRoom implements OnInit {
       mode: new FormControl<GameMode>('novoice', { nonNullable: true }),
       characterSource: new FormControl<CharacterSource>('custom', { nonNullable: true }),
       deckId: new FormControl<string | null>(null),
+      listId: new FormControl<string | null>(null),
       giveUpAfter: new FormControl(DEFAULT_GIVE_UP_AFTER, { nonNullable: true, validators: [Validators.required, Validators.min(1), Validators.max(99)] }),
       turnTimer: new FormControl<number | null>(null),
       writingTimer: new FormControl<number | null>(null),
@@ -82,11 +89,24 @@ export class CreateRoom implements OnInit {
         mode: saved.mode,
         characterSource: saved.character_source,
         deckId: saved.deck_id,
+        listId: saved.list_id ?? null,
         giveUpAfter: saved.give_up_after,
         turnTimer: saved.turn_timer_sec,
         writingTimer: saved.writing_timer_sec,
       });
       this.fromSaved.set(true);
+    }
+
+    if (this.signedIn()) {
+      this.listService.myLists().subscribe({
+        next: lists => {
+          this.myLists.set(lists);
+          // A saved list that was deleted since: the player picks another one.
+          const listId = this.form.controls.listId.value;
+          if (listId && !lists.some(l => l.id === listId)) this.form.controls.listId.setValue(null);
+        },
+        error: () => this.myLists.set([]),
+      });
     }
 
     this.decks.getDecks().subscribe({
@@ -111,11 +131,16 @@ export class CreateRoom implements OnInit {
     return {
       mode: v.mode ?? 'novoice',
       character_source: v.characterSource ?? 'custom',
-      deck_id: custom ? null : (v.deckId ?? null),
+      deck_id: v.characterSource === 'deck' ? (v.deckId ?? null) : null,
+      list_id: v.characterSource === 'list' ? (v.listId ?? null) : null,
       give_up_after: v.giveUpAfter ?? DEFAULT_GIVE_UP_AFTER,
       turn_timer_sec: (v.turnTimer ?? null) as RoomSettings['turn_timer_sec'],
       writing_timer_sec: custom ? ((v.writingTimer ?? null) as RoomSettings['writing_timer_sec']) : null,
     };
+  }
+
+  protected listName(): string | null {
+    return this.myLists()?.find(l => l.id === this.formValue().listId)?.name ?? null;
   }
 
   protected deckName(): string | null {

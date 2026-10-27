@@ -94,7 +94,7 @@ export class AccountSync {
 function validRoomSettings(saved: RoomSettings | undefined): RoomSettings | null {
     if (!saved || typeof saved !== 'object') return null;
     const okMode = saved.mode === 'voice' || saved.mode === 'novoice';
-    const okSource = saved.character_source === 'custom' || saved.character_source === 'deck';
+    const okSource = saved.character_source === 'custom' || saved.character_source === 'deck' || saved.character_source === 'list';
     const okGiveUp = Number.isInteger(saved.give_up_after) && saved.give_up_after >= 1 && saved.give_up_after <= 99;
     const okTurn = saved.turn_timer_sec === null || [60, 120, 180].includes(saved.turn_timer_sec as number);
     const okWriting = saved.writing_timer_sec === null || [30, 60, 90].includes(saved.writing_timer_sec as number);

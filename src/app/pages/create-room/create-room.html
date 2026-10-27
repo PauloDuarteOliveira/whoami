@@ -28,8 +28,8 @@
 
     <div>
       <h2>Where do characters come from?</h2>
-      <p class="hint">Players write them, or pick a ready-made deck.</p>
-      <div class="pair">
+      <p class="hint">Players write them, or pick a ready-made deck{{ signedIn() ? ', or one of your lists' : '' }}.</p>
+      <div class="pair" [class.trio]="signedIn()">
         <button type="button" class="choice" [class.on]="form.value.characterSource === 'custom'" [attr.aria-pressed]="form.value.characterSource === 'custom'" (click)="pick('characterSource', 'custom')">
           <span class="choice-title">Custom Pool</span>
           <span class="choice-text">Everyone writes one character. Nobody gets their own.</span>
@@ -38,7 +38,33 @@
           <span class="choice-title">Pre-made deck</span>
           <span class="choice-text">Characters are drawn from a themed deck.</span>
         </button>
+        @if (signedIn()) {
+          <button type="button" class="choice" [class.on]="form.value.characterSource === 'list'" [attr.aria-pressed]="form.value.characterSource === 'list'" (click)="pick('characterSource', 'list')">
+            <span class="choice-title">My lists</span>
+            <span class="choice-text">Characters come from one of your own lists.</span>
+          </button>
+        }
       </div>
+
+      @if (form.value.characterSource === 'list') {
+        <div class="decks" role="group" aria-label="Your list">
+          @if (myLists() === null) {
+            <span class="hint">Loading your lists…</span>
+          } @else if (!myLists()!.length) {
+            <span class="hint">You have no lists yet. <a routerLink="/account">Make one in Your account</a>.</span>
+          } @else {
+            @for (list of myLists(); track list.id) {
+              <button type="button" class="chip" [class.on]="form.value.listId === list.id" [attr.aria-pressed]="form.value.listId === list.id" (click)="pick('listId', list.id)">
+                {{ list.name }} <span class="chip-count">· {{ list.characters.length }}</span>
+              </button>
+            }
+          }
+        </div>
+        <span class="hint small-hint">Each player gets a character from the list, so it needs at least one per player.</span>
+        @if (form.hasError('listRequired') && form.touched) {
+          <span class="error-text">Pick a list.</span>
+        }
+      }
 
       @if (form.value.characterSource === 'deck') {
         <div class="decks" role="group" aria-label="Deck">
@@ -105,7 +131,7 @@
   <aside class="summary" aria-label="Summary">
     <h2>Your room</h2>
 
-    <app-settings-summary [settings]="settings()" [deckName]="deckName()" />
+    <app-settings-summary [settings]="settings()" [deckName]="deckName()" [listName]="listName()" />
 
     <div class="divider"></div>
     <p class="hint">

@@ -31,7 +31,7 @@
               <div class="room-name">{{ adminName() }}'s room</div>
               <div class="room-meta">
                 {{ found.mode === 'voice' ? 'Voice' : 'No-Voice' }} mode ·
-                {{ found.character_source === 'custom' ? 'Custom Pool' : 'Pre-made deck' }} ·
+                {{ found.character_source === 'custom' ? 'Custom Pool' : found.character_source === 'list' ? 'Character list' : 'Pre-made deck' }} ·
                 @if (found.status === 'lobby') {
                   {{ present().length }} {{ present().length === 1 ? 'player' : 'players' }} waiting
                 } @else {
