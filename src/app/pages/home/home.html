@@ -1,8 +1,6 @@
 <header class="top">
   <app-logo class="logo" />
   <span class="brand">Who<span class="am">Am</span>I</span>
-  <!-- Phones only: the rule cards are further down the page there, so the header gets a round "?". -->
-  <button type="button" class="how" aria-haspopup="dialog" aria-label="How to play" (click)="openRules()">?</button>
   <a routerLink="/account" class="account">{{ auth.isAnonymous() ? 'Sign in' : auth.email() }}</a>
   <app-sky-switch class="sky" />
 </header>
