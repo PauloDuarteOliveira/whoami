@@ -4,17 +4,33 @@
     [connectionLost]="connectionLost" (leave)="leave.emit()" />
 
   <div class="body">
-    <app-roster class="rail" phase="lobby" [players]="players" [me]="me" [isOnline]="isOnline"
-      (kick)="kick.emit($event)" (toggleHelper)="toggleHelper.emit($event)" (handOver)="handOver.emit($event)" />
+    <!-- The players, and the room chat under them. -->
+    <div class="rail">
+      <app-roster phase="lobby" [players]="players" [me]="me" [isOnline]="isOnline"
+        (kick)="kick.emit($event)" (toggleHelper)="toggleHelper.emit($event)" (handOver)="handOver.emit($event)"
+        (toggleMute)="toggleMute.emit($event)" (changeAvatar)="changeAvatar.emit($event)" />
+      <app-chat [messages]="messages" [players]="everyone" [me]="me" [busy]="starting" (send)="sendMessage.emit($event)" />
+    </div>
 
     <section class="invite" aria-label="Invite">
-      <span class="label">SHARE THIS CODE</span>
-      <div class="big-code">{{ room.code }}</div>
-      <div class="buttons">
-        <button type="button" class="btn" (click)="copy('code')">{{ copied() === 'code' ? 'Copied ✓' : 'Copy code' }}</button>
-        <button type="button" class="btn" (click)="copy('link')">{{ copied() === 'link' ? 'Copied ✓' : 'Copy invite link' }}</button>
+      <div class="share">
+        <span class="label">SHARE THIS CODE</span>
+        <div class="big-code">{{ room.code }}</div>
+        <div class="buttons">
+          @if (canShare) {
+            <button type="button" class="btn btn-primary share-btn" (click)="share()">Share invite</button>
+          }
+          <button type="button" class="btn" (click)="copy('code')">{{ copied() === 'code' ? 'Copied ✓' : 'Copy code' }}</button>
+          <button type="button" class="btn" (click)="copy('link')">{{ copied() === 'link' ? 'Copied ✓' : 'Copy invite link' }}</button>
+        </div>
+        <p class="muted">Friends join from the home page with this code. You need at least {{ minPlayers }} players to start.</p>
       </div>
-      <p class="muted">Friends join from the home page with this code. You need at least {{ minPlayers }} players to start.</p>
+      @if (qr(); as src) {
+        <figure class="qr">
+          <img [src]="src" width="160" height="160" [alt]="'QR code to join room ' + room.code">
+          <figcaption>Scan with a phone camera to join</figcaption>
+        </figure>
+      }
     </section>
 
     <aside class="cards" aria-label="Room settings">
