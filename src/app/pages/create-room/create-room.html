@@ -2,6 +2,15 @@
 
 <form class="layout" [formGroup]="form" (ngSubmit)="submit()">
   <section class="settings" aria-label="Room settings">
+    @if (fromSaved()) {
+      <div class="saved-note" role="status">
+        <span class="saved-check" aria-hidden="true">✓</span>
+        <div>
+          <strong>Started from your settings</strong>
+          <span>Change anything below just for this room.</span>
+        </div>
+      </div>
+    }
     <div>
       <h2>How will you talk?</h2>
       <p class="hint">Can't be changed once the game starts.</p>
@@ -103,6 +112,15 @@
       You'll be the <strong class="accent">Admin</strong>, {{ profile.name() }}. You can skip turns, kick or mute players, and name Helpers.
       <a routerLink="/">Not you?</a>
     </p>
+
+    @if (signedIn()) {
+      <label class="save-mine">
+        <input type="checkbox" [checked]="saveAsMine()" (change)="saveAsMine.set($any($event.target).checked)">
+        <span>Save these as my settings</span>
+      </label>
+    } @else {
+      <p class="hint"><a routerLink="/account">Sign in</a> to have these settings ready next time.</p>
+    }
 
     @if (submitError()) {
       <span class="error-text" role="alert">{{ submitError() }}</span>
