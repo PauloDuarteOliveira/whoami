@@ -4,10 +4,11 @@ import { rankPlayers } from '../../../core/game.service';
 import { Character, Player, Question, RankedPlayer, Room } from '../../../core/models';
 import { placeLabel, plural } from '../../../shared/format';
 import { SkySwitch } from '../../../shared/sky-switch/sky-switch';
+import { Logo } from '../../../shared/logo/logo';
 
 @Component({
     selector: 'app-results',
-    imports: [DatePipe, DecimalPipe, SkySwitch],
+    imports: [DatePipe, DecimalPipe, SkySwitch, Logo],
     templateUrl: './results.html',
     styleUrl: './results.css',
 })

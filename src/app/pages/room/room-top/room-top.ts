@@ -1,5 +1,6 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { SkySwitch } from '../../../shared/sky-switch/sky-switch';
+import { Logo } from '../../../shared/logo/logo';
 
 /**
  * The header of the Lobby and the Writing phase (design Layout A): the room on the left, the screen's
@@ -7,10 +8,10 @@ import { SkySwitch } from '../../../shared/sky-switch/sky-switch';
  */
 @Component({
     selector: 'app-room-top',
-    imports: [SkySwitch],
+    imports: [SkySwitch, Logo],
     template: `
     <header class="top">
-      <span class="logo" aria-hidden="true">?</span>
+      <app-logo class="logo" />
       <span class="brand">WhoAmI</span>
       <span class="code">{{ code }}</span>
       <span class="divider" aria-hidden="true"></span>
@@ -35,7 +36,7 @@ import { SkySwitch } from '../../../shared/sky-switch/sky-switch';
       background: var(--glass);
       backdrop-filter: blur(10px);
     }
-    .logo { width: 30px; height: 30px; flex: none; border-radius: 9px; background: var(--accent); color: var(--on-accent); font-family: var(--font-display); display: grid; place-items: center; box-shadow: 0 3px 0 var(--accent-deep); }
+    .logo { flex: none; }
     .brand { font-family: var(--font-display); font-size: 17px; }
     .code { padding: 3px 8px; border-radius: 8px; background: var(--surface-2); color: var(--text-2); font-size: 12px; font-weight: 700; letter-spacing: 1px; }
     .divider { width: 1px; height: 24px; background: var(--border); }

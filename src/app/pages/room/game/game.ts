@@ -10,13 +10,14 @@ import { Board, BoardDraft } from '../board/board';
 import { PreferencesService } from '../../../core/preferences.service';
 import { ConfirmService } from '../../../core/confirm.service';
 import { SkySwitch } from '../../../shared/sky-switch/sky-switch';
+import { Logo } from '../../../shared/logo/logo';
 
 type GamePane = 'play' | 'clues' | 'board' | 'history' | 'notes';
 type GameTool = 'notes' | 'board' | 'history';
 
 @Component({
     selector: 'app-game',
-    imports: [ReactiveFormsModule, UpperCasePipe, NgTemplateOutlet, PlayersPanel, Notes, History, Board, SkySwitch],
+    imports: [ReactiveFormsModule, UpperCasePipe, NgTemplateOutlet, PlayersPanel, Notes, History, Board, SkySwitch, Logo],
     templateUrl: './game.html',
     styleUrl: './game.css',
 })

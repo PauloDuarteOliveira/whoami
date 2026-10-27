@@ -13,7 +13,7 @@
      for Notes or History. The Board takes the middle and the dock. Phones use the tab bar instead. -->
 <div class="game" [attr.data-pane]="pane()" [attr.data-dock]="dock()" [class.dock-open]="dockOpen()">
     <header class="top">
-        <span class="logo" aria-hidden="true">?</span>
+        <app-logo class="logo" />
         <span class="brand">WhoAmI</span>
         <span class="code">{{ room.code }}</span>
         <span class="divider" aria-hidden="true"></span>

@@ -4,11 +4,12 @@ import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth.service';
 import { ProfileService } from '../../core/profile.service';
 import { SkySwitch } from '../../shared/sky-switch/sky-switch';
+import { Logo } from '../../shared/logo/logo';
 import { isCodeChar, playerNameValidators, roomCodeValidators } from '../../shared/validators';
 
 @Component({
   selector: 'app-home',
-  imports: [ReactiveFormsModule, RouterLink, SkySwitch],
+  imports: [ReactiveFormsModule, RouterLink, SkySwitch, Logo],
   templateUrl: './home.html',
   styleUrl: './home.css',
 })
