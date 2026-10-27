@@ -1,7 +1,8 @@
 <header class="top">
   <app-logo class="logo" />
   <span class="brand">Who<span class="am">Am</span>I</span>
-  <button type="button" class="how" (click)="rules.scrollIntoView({ behavior: 'smooth' })">How to play</button>
+  <!-- Phones only: the rule cards are further down the page there, so the header gets a round "?". -->
+  <button type="button" class="how" aria-haspopup="dialog" aria-label="How to play" (click)="openRules()">?</button>
   <a routerLink="/account" class="account">{{ auth.isAnonymous() ? 'Sign in' : auth.email() }}</a>
   <app-sky-switch class="sky" />
 </header>
@@ -13,7 +14,7 @@
     <p class="lead">Write a character for your friends, get one you can't see, and ask yes-or-no questions until you
       figure out who you are.</p>
 
-    <div class="rules" #rules>
+    <div class="rules">
       <div class="rule">
         <div class="num">1</div>
         <div class="rule-title">Write</div>
@@ -30,6 +31,8 @@
         <div class="rule-text">Fewest turns wins.</div>
       </div>
     </div>
+    <!-- The cards are a summary; the full rules open in a dialog. -->
+    <button type="button" class="more-rules" aria-haspopup="dialog" (click)="openRules()">Full rules ›</button>
   </section>
 
   <form class="play" aria-label="Play" [formGroup]="form" (ngSubmit)="create()">
@@ -58,3 +61,45 @@
     <p class="hint">Got an invite link or a QR code from a friend? Open it and you'll go straight to their room.</p>
   </form>
 </main>
+
+@if (rulesOpen()) {
+  <div class="dialog-layer">
+    <button type="button" class="dialog-backdrop" tabindex="-1" aria-label="Close" (click)="closeRules()"></button>
+    <section #rulesBox class="dialog wide rules-dialog" role="dialog" aria-modal="true" aria-labelledby="rules-title">
+      <div class="dialog-head">
+        <span class="dialog-badge normal rules-badge" aria-hidden="true">?</span>
+        <h2 id="rules-title">How to play</h2>
+      </div>
+      <p class="dialog-text">Everyone gets a secret character. Everyone can see it, except you.</p>
+
+      <ol class="steps">
+        <li>
+          <strong>Make a room</strong>
+          <span>Create a room and share the code, the invite link or the QR code. Pick <b>Voice</b> to ask out loud,
+            or <b>No-Voice</b> to type your questions.</span>
+        </li>
+        <li>
+          <strong>Get a character</strong>
+          <span>With a <b>Custom Pool</b>, everyone writes one character and nobody gets their own. With a
+            <b>Pre-made deck</b>, they're drawn for you. Unfair character? Report it and the room votes.</span>
+        </li>
+        <li>
+          <strong>Ask</strong>
+          <span>On your turn, ask one yes-or-no question about yourself. The others answer <b>Yes</b>, <b>No</b>
+            or <b>Unsure</b>.</span>
+        </li>
+        <li>
+          <strong>Guess</strong>
+          <span>Think you know? Make a guess and the others judge it. Stuck? You can give up after the number of
+            questions the Admin chose.</span>
+        </li>
+      </ol>
+
+      <p class="win"><span aria-hidden="true">🏆</span> The fewest questions wins. Use Notes and the Board to keep track of your clues.</p>
+
+      <div class="dialog-actions">
+        <button type="button" class="btn btn-primary" data-close (click)="closeRules()">Got it</button>
+      </div>
+    </section>
+  </div>
+}
