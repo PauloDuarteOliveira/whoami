@@ -50,8 +50,8 @@ No accounts, no downloads: create a room, share the 4-letter code, and play from
 ## 📸 Screenshots
 
 <p align="center">
-  <img src="docs/screenshots/game-vote.jpg" alt="The game screen: a question to vote on, the history, notes and the clue board" width="100%">
-  <br><sub><b>The game.</b> Vote on Sam's question, see everyone's clues, history and your own notes.</sub>
+  <img src="docs/screenshots/game-vote.jpg" alt="The game screen: the Players and clues rail, a question to vote on, and the History panel" width="100%">
+  <br><sub><b>The game.</b> Players &amp; clues on the left, the question to vote on in the middle, History or Notes on the right.</sub>
 </p>
 
 <table>
@@ -60,8 +60,8 @@ No accounts, no downloads: create a room, share the 4-letter code, and play from
     <td width="50%"><img src="docs/screenshots/home-day.jpg" alt="Home page by day"><br><sub>…and by day.</sub></td>
   </tr>
   <tr>
-    <td><img src="docs/screenshots/lobby.jpg" alt="The lobby with the room code"><br><sub><b>Lobby.</b> Share the code and wait for friends.</sub></td>
-    <td><img src="docs/screenshots/writing.jpg" alt="The writing phase"><br><sub><b>Writing.</b> Everyone adds a character to the pool.</sub></td>
+    <td><img src="docs/screenshots/lobby.jpg" alt="The lobby with the room code and the Players rail"><br><sub><b>Lobby.</b> Share the code; the Admin names Helpers from the Players rail.</sub></td>
+    <td><img src="docs/screenshots/writing.jpg" alt="The writing phase"><br><sub><b>Writing.</b> Everyone adds a character to the pool; the rail shows who's done.</sub></td>
   </tr>
   <tr>
     <td><img src="docs/screenshots/game-guess.jpg" alt="Judging a guess"><br><sub><b>Guessing.</b> The others judge if the guess is right.</sub></td>
@@ -70,22 +70,22 @@ No accounts, no downloads: create a room, share the 4-letter code, and play from
 </table>
 
 <p align="center">
-  <img src="docs/screenshots/board.jpg" alt="The drawing Board open over the game" width="100%">
+  <img src="docs/screenshots/board.jpg" alt="The drawing Board open next to the Players and clues rail" width="100%">
   <br><sub><b>The Board.</b> Sketch your theories with a finger, a stylus or the mouse, and share them with the room, live.</sub>
 </p>
 
 ### 📱 Made for phones too
 
 <p align="center">
+  <img src="docs/screenshots/phone-lobby.jpg" alt="The lobby on a phone" width="23%">
+  &nbsp;
   <img src="docs/screenshots/phone-vote.jpg" alt="Voting on a phone" width="23%">
   &nbsp;
-  <img src="docs/screenshots/phone-clues.jpg" alt="The clue board on a phone" width="23%">
+  <img src="docs/screenshots/phone-clues.jpg" alt="Players and clues on a phone" width="23%">
   &nbsp;
   <img src="docs/screenshots/phone-board.jpg" alt="Drawing on the Board on a phone" width="23%">
-  &nbsp;
-  <img src="docs/screenshots/phone-players.jpg" alt="The players sheet on a phone" width="23%">
 </p>
-<p align="center"><sub>Big answer buttons at your thumb, a tab bar for Play · Clues · Board · History · Notes, and a players sheet that slides up.</sub></p>
+<p align="center"><sub>The code first in the lobby, big answer buttons at your thumb, and a tab bar for Play · Clues · Board · History · Notes.</sub></p>
 
 ## ✨ Features
 
@@ -100,8 +100,8 @@ No accounts, no downloads: create a room, share the 4-letter code, and play from
       Every vote, question and guess shows up instantly for everyone with Supabase Realtime, with polling as a safety net. Online dots show who's connected.
     </td>
     <td width="33%" valign="top">
-      <h4>🧩 Clue board</h4>
-      Every player's answers on one board, filtered by Yes, No or Unsure. Plus the full history of the game.
+      <h4>🧩 Players &amp; clues</h4>
+      One card per player with their role, status and answers; open a card to see its clues, filtered by Yes, No or Unsure. Plus the full history of the game.
     </td>
   </tr>
   <tr>
