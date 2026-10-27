@@ -105,6 +105,23 @@ export class AuthService {
         return result.error ? friendlyError(result.error) : null;
     }
 
+    /**
+     * Deletes this account for good (migration 008), then carries on as a fresh guest.
+     * Returns an error message, or null when it worked.
+     */
+    async deleteAccount(): Promise<string | null> {
+        const { error } = await this.client.rpc('delete_my_account');
+        if (error) {
+            // The function isn't there until migration 008 runs.
+            const missing = error.code === 'PGRST202' || error.message.toLowerCase().includes('could not find the function');
+            return missing ? "Deleting accounts isn't switched on yet." : "Couldn't delete your account. Check your connection and try again.";
+        }
+        // The account is gone, so its session is too: forget it here (no server call) and start a new guest.
+        await this.client.auth.signOut({ scope: 'local' });
+        await this.signIn();
+        return null;
+    }
+
     /** Leaves the account and goes back to a fresh guest account, so the app keeps working. */
     async signOut(): Promise<void> {
         await this.client.auth.signOut();

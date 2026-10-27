@@ -1,5 +1,5 @@
 import { NgTemplateOutlet } from '@angular/common';
-import { Component, inject, signal } from '@angular/core';
+import { Component, ElementRef, HostListener, computed, inject, signal, viewChild } from '@angular/core';
 import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService, OAuthProvider, PROVIDER_LABEL } from '../../core/auth.service';
@@ -7,6 +7,7 @@ import { ProfileService } from '../../core/profile.service';
 import { SessionService } from '../../core/session.service';
 import { PageHeader } from '../../shared/page-header/page-header';
 import { GameHistory } from './game-history';
+import { trapFocus } from '../../shared/focus';
 
 type Mode = 'create' | 'signin';
 
@@ -104,6 +105,56 @@ export class Account {
 
     protected goHome(): void {
         this.router.navigate(['/']);
+    }
+
+    /** "Delete account": typing the email (or DELETE) unlocks the red button. */
+    protected readonly deleting = signal(false);
+    protected readonly typed = signal('');
+    protected readonly deleteError = signal<string | null>(null);
+    protected readonly confirmWord = computed(() => this.auth.email() ?? 'DELETE');
+    protected readonly canDelete = computed(() => this.typed().trim().toLowerCase() === this.confirmWord().toLowerCase());
+    private readonly deleteBox = viewChild<ElementRef<HTMLElement>>('deleteBox');
+
+    protected openDelete(): void {
+        this.typed.set('');
+        this.deleteError.set(null);
+        this.deleting.set(true);
+        setTimeout(() => this.deleteBox()?.nativeElement.querySelector<HTMLElement>('#delete-confirm')?.focus());
+    }
+
+    protected closeDelete(): void {
+        if (this.busy()) return;
+        this.deleting.set(false);
+    }
+
+    protected async deleteAccount(): Promise<void> {
+        if (!this.canDelete() || this.busy()) return;
+        this.busy.set(true);
+        const message = await this.auth.deleteAccount();
+        this.busy.set(false);
+        if (message) {
+            this.deleteError.set(message);
+            return;
+        }
+        // Now a fresh guest: the old account's rooms are forgotten in this tab.
+        this.sessions.forgetAll();
+        this.deleting.set(false);
+        this.accountDeleted.set(true);
+    }
+
+    /** Shown once on the guest view after deleting. */
+    protected readonly accountDeleted = signal(false);
+
+    @HostListener('document:keydown', ['$event'])
+    protected onKey(event: KeyboardEvent): void {
+        const box = this.deleteBox()?.nativeElement;
+        if (!this.deleting() || !box) return;
+        if (event.key === 'Escape') {
+            event.preventDefault();
+            this.closeDelete();
+        } else if (event.key === 'Tab') {
+            trapFocus(box, event);
+        }
     }
 
     /** Runs an account action with the busy and error states. Returns true when it worked. */

@@ -74,3 +74,15 @@
   .layout { grid-template-columns: 1fr; padding: 24px 16px; gap: 24px; }
   .intro h1 { font-size: 34px; }
 }
+
+/* Delete my account: set apart at the bottom of the account card, in red. */
+.danger { display: flex; align-items: center; gap: 12px; padding-top: 14px; border-top: 1px solid var(--border); }
+.danger div { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.danger span { font-size: 13px; color: var(--muted); }
+.delete { flex: none; height: 38px; padding: 0 14px; font-size: 13px; color: var(--no-text); border-color: var(--no); }
+.deleted { margin: 0; padding: 10px 14px; border-radius: 12px; background: var(--yes-soft); color: var(--yes-text); font-weight: 600; }
+.dialog .field { display: flex; flex-direction: column; gap: 6px; }
+.dialog .field label { font-weight: 600; font-size: 14px; overflow-wrap: anywhere; }
+@media (max-width: 420px) { .danger { flex-direction: column; align-items: stretch; } }
+
+.dialog-badge.danger { font: 800 24px var(--font); }
