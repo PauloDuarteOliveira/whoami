@@ -23,12 +23,14 @@ import { Logo } from '../logo/logo';
       gap: 10px;
       border-bottom: 1px solid var(--border);
     }
-    .back { color: var(--text-2); text-decoration: none; font-weight: 600; }
+    .back { color: var(--text-2); text-decoration: none; font-weight: 600; white-space: nowrap; }
     .back:hover { color: var(--text); }
     .logo { margin-left: 16px; }
-    .title { font-weight: 800; font-size: 17px; }
+    .title { min-width: 0; font-weight: 800; font-size: 17px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .sky { margin-left: auto; }
     @media (max-width: 600px) { .bar { padding: 0 16px; } }
+    /* Small phones: tighter, so "← Back" and the title stay on one line. */
+    @media (max-width: 380px) { .bar { gap: 8px; } .logo { margin-left: 2px; } }
   `,
 })
 export class PageHeader {
