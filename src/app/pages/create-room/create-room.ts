@@ -1,7 +1,9 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { AccountSync } from '../../core/account-sync.service';
+import { AuthService } from '../../core/auth.service';
 import { DeckService } from '../../core/deck.service';
 import { CharacterSource, Deck, GameMode } from '../../core/models';
 import { ProfileService } from '../../core/profile.service';
@@ -33,6 +35,14 @@ export class CreateRoom implements OnInit {
   private readonly session = inject(SessionService);
   private readonly router = inject(Router);
   protected readonly profile = inject(ProfileService);
+  private readonly account = inject(AccountSync);
+  private readonly auth = inject(AuthService);
+
+  /** Signed-in players can keep these settings for next time. */
+  protected readonly signedIn = computed(() => !this.auth.isAnonymous());
+  /** The form started from the account's saved settings. */
+  protected readonly fromSaved = signal(false);
+  protected readonly saveAsMine = signal(true);
 
   protected readonly turnTimers = [null, 60, 120, 180];
   protected readonly writingTimers = [null, 30, 60, 90];
@@ -65,10 +75,27 @@ export class CreateRoom implements OnInit {
       return;
     }
 
+    // Signed in with saved settings: start from them.
+    const saved = this.account.roomSettings();
+    if (saved) {
+      this.form.setValue({
+        mode: saved.mode,
+        characterSource: saved.character_source,
+        deckId: saved.deck_id,
+        giveUpAfter: saved.give_up_after,
+        turnTimer: saved.turn_timer_sec,
+        writingTimer: saved.writing_timer_sec,
+      });
+      this.fromSaved.set(true);
+    }
+
     this.decks.getDecks().subscribe({
       next: decks => {
         this.deckList.set(decks);
         this.decksLoading.set(false);
+        // A saved deck that no longer exists: the player picks another one.
+        const deckId = this.form.controls.deckId.value;
+        if (deckId && !decks.some(d => d.id === deckId)) this.form.controls.deckId.setValue(null);
       },
       error: () => {
         this.decksError.set(true);
@@ -115,7 +142,11 @@ export class CreateRoom implements OnInit {
     this.submitting.set(true);
     this.submitError.set(null);
 
-    this.rooms.create(this.settings(), this.profile.name(), this.profile.avatar()).subscribe({
+    const settings = this.settings();
+    // Kept with the account for next time (in the background: the room doesn't wait for it).
+    if (this.signedIn() && this.saveAsMine()) void this.account.saveRoomSettings(settings);
+
+    this.rooms.create(settings, this.profile.name(), this.profile.avatar()).subscribe({
       next: ({ room, admin }) => {
         this.session.save(room.code, admin.id);
         this.router.navigate(['/room', room.code]);
