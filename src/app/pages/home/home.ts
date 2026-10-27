@@ -5,58 +5,49 @@ import { AuthService } from '../../core/auth.service';
 import { ProfileService } from '../../core/profile.service';
 import { SkySwitch } from '../../shared/sky-switch/sky-switch';
 import { Logo } from '../../shared/logo/logo';
-import { isCodeChar, playerNameValidators, roomCodeValidators } from '../../shared/validators';
+import { playerNameValidators } from '../../shared/validators';
+import { AvatarChoice } from '../../shared/avatar-choice';
+import { isAvatar } from '../../shared/avatars';
 
 @Component({
   selector: 'app-home',
-  imports: [ReactiveFormsModule, RouterLink, SkySwitch, Logo],
+  imports: [ReactiveFormsModule, RouterLink, SkySwitch, Logo, AvatarChoice],
   templateUrl: './home.html',
   styleUrl: './home.css',
 })
 export class Home {
   protected readonly auth = inject(AuthService);
-  private readonly profile = inject(ProfileService);
+  protected readonly profile = inject(ProfileService);
   private readonly router = inject(Router);
 
+  /** Home only asks for your name; the room code is asked on the Join screen (or comes in the invite link). */
   protected readonly form = new FormGroup({
     name: new FormControl(this.profile.name(), { nonNullable: true, validators: playerNameValidators }),
-    code: new FormControl('', { nonNullable: true, validators: roomCodeValidators }),
   });
 
   protected get name() {
     return this.form.controls.name;
   }
 
-  protected get code() {
-    return this.form.controls.code;
+  protected setAvatar(avatar: string): void {
+    if (isAvatar(avatar)) this.profile.setAvatar(avatar);
   }
 
-  /** Keeps the code in capitals and drops anything that isn't A–Z or 0–9. */
-  protected upperCaseCode(): void {
-    const clean = [...this.code.value.toUpperCase()].filter(isCodeChar).join('');
-    if (clean !== this.code.value) {
-      this.code.setValue(clean);
-    }
-  }
-
-  /** Create only needs a valid name. */
   protected create(): void {
+    this.go('/create');
+  }
+
+  protected join(): void {
+    this.go('/join');
+  }
+
+  /** Both need a valid name, which is remembered for the next screen. */
+  private go(path: string): void {
     if (this.name.invalid) {
       this.name.markAsTouched();
       return;
     }
     this.profile.setName(this.name.value);
-    this.router.navigate(['/create']);
-  }
-
-  /** Join needs a valid name and a 4-character code. */
-  protected join(): void {
-    if (this.name.invalid || this.code.invalid) {
-      this.name.markAsTouched();
-      this.code.markAsTouched();
-      return;
-    }
-    this.profile.setName(this.name.value);
-    this.router.navigate(['/join', this.code.value]);
+    this.router.navigate([path]);
   }
 }

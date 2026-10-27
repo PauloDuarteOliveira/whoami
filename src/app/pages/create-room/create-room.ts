@@ -115,7 +115,7 @@ export class CreateRoom implements OnInit {
     this.submitting.set(true);
     this.submitError.set(null);
 
-    this.rooms.create(this.settings(), this.profile.name()).subscribe({
+    this.rooms.create(this.settings(), this.profile.name(), this.profile.avatar()).subscribe({
       next: ({ room, admin }) => {
         this.session.save(room.code, admin.id);
         this.router.navigate(['/room', room.code]);

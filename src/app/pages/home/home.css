@@ -128,24 +128,14 @@ h1 {
 .box:focus { outline: none; border-color: var(--accent); }
 .box.ng-invalid.ng-touched { border-color: var(--no); }
 
-.code { font-size: 18px; letter-spacing: 4px; text-transform: uppercase; }
+/* Your animal and your name, side by side; the animals open underneath. */
+.who-row { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 12px 14px; align-items: end; }
+.who-row > .field { grid-column: 2; grid-row: 1; }
 
-.create { height: 52px; border-radius: 12px; font-size: 16px; }
-
-.or {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  color: var(--faint);
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.or span { flex: 1; height: 1px; background: var(--border); }
-
-.join-row { display: flex; gap: 10px; align-items: flex-end; }
-.grow { flex: 1; }
-.join { height: 48px; padding: 0 22px; }
+/* Create a room (the main action) and Join a room, side by side. */
+.actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.actions .btn { height: 52px; border-radius: 12px; font-size: 16px; }
+.hint { margin: 0; font-size: 12px; line-height: 1.5; color: var(--muted); }
 
 @media (max-width: 960px) {
   .layout { grid-template-columns: 1fr; gap: 40px; padding: 32px 16px; }

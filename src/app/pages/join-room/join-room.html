@@ -49,7 +49,9 @@
       }
     }
 
-    <div class="field">
+    <div class="who-row">
+      <app-avatar-choice [selected]="avatar()" [taken]="takenAvatars()" (pick)="pickAvatar($event)" />
+      <div class="field">
       <label for="name">Your name</label>
       <input id="name" class="box" formControlName="name" maxlength="16" autocomplete="nickname" placeholder="How friends know you">
       @if (name.touched && name.hasError('required')) {
@@ -60,6 +62,10 @@
         <span class="error-text">Use only letters and numbers.</span>
       }
     </div>
+    </div>
+    @if (avatarMoved()) {
+      <span class="hint" role="status">Someone in this room already has the {{ avatarMoved() }}, so you got this one. Tap it to choose another.</span>
+    }
 
     @if (joinError()) {
       <span class="error-text" role="alert">{{ joinError() }}</span>

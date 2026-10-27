@@ -133,8 +133,9 @@ h2 { font-size: 16px; margin-bottom: 4px; }
     bottom: 16px;
     z-index: 10;
     height: 56px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+    /* The 3D edge of an action, plus a soft shadow so it floats above the page. */
+    box-shadow: 0 5px 0 var(--accent-deep), 0 10px 24px rgba(0, 0, 0, 0.25);
   }
   /* Solid when disabled, so the page doesn't show through it. */
-  .create:disabled { opacity: 1; background: var(--surface-3); color: var(--muted); }
+  .create:disabled { opacity: 1; background: var(--surface-3); color: var(--muted); box-shadow: 0 5px 0 var(--btn-shadow), 0 10px 24px rgba(0, 0, 0, 0.25); }
 }
