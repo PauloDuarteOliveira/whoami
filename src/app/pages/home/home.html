@@ -1,6 +1,6 @@
 <header class="top">
   <app-logo class="logo" />
-  <span class="brand">WhoAmI</span>
+  <span class="brand">Who<span class="am">Am</span>I</span>
   <button type="button" class="how" (click)="rules.scrollIntoView({ behavior: 'smooth' })">How to play</button>
   <a routerLink="/account" class="account">{{ auth.isAnonymous() ? 'Sign in' : auth.email() }}</a>
   <app-sky-switch class="sky" />
