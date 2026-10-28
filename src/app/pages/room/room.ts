@@ -26,6 +26,7 @@ import { DecisionEvent, ReportDialogs, ReportVoteEvent, RewriteEvent } from './r
 import { ChatService } from '../../core/chat.service';
 import { ProfileService } from '../../core/profile.service';
 import { MyGames } from '../../core/my-games.service';
+import { SoundService } from '../../core/sound.service';
 import { initials } from '../../shared/initials';
 import { avatarUrl, isAvatar } from '../../shared/avatars';
 
@@ -64,6 +65,36 @@ export class RoomPage implements OnInit, OnDestroy {
     private readonly chatService = inject(ChatService);
     private readonly profile = inject(ProfileService);
     private readonly myGames = inject(MyGames);
+    private readonly sound = inject(SoundService);
+    /** Sound cues already played (each one plays once). */
+    private readonly heard = new Set<string>();
+    /** Right guesses already seen (null until the room first loads, so old ones stay quiet). */
+    private correctSeen: Set<string> | null = null;
+
+    /** My vote is needed right now: a question or a guess is being voted on, I'm a voter and haven't voted. */
+    private readonly myVoteNeeded = computed(() => {
+        const room = this.store.room();
+        const me = this.store.me();
+        if (!room || !me || room.status !== 'playing') return false;
+        if (room.turn_phase !== 'answer_vote' && room.turn_phase !== 'guess_vote') return false;
+        if (!this.voters().some(v => v.id === me.id)) return false;
+        const votes = room.turn_phase === 'answer_vote' ? this.currentVotes() : this.guessVotes();
+        return !votes.some(v => v.voter_id === me.id);
+    });
+
+    /** It's my move: asking or guessing on my turn. */
+    private readonly myMove = computed(() => {
+        const room = this.store.room();
+        const me = this.store.me();
+        return !!room && !!me && room.status === 'playing' && room.current_player_id === me.id && me.status === 'playing'
+            && (room.turn_phase === 'question' || room.turn_phase === 'guess');
+    });
+
+    private once(key: string, play: () => void): void {
+        if (this.heard.has(key)) return;
+        this.heard.add(key);
+        play();
+    }
     /** The game whose end was already counted in your History and badges. */
     private countedGame: string | null = null;
 
@@ -398,6 +429,31 @@ export class RoomPage implements OnInit, OnDestroy {
                         .pipe(switchMap(() => this.roomService.update(room.id, this.guessStep(room)))),
                 );
             }
+        });
+
+        // Sound cues: your turn to ask, your vote is needed, the last 10 seconds of your time, a right guess.
+        effect(() => {
+            const room = this.store.room();
+            if (!room || room.status !== 'playing') return;
+            const step = `${room.id}:${room.turn_number}:${room.turn_phase}:${room.turn_started_at}`;
+            if (this.myMove() && room.turn_phase === 'question') untracked(() => this.once('turn:' + room.id + ':' + room.turn_number, () => this.sound.yourTurn()));
+            if (this.myVoteNeeded()) untracked(() => this.once('vote:' + step, () => this.sound.voteNow()));
+            const left = this.timeLeft();
+            if (left !== null && left >= 1 && left <= 10 && (this.myMove() || this.myVoteNeeded())) {
+                untracked(() => this.once(`tick:${step}:${left}`, () => this.sound.tick(left)));
+            }
+        });
+        effect(() => {
+            if (this.store.loadState() !== 'ready') return;
+            const right = this.store.questions().filter(q => q.kind === 'guess' && q.result === 'correct').map(q => q.id);
+            if (this.correctSeen === null) {
+                this.correctSeen = new Set(right);
+                return;
+            }
+            const fresh = right.filter(id => !this.correctSeen!.has(id));
+            if (!fresh.length) return;
+            fresh.forEach(id => this.correctSeen!.add(id));
+            untracked(() => this.sound.correct());
         });
 
         // The game just ended: it's in your History from now on (a finished room), so your games and

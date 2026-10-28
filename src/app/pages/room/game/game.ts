@@ -9,6 +9,7 @@ import { PlayersPanel } from '../players-panel/players-panel';
 import { NoteDraft, Notes } from '../notes/notes';
 import { History } from '../history/history';
 import { Board, BoardDraft } from '../board/board';
+import { SoundService } from '../../../core/sound.service';
 import { PreferencesService } from '../../../core/preferences.service';
 import { ConfirmService } from '../../../core/confirm.service';
 import { SkySwitch } from '../../../shared/sky-switch/sky-switch';
@@ -35,6 +36,7 @@ const DRAFT_KEY = 'whoami.draft.';
 })
 export class Game implements OnChanges {
     protected readonly prefs = inject(PreferencesService);
+    protected readonly sound = inject(SoundService);
     private readonly confirm = inject(ConfirmService);
 
     @Input({ required: true }) room!: Room;
