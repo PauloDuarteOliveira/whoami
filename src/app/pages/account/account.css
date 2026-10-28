@@ -86,3 +86,29 @@
 @media (max-width: 420px) { .danger { flex-direction: column; align-items: stretch; } }
 
 .dialog-badge.danger { font: 800 24px var(--font); }
+
+/* Signed in: "Hi, Maya" and the four tabs, then the tab's content. */
+.hub { max-width: 1280px; margin: 0 auto; padding: 24px 40px 48px; display: flex; flex-direction: column; gap: 18px; }
+.hub-head { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.hub-head h1 { margin: 0; font-size: 34px; overflow-wrap: anywhere; }
+.hub-tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+.hub-tabs a { height: 38px; padding: 0 16px; border-radius: 12px; display: inline-flex; align-items: center; font-weight: 700; font-size: 14px; text-decoration: none; color: var(--text-2); white-space: nowrap; }
+.hub-tabs a:hover { color: var(--text); background: var(--surface-2); }
+.hub-tabs a.on { background: var(--accent); color: var(--on-accent); }
+.hub-tabs a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.achievements { padding: 24px; border-radius: 24px; }
+.link { border: none; background: none; padding: 0; color: var(--accent-text); font: inherit; font-weight: 700; cursor: pointer; text-decoration: underline; }
+@media (max-width: 700px) {
+  .hub { padding: 16px 16px 40px; }
+  .hub-head h1 { font-size: 28px; }
+  /* Four tabs in one row that scrolls sideways if needed. */
+  .hub-tabs { width: 100%; flex-wrap: nowrap; overflow-x: auto; padding: 4px; border-radius: 14px; background: var(--surface-2); }
+  .hub-tabs a { flex: 1 0 auto; justify-content: center; height: 36px; padding: 0 12px; font-size: 13px; }
+  .achievements { padding: 16px; }
+}
+
+/* The smallest phones (320 px): the four tabs still fit in one row. */
+@media (max-width: 360px) {
+  .hub-tabs { gap: 2px; padding: 3px; }
+  .hub-tabs a { padding: 0 6px; font-size: 12px; }
+}

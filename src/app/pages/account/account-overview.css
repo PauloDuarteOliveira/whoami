@@ -1,0 +1,87 @@
+/* Overview: the concept's two columns (360px | the rest), one column on phones. */
+:host { display: block; min-width: 0; }
+.overview { display: grid; grid-template-columns: 360px minmax(0, 1fr); gap: 20px; align-items: start; }
+.col { min-width: 0; display: flex; flex-direction: column; gap: 16px; }
+
+.card { padding: 20px; border-radius: 22px; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.card h2 { margin: 0; font-size: 20px; }
+.small { font-size: 12px; color: var(--muted); }
+.btn { align-self: stretch; }
+
+/* Profile */
+/* The animal (tap to change it; the 30 open underneath) and your name: the grid app-avatar-choice expects. */
+.who { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 12px 16px; align-items: center; }
+.who-text { grid-column: 2; grid-row: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.who-text h2 { font-size: 26px; overflow-wrap: anywhere; }
+.signed { font-size: 12px; font-weight: 700; color: var(--yes-text); }
+.name-form { display: flex; flex-direction: column; gap: 6px; }
+.name-form label { font-size: 12px; font-weight: 700; letter-spacing: .5px; color: var(--muted); }
+.name-row { display: flex; gap: 8px; }
+.box { flex: 1; min-width: 0; height: 44px; padding: 0 14px; border-radius: var(--radius); border: 1px solid var(--border-strong); background: var(--bg); color: var(--text); font: 600 15px var(--font); }
+.box:focus { outline: none; border-color: var(--accent); }
+.name-row .btn { align-self: auto; height: 44px; }
+.follows { margin: 0; padding: 10px 12px; border-radius: 14px; background: var(--yes-soft); color: var(--text); font-size: 13px; line-height: 1.4; }
+.follows span { color: var(--yes-text); font-weight: 800; margin-right: 4px; }
+
+.methods { display: flex; flex-direction: column; gap: 8px; }
+.label { font-size: 12px; font-weight: 700; letter-spacing: .5px; color: var(--muted); }
+.method { display: flex; align-items: center; gap: 10px; min-height: 34px; }
+.method-icon { width: 30px; height: 30px; flex: none; border-radius: 9px; display: grid; place-items: center; background: var(--surface-2); color: var(--text-2); font-weight: 800; }
+.method-icon.google { background: #FFFFFF; color: #4285F4; }
+.method-icon.discord { background: #5865F2; color: #FFFFFF; }
+.connected { margin-left: auto; font-size: 13px; font-weight: 800; color: var(--yes-text); white-space: nowrap; }
+.connect { margin-left: auto; align-self: auto; height: 32px; padding: 0 12px; font-size: 13px; }
+
+/* Delete */
+.danger { flex-direction: row; align-items: center; gap: 12px; border-color: var(--no-soft); }
+.danger div { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.delete { align-self: auto; flex: none; height: 38px; padding: 0 14px; font-size: 13px; color: var(--no-text); border-color: var(--no); }
+
+/* Continue playing */
+.continue { display: flex; align-items: center; gap: 14px; padding: 16px 20px; border-radius: 22px; background: var(--accent-tint); border: 1px solid var(--accent); }
+.room-code { flex: none; padding: 8px 12px; border-radius: 12px; background: var(--bg); font-family: var(--font-display); font-size: 20px; letter-spacing: 3px; color: var(--accent-text); }
+.continue-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.continue-text span { font-size: 13px; color: var(--text-2); }
+.continue .btn { align-self: auto; flex: none; padding: 0 26px; }
+
+/* Numbers */
+.tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.tile { min-width: 0; padding: 14px 16px; border-radius: 18px; background: var(--surface-2); border: 1px solid var(--border); display: flex; flex-direction: column; gap: 4px; }
+.t-label { font-size: 11px; font-weight: 700; letter-spacing: .6px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.t-value { font-family: var(--font-display); font-size: 34px; line-height: 1.1; }
+.t-sub { font-size: 12px; color: var(--text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* Recent games and badges, side by side */
+.pair { display: grid; grid-template-columns: minmax(0, 1fr) 330px; gap: 16px; align-items: start; }
+.head { display: flex; align-items: baseline; gap: 10px; }
+.head .small, .head .see { margin-left: auto; }
+.see { font-weight: 700; text-decoration: none; }
+.recent { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; }
+.recent li { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 14px; background: var(--surface-2); border: 1px solid var(--border); }
+.was { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.was strong { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.chip { flex: none; padding: 4px 10px; border-radius: 10px; font-weight: 800; font-size: 12px; white-space: nowrap; }
+.chip.best { background: var(--accent-soft); color: var(--accent-text); }
+.chip.yes { background: var(--yes-soft); color: var(--yes-text); }
+.chip.no { background: var(--no-soft); color: var(--no-text); }
+.chip.plain { background: var(--surface-3); color: var(--text-2); }
+
+.mini-badges { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px 8px; }
+.mini-badges li { display: flex; flex-direction: column; align-items: center; gap: 5px; text-align: center; min-width: 0; }
+.mark { width: 52px; height: 52px; border-radius: 50%; display: grid; place-items: center; font-family: var(--font-display); font-size: 15px; background: var(--surface-3); color: var(--faint); border: 2px dashed var(--border-strong); }
+.earned .mark { background: var(--accent); color: var(--on-accent); border: 2px solid var(--accent-deep); }
+.b-name { font-weight: 800; font-size: 12px; line-height: 1.2; }
+.mini-badges li:not(.earned) .b-name { color: var(--text-2); }
+
+@media (max-width: 1100px) {
+  .pair { grid-template-columns: 1fr; }
+}
+@media (max-width: 900px) {
+  .overview { grid-template-columns: 1fr; }
+  .main { order: -1; }
+  .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 420px) {
+  .continue { flex-wrap: wrap; }
+  .continue .btn { width: 100%; }
+}

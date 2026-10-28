@@ -1,10 +1,9 @@
 import { DatePipe } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
-import { HttpErrorResponse } from '@angular/common/http';
 import { RouterLink } from '@angular/router';
-import { GameRecord, GameRival, HistoryService, statsOf } from '../../core/history.service';
+import { GameRecord, GameRival } from '../../core/history.service';
+import { MyGames } from '../../core/my-games.service';
 import { avatarUrl, isAvatar } from '../../shared/avatars';
-import { BadgeGrid } from './badge-grid';
 
 type LoadState = 'loading' | 'ready' | 'error' | 'missing';
 
@@ -14,7 +13,7 @@ type LoadState = 'loading' | 'ready' | 'error' | 'missing';
  */
 @Component({
     selector: 'app-game-history',
-    imports: [DatePipe, RouterLink, BadgeGrid],
+    imports: [DatePipe, RouterLink],
     template: `
     <section class="history card" aria-labelledby="history-title">
       <div class="head">
@@ -92,9 +91,6 @@ type LoadState = 'loading' | 'ready' | 'error' | 'missing';
               <button type="button" class="btn btn-ghost more" (click)="showAll.set(true)">Show all {{ games().length }} games</button>
             }
           }
-          <!-- Also with no games yet: all locked, each saying how to unlock it. -->
-          <div class="divider" aria-hidden="true"></div>
-          <app-badge-grid [games]="games()" />
         }
       }
     </section>
@@ -154,29 +150,22 @@ type LoadState = 'loading' | 'ready' | 'error' | 'missing';
   `,
 })
 export class GameHistory implements OnInit {
-    private readonly history = inject(HistoryService);
+    private readonly my = inject(MyGames);
 
-    protected readonly state = signal<LoadState>('loading');
-    protected readonly games = signal<GameRecord[]>([]);
-    protected readonly stats = computed(() => statsOf(this.games()));
+    /** Loaded once and shared with Overview and Achievements. */
+    protected readonly state = computed<LoadState>(() => (this.my.state() === 'idle' ? 'loading' : this.my.state()) as LoadState);
+    protected readonly games = this.my.games;
+    protected readonly stats = this.my.stats;
     protected readonly showAll = signal(false);
     protected readonly shown = computed(() => (this.showAll() ? this.games() : this.games().slice(0, 5)));
     protected readonly openId = signal<string | null>(null);
 
     ngOnInit(): void {
-        this.load();
+        this.my.load();
     }
 
     protected load(): void {
-        this.state.set('loading');
-        this.history.myGames().subscribe({
-            next: games => {
-                this.games.set(games);
-                this.state.set('ready');
-            },
-            // The view isn't there until migration 007 runs (PostgREST answers 404 / PGRST205).
-            error: (e: HttpErrorResponse) => this.state.set(e.status === 404 || e.error?.code === 'PGRST205' ? 'missing' : 'error'),
-        });
+        this.my.load(true);
     }
 
     protected toggle(game: GameRecord): void {

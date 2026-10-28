@@ -13,5 +13,6 @@ export const routes: Routes = [
   { path: 'join/:code', component: JoinRoom, title: 'Join a room · WhoAmI' },
   { path: 'room/:code', component: RoomPage, title: 'Room · WhoAmI', canActivate: [roomSessionGuard] },
   { path: 'account', component: Account, title: 'Your account · WhoAmI' },
+  { path: 'account/:tab', component: Account, title: 'Your account · WhoAmI' },
   { path: '**', redirectTo: '' },
 ];

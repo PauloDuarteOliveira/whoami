@@ -1,5 +1,6 @@
 <app-page-header title="Your account" />
 
+@if (auth.isAnonymous()) {
 <main class="layout">
   <section class="intro" aria-label="About accounts">
     <span class="pill">Optional · you can always play as a guest</span>
@@ -8,57 +9,6 @@
       becomes your account: the games you're playing keep going, and your name follows you to other devices.</p>
   </section>
 
-  @if (!auth.isAnonymous()) {
-    <section class="card panel" aria-label="Signed in">
-      <h2>You're signed in</h2>
-      @if (auth.accountName(); as name) {
-        <p class="muted">Name: <strong>{{ name }}</strong></p>
-      }
-      @if (auth.email(); as email) {
-        <p class="muted">Email: <strong>{{ email }}</strong></p>
-      }
-
-      <div class="methods" aria-label="Sign in with">
-        <span class="label">SIGN IN WITH</span>
-        @for (p of quick; track p) {
-          <div class="method">
-            <span class="method-icon" [class.google]="p === 'google'" [class.discord]="p === 'discord'">
-              @if (p === 'google') { <ng-container *ngTemplateOutlet="googleIcon" /> } @else { <ng-container *ngTemplateOutlet="discordIcon" /> }
-            </span>
-            <strong>{{ label[p] }}</strong>
-            @if (auth.providers().includes(p)) {
-              <span class="connected">✓ Connected</span>
-            } @else {
-              <button type="button" class="btn btn-ghost connect" [disabled]="busy()" (click)="continueWith(p)">Connect</button>
-            }
-          </div>
-        }
-        @if (auth.providers().includes('email')) {
-          <div class="method">
-            <span class="method-icon email" aria-hidden="true">@</span>
-            <strong>Email and password</strong>
-            <span class="connected">✓ Connected</span>
-          </div>
-        }
-      </div>
-      @if (auth.oauthError(); as message) {
-        <p class="error-text form-error" role="alert">{{ message }}</p>
-      }
-
-      <div class="actions">
-        <button type="button" class="btn btn-primary" (click)="goHome()">Play</button>
-        <button type="button" class="btn btn-ghost" [disabled]="busy()" (click)="signOut()">Sign out</button>
-      </div>
-
-      <div class="danger">
-        <div>
-          <strong>Delete my account</strong>
-          <span>Removes your email, sign-ins, history and saved settings.</span>
-        </div>
-        <button type="button" class="btn btn-ghost delete" [disabled]="busy()" (click)="openDelete()">Delete account…</button>
-      </div>
-    </section>
-  } @else {
     <section class="card panel" aria-label="Account form">
       @if (accountDeleted()) {
         <p class="deleted" role="status">Your account was deleted. You're playing as a guest again.</p>
@@ -144,14 +94,36 @@
         <p class="error-text form-error" role="alert">{{ message }}</p>
       }
     </section>
-  }
+</main>
+} @else {
+<!-- Signed in: the concept's layout, with four tabs (each its own address: #/account/history…). -->
+<main class="hub">
+  <div class="hub-head">
+    <h1>Hi, {{ profile.name() || 'there' }}</h1>
+    <nav class="hub-tabs" aria-label="Your account">
+      @for (t of tabs; track t.id) {
+        <a [routerLink]="t.link" [class.on]="tab() === t.id" [attr.aria-current]="tab() === t.id ? 'page' : null">{{ t.label }}</a>
+      }
+    </nav>
+  </div>
 
-  <!-- Signed in: your numbers and every finished game, across the full width. -->
-  @if (!auth.isAnonymous()) {
-    <app-game-history class="full" />
-    <app-list-manager class="full" />
+  @switch (tab()) {
+    @case ('history') { <app-game-history /> }
+    @case ('lists') { <app-list-manager /> }
+    @case ('achievements') {
+      <section class="card achievements" aria-label="Achievements">
+        @switch (my.state()) {
+          @case ('missing') { <p class="muted">Achievements need game history, which isn't switched on yet.</p> }
+          @case ('error') { <p class="muted">Couldn't load your games. <button type="button" class="link" (click)="my.load(true)">Try again</button></p> }
+          @case ('ready') { <app-badge-grid [games]="my.games()" /> }
+          @default { <p class="muted">Loading your achievements…</p> }
+        }
+      </section>
+    }
+    @default { <app-account-overview (signOut)="signOut()" (deleteAccount)="openDelete()" /> }
   }
 </main>
+}
 
 @if (deleting()) {
   <div class="dialog-layer">

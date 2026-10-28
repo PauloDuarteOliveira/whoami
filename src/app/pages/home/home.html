@@ -3,7 +3,12 @@
     <app-logo class="logo" />
     <span class="brand">Who<span class="am">Am</span>I</span>
   </a>
-  <a routerLink="/account" class="account">{{ auth.isAnonymous() ? 'Sign in' : auth.email() }}</a>
+  <!-- Guests: Sign in. Signed in: your animal and name (never the email). -->
+  @if (auth.isAnonymous()) {
+    <a routerLink="/account" class="account">Sign in</a>
+  } @else {
+    <span class="me-slot"><app-me-chip /></span>
+  }
   <app-sky-switch class="sky" />
 </header>
 
