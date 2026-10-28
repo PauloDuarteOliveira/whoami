@@ -89,6 +89,9 @@
               (makeGuess)="makeGuess($event)"
               (judge)="judge($event)"
               (overrule)="overrule($event)"
+              [canCloseVote]="canCloseVote()"
+              [timeLeft]="timeLeft()"
+              (closeVote)="closeVote()"
               (giveUp)="giveUp()"
               [notes]="store.notes()"
               (saveNote)="saveNote($event)"
@@ -118,13 +121,35 @@
               (decide)="decideReport($event)" />
           }
           @case ('finished') {
-            <app-results
-              [room]="room"
-              [players]="store.players()"
-              [me]="me"
-              [characters]="store.characters()"
-              [questions]="store.questions()"
-              (leave)="goHome()" />
+            @if (showAfterGame()) {
+              <app-after-game
+                [room]="room"
+                [players]="present()"
+                [me]="me"
+                [characters]="store.characters()"
+                [questions]="store.questions()"
+                [isOnline]="isOnline"
+                [messages]="store.messages()"
+                [everyone]="store.players()"
+                [busy]="busy()"
+                [connectionLost]="store.connectionLost()"
+                (leave)="leave()"
+                (playAgain)="playAgain($event)"
+                (sendMessage)="sendMessage($event)"
+                (kick)="kick($event)"
+                (toggleHelper)="toggleHelper($event)"
+                (handOver)="handOver($event)"
+                (toggleMute)="toggleMute($event)" />
+            } @else {
+              <app-results
+                [room]="room"
+                [players]="store.players()"
+                [me]="me"
+                [characters]="store.characters()"
+                [questions]="store.questions()"
+                (backToLobby)="backToLobby()"
+                (leave)="leave()" />
+            }
           }
         }
       }

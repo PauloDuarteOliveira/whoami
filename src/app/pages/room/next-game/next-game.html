@@ -1,0 +1,80 @@
+<section class="next" aria-labelledby="next-title">
+  <div class="head">
+    <h2 id="next-title">Next game</h2>
+    <span class="badge">ONLY YOU SEE THIS · ADMIN</span>
+  </div>
+
+  <div class="fields">
+    <div class="field">
+      <span class="lbl" id="ng-mode">MODE</span>
+      <div class="pills" role="group" aria-labelledby="ng-mode">
+        <button type="button" class="pill" [attr.aria-pressed]="mode() === 'voice'" (click)="mode.set('voice')">Voice</button>
+        <button type="button" class="pill" [attr.aria-pressed]="mode() === 'novoice'" (click)="mode.set('novoice')">No-Voice</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <span class="lbl" id="ng-timer">TURN TIMER</span>
+      <div class="pills" role="group" aria-labelledby="ng-timer">
+        @for (sec of turnTimers; track sec) {
+          <button type="button" class="pill" [attr.aria-pressed]="turnTimer() === sec" (click)="turnTimer.set(sec)">{{ timerLabel(sec, 'min') }}</button>
+        }
+      </div>
+    </div>
+
+    <div class="field wide">
+      <span class="lbl" id="ng-source">CHARACTERS</span>
+      <div class="pills" role="group" aria-labelledby="ng-source">
+        <button type="button" class="pill" [attr.aria-pressed]="source() === 'custom'" (click)="source.set('custom')">Custom Pool</button>
+        <button type="button" class="pill" [attr.aria-pressed]="source() === 'deck'" (click)="source.set('deck')">Pre-made deck</button>
+        @if (signedIn()) {
+          <button type="button" class="pill" [attr.aria-pressed]="source() === 'list'" (click)="source.set('list')">My lists</button>
+        }
+      </div>
+      @if (source() === 'deck') {
+        <div class="pills sub" role="group" aria-label="Deck">
+          @for (d of deckList(); track d.id) {
+            <button type="button" class="pill chip" [attr.aria-pressed]="deckId() === d.id" [title]="d.description" (click)="deckId.set(d.id)">{{ d.name }}</button>
+          }
+        </div>
+      } @else if (source() === 'list') {
+        <div class="pills sub" role="group" aria-label="Your list">
+          @for (l of myLists(); track l.id) {
+            <button type="button" class="pill chip" [attr.aria-pressed]="listId() === l.id" (click)="listId.set(l.id)">{{ l.name }}</button>
+          } @empty {
+            <span class="note">No lists yet. Make one in Your account.</span>
+          }
+        </div>
+      }
+    </div>
+
+    <div class="field">
+      <span class="lbl">GIVE UP ALLOWED AFTER</span>
+      <div class="stepper">
+        <button type="button" class="step" aria-label="Fewer questions" [disabled]="giveUp() === 1" (click)="stepGiveUp(-1)">−</button>
+        <strong aria-live="polite">{{ giveUp() }}</strong>
+        <button type="button" class="step" aria-label="More questions" [disabled]="giveUp() === 99" (click)="stepGiveUp(1)">+</button>
+        <span class="note">{{ giveUp() === 1 ? 'question' : 'questions' }}</span>
+      </div>
+    </div>
+
+    @if (source() === 'custom') {
+      <div class="field">
+        <span class="lbl" id="ng-writing">WRITING TIMER</span>
+        <div class="pills" role="group" aria-labelledby="ng-writing">
+          @for (sec of writingTimers; track sec) {
+            <button type="button" class="pill" [attr.aria-pressed]="writingTimer() === sec" (click)="writingTimer.set(sec)">{{ timerLabel(sec, 's') }}</button>
+          }
+        </div>
+      </div>
+    }
+  </div>
+
+  @if (missing(); as text) { <span class="error-text">{{ text }}</span> }
+  <button type="button" class="btn btn-primary play" [disabled]="busy || !!missing() || players < 2" (click)="submit()">
+    {{ busy ? 'Starting…' : 'Play again' }}
+  </button>
+  <span class="note">
+    @if (players < 2) { Waiting for at least 2 players. } @else { Everyone stays in the room. Last game stays in everyone's history. }
+  </span>
+</section>

@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, computed, effect, inject, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, computed, effect, inject, signal, untracked } from '@angular/core';
 import { CharacterService, sameCharacter } from '../../core/character.service';
 import { GameService } from '../../core/game.service';
 import { Writing } from './writing/writing';
@@ -8,12 +8,13 @@ import { DeckService } from '../../core/deck.service';
 import { QuestionService, majority, verdict } from '../../core/question.service';
 import { Deck, Player, Answer, GuessVerdict, Question, Room } from '../../core/models';
 import { PlayerService } from '../../core/player.service';
-import { RoomService } from '../../core/room.service';
+import { RoomService, RoomSettings } from '../../core/room.service';
 import { RoomStore } from '../../core/room-store';
 import { SessionService } from '../../core/session.service';
 import { Lobby } from './lobby/lobby';
 import { Game } from './game/game';
 import { Results } from './results/results';
+import { AfterGame } from './after-game/after-game';
 import { NoteService } from '../../core/note.service';
 import { NoteDraft } from './notes/notes';
 import { BoardDraft } from './board/board';
@@ -27,9 +28,15 @@ import { ProfileService } from '../../core/profile.service';
 import { initials } from '../../shared/initials';
 import { avatarUrl, isAvatar } from '../../shared/avatars';
 
+/** Where "Back to lobby" is remembered for this tab: the room and game it was pressed in. */
+const AFTER_GAME_KEY = 'whoami.afterGame';
+function readAfterGame(): string | null {
+    try { return sessionStorage.getItem(AFTER_GAME_KEY); } catch { return null; }
+}
+
 @Component({
     selector: 'app-room',
-    imports: [RouterLink, Lobby, Writing, Game, Results, ReportDialogs],
+    imports: [RouterLink, Lobby, Writing, Game, Results, AfterGame, ReportDialogs],
     providers: [RoomStore],
     templateUrl: './room.html',
     styleUrl: './room.css',
@@ -106,6 +113,24 @@ export class RoomPage implements OnInit, OnDestroy {
     protected readonly canOverrule = computed(() => {
         const me = this.store.me();
         return !!me && (me.role === 'admin' || me.role === 'helper') && me.id !== this.store.room()?.current_player_id;
+    });
+
+    /**
+     * The turn timer: seconds left in this turn, or null when the room has no timer.
+     * A guess being judged isn't cut short, so the clock waits on 0 until the verdict.
+     */
+    protected readonly timeLeft = computed(() => {
+        const room = this.store.room();
+        if (!room || room.status !== 'playing' || !room.turn_timer_sec || !room.turn_started_at) return null;
+        const used = (this.store.now() - new Date(room.turn_started_at).getTime()) / 1000;
+        return Math.max(0, Math.ceil(room.turn_timer_sec - used));
+    });
+    private timedOutTurn: number | null = null;
+
+    /** The Admin and Helpers can close a question vote that's stuck. */
+    protected readonly canCloseVote = computed(() => {
+        const role = this.store.me()?.role;
+        return role === 'admin' || role === 'helper';
     });
 
     // Troll characters (game design, section 4) -------------------------------------------------------------
@@ -215,6 +240,45 @@ export class RoomPage implements OnInit, OnDestroy {
     protected readonly writeNotice = signal<string | null>(null);
     private starting = false;
 
+    // After a game ----------------------------------------------------------------------------------------
+
+    /** "Back to lobby" on the results, remembered for this game (a reload stays in the lobby). */
+    private readonly backInLobby = signal<string | null>(readAfterGame());
+    /** The Admin pressed Play again: start the next game once the room is back in the lobby. */
+    private startWhenReady = false;
+
+    /** The room's finished game, told apart from the next one in the same room. */
+    private gameKey(room: Room): string {
+        return `${room.id}@${room.created_at}`;
+    }
+
+    /** The lobby after a game: after "Back to lobby", or straight away for someone who joined after the game. */
+    protected readonly showAfterGame = computed(() => {
+        const room = this.store.room();
+        const me = this.store.me();
+        if (!room || !me || room.status !== 'finished') return false;
+        return this.backInLobby() === this.gameKey(room) || me.turn_position === null;
+    });
+
+    protected backToLobby(): void {
+        const room = this.store.room();
+        if (!room) return;
+        const key = this.gameKey(room);
+        this.backInLobby.set(key);
+        try { sessionStorage.setItem(AFTER_GAME_KEY, key); } catch { /* private mode: just this visit */ }
+    }
+
+    /** The Admin starts the next game in the same room, with the settings they picked. */
+    protected playAgain(settings: RoomSettings): void {
+        const room = this.store.room();
+        if (!room || room.status !== 'finished' || this.store.me()?.role !== 'admin') return;
+        this.startWhenReady = true;
+        this.run(this.roomService.playAgain(room.id, settings), (e: Error) => {
+            this.startWhenReady = false;
+            return e.message === 'PLAY_AGAIN_MISSING' ? 'Play again needs migration 010 in Supabase.' : null;
+        });
+    }
+
     constructor() {
         // Records a report's result once the votes decide it. The reporter's device does it,
         // or the Admin's if the reporter is offline; the status check makes a second write do nothing.
@@ -268,6 +332,42 @@ export class RoomPage implements OnInit, OnDestroy {
                         .setResult(question.id, majority(votes))
                         .pipe(switchMap(() => this.roomService.update(room.id, { turn_phase: 'guess' }))),
                 );
+            }
+        });
+
+        // A new game in this room (Play again): the one-off flags of the last game start over,
+        // and the Admin starts it as soon as everyone is back in the lobby.
+        effect(() => {
+            const room = this.store.room();
+            if (!room || room.status !== 'lobby') return;
+            this.ending = false;
+            this.starting = false;
+            this.skippedTurn = null;
+            this.timedOutTurn = null;
+            if (this.startWhenReady && this.store.me()?.role === 'admin') {
+                this.startWhenReady = false;
+                untracked(() => this.start());
+            }
+        });
+
+        // Time's up: the turn passes on. The player whose turn it is does it, or the Admin if they're away.
+        // A question being voted on is closed first (the votes in so far decide); a guess being judged is left to finish.
+        effect(() => {
+            const left = this.timeLeft();
+            const room = this.store.room();
+            const me = this.store.me();
+            if (left !== 0 || !room || !me || room.turn_phase === 'guess_vote' || this.timedOutTurn === room.turn_number) return;
+            const current = this.store.players().find(p => p.id === room.current_player_id);
+            const passer = current && this.isOnline(current) ? current.id : this.playing().find(p => p.role === 'admin')?.id;
+            if (passer !== me.id) return;
+            this.timedOutTurn = room.turn_number;
+            const question = untracked(() => this.currentQuestion());
+            const pass = this.game.nextTurn(room, untracked(() => this.store.players()));
+            if (room.turn_phase === 'answer_vote' && question && !this.finished.has(question.id)) {
+                this.finished.add(question.id);
+                this.run(concat(this.questionService.setResult(question.id, majority(untracked(() => this.currentVotes()))), pass));
+            } else {
+                this.run(pass);
             }
         });
 
@@ -464,6 +564,28 @@ export class RoomPage implements OnInit, OnDestroy {
         const room = this.store.room();
         const guess = this.currentGuess();
         if (room && guess) this.resolveGuess(room, guess, value);
+    }
+
+    /** The Admin or a Helper closes a question vote that's stuck (someone away or not answering): the votes in so far decide it. */
+    protected async closeVote(): Promise<void> {
+        const room = this.store.room();
+        const question = this.currentQuestion();
+        if (!room || room.turn_phase !== 'answer_vote' || !question || this.finished.has(question.id) || !this.canCloseVote()) return;
+        const count = this.currentVotes().length;
+        const yes = await this.confirm.ask({
+            tone: 'normal', icon: 'skip', title: 'Close the vote?',
+            text: count ? `The ${count} ${count === 1 ? 'vote' : 'votes'} in so far decide the answer.` : 'Nobody voted yet, so the answer is Unsure.',
+            confirmLabel: 'Close the vote',
+        });
+        const now = this.store.room();
+        const still = this.currentQuestion();
+        if (!yes || !now || now.turn_phase !== 'answer_vote' || still?.id !== question.id || this.finished.has(question.id)) return;
+        this.finished.add(question.id);
+        this.run(
+            this.questionService
+                .setResult(question.id, majority(this.currentVotes()))
+                .pipe(switchMap(() => this.roomService.update(now.id, { turn_phase: 'guess' }))),
+        );
     }
 
     protected giveUp(): void {

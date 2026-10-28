@@ -23,6 +23,7 @@ export class Results {
     @Input({ required: true }) questions: Question[] = [];
 
     @Output() leave = new EventEmitter<void>();
+    @Output() backToLobby = new EventEmitter<void>();
 
     protected ranking(): RankedPlayer[] {
         return rankPlayers(this.players, this.characters, this.questions);
@@ -38,8 +39,8 @@ export class Results {
 
     protected outcomeText(r: RankedPlayer): string {
         switch (r.outcome) {
-            case 'guessed': return `Guessed on turn ${r.player.finish_turn}`;
-            case 'gave_up': return `Gave up on turn ${r.player.finish_turn}`;
+            case 'guessed': return `Guessed in ${plural(r.questionsAsked, 'question')}`;
+            case 'gave_up': return `Gave up after ${plural(r.questionsAsked, 'question')}`;
             default: return 'Last one left';
         }
     }

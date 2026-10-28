@@ -1,0 +1,33 @@
+<div class="after">
+  <app-room-top [code]="room.code" title="Lobby"
+    [subtitle]="isAdmin ? 'Game over · set up the next one' : 'Game over · waiting for the next one'"
+    [connectionLost]="connectionLost" (leave)="leave.emit()" />
+
+  <div class="body">
+    <app-players-panel class="rail" [room]="room" [players]="players" [me]="me" [characters]="characters"
+      [questions]="questions" [isOnline]="isOnline" [lastGame]="true"
+      (kick)="kick.emit($event)" (toggleHelper)="toggleHelper.emit($event)" (handOver)="handOver.emit($event)"
+      (toggleMute)="toggleMute.emit($event)" />
+
+    <app-invite class="middle" [code]="room.code" [compact]="isAdmin"
+      [hint]="isAdmin ? 'Friends who just arrived can scan or type the code.' : ''">
+      @if (isAdmin) {
+        <app-next-game [room]="room" [players]="nextPlayers" [busy]="busy" (playAgain)="playAgain.emit($event)" />
+      } @else {
+        <div class="waiting" role="status">
+          @if (admin; as a) {
+            <span class="face" [style.background]="a.color"><app-face [player]="a" [players]="players" /></span>
+            <span>Waiting for <strong>{{ a.name }}</strong> (Admin) to start the next game.</span>
+          } @else {
+            <span>Waiting for the Admin to start the next game.</span>
+          }
+        </div>
+      }
+    </app-invite>
+
+    <aside class="dock" aria-label="Last game and chat">
+      <app-history heading="Last game" [questions]="questions" [players]="everyone" [me]="me" />
+      <app-chat [messages]="messages" [players]="everyone" [me]="me" [busy]="busy" (send)="sendMessage.emit($event)" />
+    </aside>
+  </div>
+</div>

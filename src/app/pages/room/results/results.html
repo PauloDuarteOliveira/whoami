@@ -31,14 +31,16 @@
             <span class="muted">{{ r.player.id === me.id ? 'were' : 'was' }} {{ r.character }}</span>
           </div>
           @switch (r.outcome) {
-            @case ('guessed') { <span class="tag guessed">Guessed · turn {{ r.player.finish_turn }}</span> }
+            @case ('guessed') { <span class="tag guessed">Guessed · {{ plural(r.questionsAsked, 'question') }}</span> }
             @case ('gave_up') { <span class="tag gave-up">Gave up · {{ plural(r.questionsAsked, 'question') }}</span> }
             @default { <span class="tag last">Last one left · {{ plural(r.questionsAsked, 'question') }}</span> }
           }
         </div>
       }
       <p class="muted small">{{ averageQuestions() | number: '1.0-1' }} {{ averageQuestions() === 1 ? 'question' : 'questions' }} per player on average</p>
-      <button type="button" class="btn btn-primary" (click)="leave.emit()">Back to home</button>
+      <!-- Same room, same code: the lobby keeps this game's cards and history until the Admin starts the next one. -->
+      <button type="button" class="btn btn-primary back" (click)="backToLobby.emit()">Back to lobby</button>
+      <span class="or">or <button type="button" class="link-leave" (click)="leave.emit()">Leave the room</button></span>
     </section>
 
     <section class="card stories">
