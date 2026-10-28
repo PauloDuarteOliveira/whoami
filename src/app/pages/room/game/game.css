@@ -245,13 +245,15 @@ app-board { display: none; }
 .timer.vote .timer-fill { background: var(--unsure-text); }
 .timer.vote .timer-step, .timer.vote .timer-text { color: var(--unsure-text); }
 .paused-note { align-self: flex-start; padding: 2px 10px; border-radius: 8px; background: var(--accent-soft); color: var(--accent-text); font-size: 12px; font-weight: 700; }
-.turn:has(.paused-note) { padding-top: 72px; }
+
 .timer-track { flex: 1; height: 8px; border-radius: 4px; background: var(--border); overflow: hidden; }
 .timer-fill { height: 100%; border-radius: 4px; background: var(--accent); transition: width 1s linear; }
 .timer.low .timer-fill { background: var(--no); }
 .timer-text { flex: none; min-width: 40px; text-align: right; font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--muted); }
 .timer.low .timer-text { color: var(--no); }
-.turn:has(> .timer) { padding-top: 44px; }
+/* Room for the timer bar (and the paused note) above the turn, on every screen size. */
+.main .turn.timed { padding-top: 52px; }
+.main .turn.timed.paused { padding-top: 84px; }
 
 /* Who voted: a face for each voter, faded until they vote, then a green tick. */
 .voter-faces { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }

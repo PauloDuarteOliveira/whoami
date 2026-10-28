@@ -59,19 +59,25 @@
 
     <div class="body">
         <app-players-panel class="rail" [room]="room" [players]="players" [me]="me" [characters]="characters"
-            [questions]="questions" [isOnline]="isOnline" [reportable]="reportable"
+            [questions]="questions" [isOnline]="isOnline" [reportable]="reportable" [spectators]="spectators"
             (skip)="skipTurn.emit()" (kick)="kick.emit($event)" (toggleHelper)="toggleHelper.emit($event)"
             (handOver)="handOver.emit($event)" (report)="report.emit($event)" (toggleMute)="toggleMute.emit($event)" />
 
         <main class="main">
-            @if (me.status === 'finished' || me.status === 'gave_up') {
+            @if (me.role === 'spectator') {
+            <div class="card out-banner">
+                You joined during the game, so you're a <strong>Spectator</strong>: watch, chat and see everyone's
+                characters. You play the next game.
+            </div>
+            } @else if (me.status === 'finished' || me.status === 'gave_up') {
             <div class="card out-banner">
                 You were <strong>{{ characterOf(me) }}</strong>.
                 {{ me.status === 'finished' ? 'Well guessed!' : 'Thanks for playing.' }}
                 Keep answering for the others.
             </div>
             }
-            <section class="card turn" aria-label="Current turn">
+            <section class="card turn" aria-label="Current turn" [class.timed]="timeLeft !== null && !!timeTotal"
+                [class.paused]="timeLeft !== null && !!timeTotal && room.turn_phase === 'answer_vote' && pausedTime !== null">
                 @if (timeLeft !== null && timeTotal) {
                 <!-- Yellow: the asker's own time (asking, then guessing). Blue: everyone's time to vote, while the asker's clock waits. -->
                 <div class="timer" [class.vote]="isVoteStep()" [class.low]="timeLeft <= 10" role="timer"
@@ -89,7 +95,7 @@
                         <span class="timer-text">{{ timeLabel() }}</span>
                     </div>
                     @if (room.turn_phase === 'answer_vote' && pausedTime !== null) {
-                    <span class="paused-note">{{ isMyTurn() ? 'Your' : currentName() + "'s" }} time is paused · {{ clock(pausedTime) }} left to guess after the vote</span>
+                    <span class="paused-note">{{ isMyTurn() ? 'Your' : currentName() + "'s" }} time paused · {{ clock(pausedTime) }} left after the vote</span>
                     }
                 </div>
                 }

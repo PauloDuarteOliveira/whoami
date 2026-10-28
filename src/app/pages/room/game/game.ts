@@ -62,6 +62,8 @@ export class Game implements OnChanges {
     @Input() boards: Whiteboard[] = [];
     /** Players whose character this player may report as a troll entry. */
     @Input() reportable: string[] = [];
+    /** Players who joined during the game: listed as Spectators. */
+    @Input() spectators: Player[] = [];
     /** True while this player's character is being rewritten: their turn waits. */
     @Input() waitingForCharacter = false;
     /** The room chat, and everyone who has been in the room (so old messages keep their author). */

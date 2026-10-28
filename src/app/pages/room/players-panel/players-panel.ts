@@ -32,6 +32,8 @@ export class PlayersPanel implements OnChanges {
     @Input({ required: true }) isOnline!: (player: Player) => boolean;
     /** Players whose character this player may report. */
     @Input() reportable: string[] = [];
+    /** Players who joined during the game: shown apart, as Spectators. */
+    @Input() spectators: Player[] = [];
     /** The lobby after a game: last game's cards (characters shown, ranked), then who joined since. */
     @Input() lastGame = false;
 
@@ -102,7 +104,7 @@ export class PlayersPanel implements OnChanges {
     /** Your own character stays hidden (???) while you play; with Hide characters on, the others' are removed. */
     protected characterOf(p: Player): string | null {
         const character = this.characters.find(c => c.assigned_to === p.id)?.name ?? null;
-        if (this.lastGame) return character;
+        if (this.lastGame || p.role === 'spectator') return character;
         if (this.isMine(p) && p.status === 'playing') return '???';
         if (this.prefs.hideNames() && !this.isMine(p)) return null;
         return character ?? '—';
@@ -140,6 +142,7 @@ export class PlayersPanel implements OnChanges {
 
     /** The status after the name: asking now, next, offline, ★ 1st, gave up… */
     protected state(p: Player): { text: string; tone: 'now' | 'done' | 'off' | '' } {
+        if (p.role === 'spectator' && !this.lastGame) return this.isOnline(p) ? { text: 'Watching', tone: '' } : { text: 'Offline', tone: 'off' };
         if (p.status === 'finished') return { text: `★ ${placeLabel(p.finish_place)} · ${plural(this.asked(p), 'question')}`, tone: 'done' };
         if (p.status === 'gave_up') return { text: `Gave up · ${plural(this.asked(p), 'question')}`, tone: '' };
         if (this.lastGame) {
@@ -179,6 +182,7 @@ export class PlayersPanel implements OnChanges {
     /** The line under the name in the menu: what matters for the decision. */
     protected menuContext(p: Player): string {
         if (this.lastGame) return this.isOnline(p) ? 'In the lobby · plays the next game' : 'Offline';
+        if (p.role === 'spectator') return this.isOnline(p) ? 'Spectator · joined during the game, plays the next one' : 'Offline';
         const theirTurn = p.id === this.room.current_player_id;
         if (!this.isOnline(p)) return theirTurn ? 'Offline · it\'s their turn' : 'Offline · it\'s not their turn';
         if (p.status === 'finished') return 'Finished · still answers for the others';
