@@ -32,7 +32,9 @@
 .connected { margin-left: auto; font-size: 13px; font-weight: 800; color: var(--yes-text); white-space: nowrap; }
 .connect { margin-left: auto; align-self: auto; height: 32px; padding: 0 12px; font-size: 13px; }
 
-/* Delete */
+/* Delete: under the badges on desktop (no scrolling), last on the page on phones. */
+.stack { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.phone-only { display: none; }
 .danger { flex-direction: row; align-items: center; gap: 12px; border-color: var(--no-soft); }
 .danger div { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .delete { align-self: auto; flex: none; height: 38px; padding: 0 14px; font-size: 13px; color: var(--no-text); border-color: var(--no); }
@@ -78,6 +80,8 @@
 }
 @media (max-width: 900px) {
   .overview { grid-template-columns: 1fr; }
+  .desk-only { display: none; }
+  .phone-only { display: flex; }
   .main { order: -1; }
   .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }

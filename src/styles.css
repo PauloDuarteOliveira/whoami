@@ -5,6 +5,8 @@
   --page-bg: radial-gradient(circle at 82% 19%, rgba(255, 248, 236, 0.10), transparent 30%),
     radial-gradient(circle at 9% 13%, rgba(255, 201, 60, 0.14), transparent 22%),
     linear-gradient(180deg, #082C37 0%, #0A3A47 55%, #0D4A52 100%);
+  /* The sky's bottom colour, under everything (shows only when a phone overscrolls). */
+  --page-base: #0D4A52;
   --bg: #0A3440;
   --surface: #0F4553;
   --surface-2: #135260;
@@ -64,6 +66,7 @@
 html[data-sky="day"] {
   --page-bg: radial-gradient(circle at 82% 19%, rgba(255, 214, 94, 0.32), transparent 30%),
     linear-gradient(180deg, #BDE7F0 0%, #E3F6F4 55%, #FFEFD3 100%);
+  --page-base: #FFEFD3;
   --bg: rgba(255, 255, 255, 0.92);
   --surface: rgba(255, 255, 255, 0.74);
   --surface-2: rgba(11, 52, 64, 0.07);
@@ -109,7 +112,10 @@ html[data-sky="day"] {
 
 html, body { height: 100%; }
 
-html { background: var(--page-bg) fixed; }
+/* The sky gradient is painted by the scenery layer (shared/scenery), which is fixed to the screen like the
+   palms, moon and stars: "background-attachment: fixed" on the page only covered the first screen,
+   so long pages (Achievements) showed a dark band when scrolled. */
+html { background: var(--page-base); }
 
 body {
   margin: 0;
