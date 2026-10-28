@@ -25,6 +25,7 @@ import { openReport, reportResult, reportVoters, strikes, writerOf } from '../..
 import { DecisionEvent, ReportDialogs, ReportVoteEvent, RewriteEvent } from './report-dialogs/report-dialogs';
 import { ChatService } from '../../core/chat.service';
 import { ProfileService } from '../../core/profile.service';
+import { MyGames } from '../../core/my-games.service';
 import { initials } from '../../shared/initials';
 import { avatarUrl, isAvatar } from '../../shared/avatars';
 
@@ -62,6 +63,9 @@ export class RoomPage implements OnInit, OnDestroy {
     private readonly reportService = inject(ReportService);
     private readonly chatService = inject(ChatService);
     private readonly profile = inject(ProfileService);
+    private readonly myGames = inject(MyGames);
+    /** The game whose end was already counted in your History and badges. */
+    private countedGame: string | null = null;
 
     protected code = '';
     private readonly deckList = signal<Deck[]>([]);
@@ -75,6 +79,8 @@ export class RoomPage implements OnInit, OnDestroy {
 
     protected readonly isOnline = (player: Player) => this.playerService.isOnline(player, this.store.now());
     protected readonly playing = computed(() => this.present().filter(p => p.role !== 'spectator'));
+    /** Joined during the game: Spectators (they watch and chat, and play the next game). */
+    protected readonly spectators = computed(() => this.present().filter(p => p.role === 'spectator'));
     protected readonly inPlay = computed(() =>
         this.store.players().filter(p => p.status === 'playing' && p.role !== 'spectator'),
     );
@@ -392,6 +398,15 @@ export class RoomPage implements OnInit, OnDestroy {
                         .pipe(switchMap(() => this.roomService.update(room.id, this.guessStep(room)))),
                 );
             }
+        });
+
+        // The game just ended: it's in your History from now on (a finished room), so your games and
+        // badges load again the next time Your account opens, with this game counted.
+        effect(() => {
+            const room = this.store.room();
+            if (!room || room.status !== 'finished' || this.countedGame === this.gameKey(room)) return;
+            this.countedGame = this.gameKey(room);
+            untracked(() => this.myGames.reset());
         });
 
         // A new game in this room (Play again): the one-off flags of the last game start over,

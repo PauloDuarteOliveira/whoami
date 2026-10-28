@@ -42,6 +42,13 @@
         <ng-container *ngTemplateOutlet="card; context: { $implicit: p }" />
       }
     }
+    <!-- Joined during the game: they watch, chat and see every character, and play the next game. -->
+    @if (spectators.length) {
+      <div class="group">SPECTATORS · PLAY THE NEXT GAME</div>
+      @for (p of spectators; track p.id) {
+        <ng-container *ngTemplateOutlet="card; context: { $implicit: p }" />
+      }
+    }
     }
   </div>
 </section>
@@ -64,7 +71,7 @@
             }
           </span>
           <span class="sub">
-            @if (p.role === 'admin' || p.role === 'helper') { <span class="role" [class]="'role ' + p.role">{{ p.role === 'admin' ? 'ADMIN' : 'HELPER' }}</span> }
+            @if (p.role === 'admin' || p.role === 'helper' || p.role === 'spectator') { <span class="role" [class]="'role ' + p.role">{{ p.role === 'admin' ? 'ADMIN' : p.role === 'helper' ? 'HELPER' : 'SPECTATOR' }}</span> }
             <span class="state" [class]="'state ' + state(p).tone">{{ state(p).text }}</span>
           </span>
         </span>

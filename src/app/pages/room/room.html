@@ -108,6 +108,7 @@
               (sendMessage)="sendMessage($event)"
               (toggleMute)="toggleMute($event)"
               [reportable]="reportable()"
+              [spectators]="spectators()"
               [waitingForCharacter]="waitingForCharacter()"
               (report)="report($event)" />
             <app-report-dialogs

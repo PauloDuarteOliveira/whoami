@@ -62,6 +62,7 @@
 .role { flex: none; padding: 1px 6px; border-radius: 5px; font-size: 10px; font-weight: 800; letter-spacing: .4px; }
 .role.admin { background: var(--accent-soft); color: var(--accent-text); }
 .role.helper { background: var(--unsure-soft); color: var(--unsure-text); }
+.role.spectator { background: var(--surface-3, var(--surface-2)); color: var(--text-2); }
 
 
 .clues { display: flex; flex-direction: column; gap: 8px; margin: 0 12px; padding: 10px 0 12px; border-top: 1px dashed var(--border-strong); }
