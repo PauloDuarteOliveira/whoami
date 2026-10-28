@@ -63,7 +63,7 @@
       <a routerLink="/create" class="btn btn-ghost">{{ account.roomSettings() ? 'Edit in Create room' : 'Create a room' }}</a>
     </section>
 
-    <section class="card danger" aria-label="Delete my account">
+    <section class="card danger phone-only" aria-label="Delete my account">
       <div>
         <strong>Delete my account</strong>
         <span class="small">Removes your email, sign-ins, history, lists and badges.</span>
@@ -117,6 +117,7 @@
         }
       </section>
 
+      <div class="stack">
       <section class="card" aria-labelledby="badges-title">
         <div class="head"><h2 id="badges-title">Badges</h2><span class="small">{{ badges().earned }} of {{ badges().total }}</span></div>
         <ul class="mini-badges">
@@ -130,6 +131,14 @@
         </ul>
         <a routerLink="/account/achievements" class="see">See all achievements ›</a>
       </section>
+      <section class="card danger desk-only" aria-label="Delete my account">
+        <div>
+          <strong>Delete my account</strong>
+          <span class="small">Removes your email, sign-ins, history, lists and badges.</span>
+        </div>
+        <button type="button" class="btn btn-ghost delete" (click)="deleteAccount.emit()">Delete account…</button>
+      </section>
+      </div>
     </div>
   </div>
 </div>
