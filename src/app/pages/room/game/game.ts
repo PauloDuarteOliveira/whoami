@@ -54,6 +54,8 @@ export class Game implements OnChanges {
     @Input() timeLeft: number | null = null;
     /** The clock's full length: the room's time to ask and to guess (it resumes), 30 s to vote or judge. */
     @Input() timeTotal: number | null = null;
+    /** During the question vote: the asker's time that waits for them (to guess) after the vote. */
+    @Input() pausedTime: number | null = null;
     /** The Admin and Helpers can close a stuck question vote. */
     @Input() canCloseVote = false;
     @Input() notes: Note[] = [];
@@ -203,18 +205,26 @@ export class Game implements OnChanges {
 
     /** What the clock is counting right now. */
     protected stepLabel(): string {
+        const whose = this.isMyTurn() ? 'Your time' : `${this.currentName()}'s time`;
         switch (this.room.turn_phase) {
-            case 'question': return 'Asking';
-            case 'answer_vote': return 'Voting';
-            case 'guess': return 'Guess or end turn';
-            default: return 'Judging the guess';
+            case 'answer_vote': return 'Vote closes in';
+            case 'guess_vote': return 'Judging closes in';
+            default: return whose;
         }
+    }
+
+    /** Voting and judging: everyone's clock (blue), not the asker's. */
+    protected isVoteStep(): boolean {
+        return this.room.turn_phase === 'answer_vote' || this.room.turn_phase === 'guess_vote';
     }
 
     /** "1:05" */
     protected timeLabel(): string {
-        const t = this.timeLeft ?? 0;
-        return Math.floor(t / 60) + ':' + String(t % 60).padStart(2, '0');
+        return this.clock(this.timeLeft ?? 0);
+    }
+
+    protected clock(seconds: number): string {
+        return Math.floor(seconds / 60) + ':' + String(seconds % 60).padStart(2, '0');
     }
 
     /** "Your next move": while the others play, you can write your next question and guess. */

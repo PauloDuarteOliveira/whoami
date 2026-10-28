@@ -239,7 +239,13 @@ app-board { display: none; }
 
 /* Turn timer: a bar that empties, red for the last 10 seconds. */
 .turn { position: relative; }
-.timer { position: absolute; top: 14px; left: 20px; right: 20px; display: flex; align-items: center; gap: 10px; }
+.timer { position: absolute; top: 14px; left: 20px; right: 20px; display: flex; flex-direction: column; align-items: stretch; gap: 6px; }
+.timer-row { display: flex; align-items: center; gap: 10px; }
+/* Voting and judging: everyone's clock, in blue, so it isn't mistaken for the asker's time. */
+.timer.vote .timer-fill { background: var(--unsure-text); }
+.timer.vote .timer-step, .timer.vote .timer-text { color: var(--unsure-text); }
+.paused-note { align-self: flex-start; padding: 2px 10px; border-radius: 8px; background: var(--accent-soft); color: var(--accent-text); font-size: 12px; font-weight: 700; }
+.turn:has(.paused-note) { padding-top: 72px; }
 .timer-track { flex: 1; height: 8px; border-radius: 4px; background: var(--border); overflow: hidden; }
 .timer-fill { height: 100%; border-radius: 4px; background: var(--accent); transition: width 1s linear; }
 .timer.low .timer-fill { background: var(--no); }
@@ -253,13 +259,13 @@ app-board { display: none; }
 .vf.done { opacity: 1; filter: none; }
 .vf app-face { width: 74%; height: 74%; display: grid; place-items: center; }
 .vf .tick { position: absolute; right: -4px; bottom: -4px; width: 16px; height: 16px; border-radius: 50%; background: var(--yes); color: #0b1a10; font-size: 10px; font-weight: 800; display: grid; place-items: center; border: 2px solid var(--surface, #fff); }
-.timer-step { flex: none; font-size: 12px; font-weight: 700; color: var(--muted); }
+.timer-step { flex: none; display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 700; color: var(--accent-text); }
 .timer.low .timer-step { color: var(--no); }
 
 /* Your next move: at the bottom of the turn card while the others play. */
-.draft { width: 100%; max-width: 620px; margin-top: auto; display: flex; flex-direction: column; gap: 10px; padding: 14px 16px; border-radius: 16px; border: 1px dashed var(--border-strong); background: var(--surface-2); text-align: left; }
-.turn:has(.draft) { justify-content: flex-start; }
-.turn:has(.draft) > .pill:first-of-type { margin-top: auto; }
+/* With the draft box, the turn stays centred in the space above it. */
+.grow { flex: 1 1 0; }
+.draft { width: 100%; max-width: 620px; display: flex; flex-direction: column; gap: 10px; padding: 14px 16px; border-radius: 16px; border: 1px dashed var(--border-strong); background: var(--surface-2); text-align: left; }
 .draft-head { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
 .draft-head strong { font-size: 14px; }
 .draft-head span, .draft-note { font-size: 12px; color: var(--muted); }

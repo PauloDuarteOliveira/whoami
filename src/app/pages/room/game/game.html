@@ -73,12 +73,27 @@
             }
             <section class="card turn" aria-label="Current turn">
                 @if (timeLeft !== null && timeTotal) {
-                <div class="timer" [class.low]="timeLeft <= 10" role="timer" [attr.aria-label]="timeLabel() + ' left: ' + stepLabel()">
-                    <span class="timer-step">{{ stepLabel() }}</span>
-                    <div class="timer-track"><div class="timer-fill" [style.width.%]="timeLeft / timeTotal * 100"></div></div>
-                    <span class="timer-text">{{ timeLabel() }}</span>
+                <!-- Yellow: the asker's own time (asking, then guessing). Blue: everyone's time to vote, while the asker's clock waits. -->
+                <div class="timer" [class.vote]="isVoteStep()" [class.low]="timeLeft <= 10" role="timer"
+                    [attr.aria-label]="stepLabel() + ' ' + timeLabel()">
+                    <div class="timer-row">
+                        <span class="timer-step">
+                            @if (isVoteStep()) {
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 12l2 2 4-4" /><rect x="3" y="4" width="18" height="16" rx="3" /></svg>
+                            } @else {
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="13" r="8" /><path d="M12 9v4l2 2M10 2h4" /></svg>
+                            }
+                            {{ stepLabel() }}
+                        </span>
+                        <div class="timer-track"><div class="timer-fill" [style.width.%]="timeLeft / timeTotal * 100"></div></div>
+                        <span class="timer-text">{{ timeLabel() }}</span>
+                    </div>
+                    @if (room.turn_phase === 'answer_vote' && pausedTime !== null) {
+                    <span class="paused-note">{{ isMyTurn() ? 'Your' : currentName() + "'s" }} time is paused · {{ clock(pausedTime) }} left to guess after the vote</span>
+                    }
                 </div>
                 }
+                @if (canDraft()) { <span class="grow" aria-hidden="true"></span> }
                 @switch (room.turn_phase) {
                 @case ('question') {
                 @if (isMyTurn() && waitingForCharacter) {
@@ -204,6 +219,7 @@
                 }
                 }
                 @if (canDraft()) {
+                <span class="grow" aria-hidden="true"></span>
                 <!-- Your next move: written during the others' turns, already filled in when your turn comes. -->
                 <div class="draft" role="group" aria-labelledby="draft-title">
                     <div class="draft-head">
