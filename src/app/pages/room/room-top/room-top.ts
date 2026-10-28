@@ -2,6 +2,7 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { SkySwitch } from '../../../shared/sky-switch/sky-switch';
 import { Logo } from '../../../shared/logo/logo';
 import { HomeLink } from '../../../shared/home-link';
+import { SoundToggle } from '../../../shared/sound-toggle';
 
 /**
  * The header of the Lobby and the Writing phase (design Layout A): the room on the left, the screen's
@@ -9,7 +10,7 @@ import { HomeLink } from '../../../shared/home-link';
  */
 @Component({
     selector: 'app-room-top',
-    imports: [SkySwitch, Logo, HomeLink],
+    imports: [SkySwitch, Logo, HomeLink, SoundToggle],
     template: `
     <header class="top">
       <a appHomeLink [askFirst]="true">
@@ -23,6 +24,8 @@ import { HomeLink } from '../../../shared/home-link';
         @if (subtitle) { <span class="subtitle">{{ subtitle }}</span> }
       </div>
       @if (connectionLost) { <span class="lost" role="status">Reconnecting…</span> }
+      <!-- Mute before the game starts, too. -->
+      <app-sound-toggle class="sound" />
       <app-sky-switch class="sky" [compact]="true" />
       <button type="button" class="btn btn-ghost leave" (click)="leave.emit()">Leave room</button>
     </header>
@@ -47,7 +50,7 @@ import { HomeLink } from '../../../shared/home-link';
     .title { font-weight: 700; }
     .subtitle { color: var(--muted); overflow: hidden; text-overflow: ellipsis; }
     .lost { font-size: 12px; font-weight: 600; color: var(--no-text); white-space: nowrap; }
-    .sky { margin-left: auto; }
+    .sound { margin-left: auto; }
     .leave { height: 38px; color: var(--no-text); white-space: nowrap; }
 
     @media (max-width: 1180px) {

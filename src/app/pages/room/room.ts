@@ -456,6 +456,13 @@ export class RoomPage implements OnInit, OnDestroy {
             untracked(() => this.sound.correct());
         });
 
+        // Rejoined from "Continue playing" (?lobby=1): a finished game opens in the lobby after it.
+        effect(() => {
+            const room = this.store.room();
+            if (room?.status !== 'finished' || !this.route.snapshot.queryParamMap.has('lobby')) return;
+            if (untracked(() => this.backInLobby()) !== this.gameKey(room)) untracked(() => this.backToLobby());
+        });
+
         // The game just ended: it's in your History from now on (a finished room), so your games and
         // badges load again the next time Your account opens, with this game counted.
         effect(() => {

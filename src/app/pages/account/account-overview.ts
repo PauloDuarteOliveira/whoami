@@ -51,7 +51,7 @@ export class AccountOverview implements OnInit {
     protected readonly connecting = signal(false);
 
     protected readonly openRooms = signal<OpenRoom[]>([]);
-    protected readonly phaseLabel: Record<OpenRoom['room']['status'], string> = { lobby: 'Lobby', writing: 'Writing characters', playing: 'Game in progress' };
+    protected readonly phaseLabel: Record<OpenRoom['room']['status'], string> = { lobby: 'Lobby', writing: 'Writing characters', playing: 'Game in progress', finished: 'Game over · back in the lobby' };
 
     /** Badges preview: earned ones first, then the ones you're closest to. */
     protected readonly badges = computed(() => {
@@ -107,7 +107,8 @@ export class AccountOverview implements OnInit {
 
     protected rejoin(r: OpenRoom): void {
         this.sessions.save(r.room.code, r.id);
-        this.router.navigate(['/room', r.room.code]);
+        // A finished game: straight back to the lobby after it, not the results again.
+        this.router.navigate(['/room', r.room.code], r.room.status === 'finished' ? { queryParams: { lobby: 1 } } : {});
     }
 
     protected resultText(g: { status: string; finish_place: number | null; questions_asked: number }): string {
