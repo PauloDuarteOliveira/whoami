@@ -2,6 +2,8 @@
   position: fixed;
   inset: 0;
   z-index: -1;
+  /* The sky (styles.css --page-bg), always exactly the screen, however long the page. */
+  background: var(--page-bg);
   pointer-events: none;
   overflow: hidden;
 }
