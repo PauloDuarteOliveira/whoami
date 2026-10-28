@@ -1,16 +1,28 @@
 import { NgTemplateOutlet } from '@angular/common';
-import { Component, ElementRef, HostListener, computed, inject, signal, viewChild } from '@angular/core';
+import { Component, ElementRef, HostListener, computed, effect, inject, signal, untracked, viewChild } from '@angular/core';
 import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { map } from 'rxjs';
 import { AuthService, OAuthProvider, PROVIDER_LABEL } from '../../core/auth.service';
 import { ProfileService } from '../../core/profile.service';
 import { SessionService } from '../../core/session.service';
 import { PageHeader } from '../../shared/page-header/page-header';
 import { GameHistory } from './game-history';
+import { AccountOverview } from './account-overview';
+import { BadgeGrid } from './badge-grid';
+import { MyGames } from '../../core/my-games.service';
 import { ListManager } from './list-manager';
 import { trapFocus } from '../../shared/focus';
 
 type Mode = 'create' | 'signin';
+type Tab = 'overview' | 'history' | 'lists' | 'achievements';
+const TABS: { id: Tab; label: string; link: string }[] = [
+    { id: 'overview', label: 'Overview', link: '/account' },
+    { id: 'history', label: 'History', link: '/account/history' },
+    { id: 'lists', label: 'Lists', link: '/account/lists' },
+    { id: 'achievements', label: 'Achievements', link: '/account/achievements' },
+];
 
 /** Both password fields must be the same. */
 function passwordsMatch(group: AbstractControl): ValidationErrors | null {
@@ -21,15 +33,32 @@ function passwordsMatch(group: AbstractControl): ValidationErrors | null {
 
 @Component({
     selector: 'app-account',
-    imports: [ReactiveFormsModule, PageHeader, NgTemplateOutlet, GameHistory, ListManager],
+    imports: [ReactiveFormsModule, RouterLink, PageHeader, NgTemplateOutlet, GameHistory, ListManager, AccountOverview, BadgeGrid],
     templateUrl: './account.html',
     styleUrl: './account.css',
 })
 export class Account {
     protected readonly auth = inject(AuthService);
-    private readonly profile = inject(ProfileService);
+    protected readonly profile = inject(ProfileService);
+    protected readonly my = inject(MyGames);
+    private readonly route = inject(ActivatedRoute);
+
+    /** Overview · History · Lists · Achievements, from the address (#/account/history…). */
+    protected readonly tabs = TABS;
+    protected readonly tab = toSignal(
+        this.route.paramMap.pipe(map(p => (TABS.find(t => t.id === p.get('tab'))?.id ?? 'overview') as Tab)),
+        { initialValue: 'overview' as Tab },
+    );
     private readonly sessions = inject(SessionService);
     private readonly router = inject(Router);
+
+    constructor() {
+        // Signed in: your games load once for every tab (Overview, History and Achievements all use them),
+        // whichever tab the page opens on.
+        effect(() => {
+            if (!this.auth.isAnonymous()) untracked(() => this.my.load());
+        });
+    }
 
     protected readonly mode = signal<Mode>('create');
     protected readonly busy = signal(false);
@@ -99,6 +128,7 @@ export class Account {
         this.busy.set(true);
         await this.auth.signOut();
         this.sessions.forgetAll();
+        this.my.reset();
         this.busy.set(false);
         this.createForm.reset();
         this.signInForm.reset();
@@ -108,11 +138,11 @@ export class Account {
         this.router.navigate(['/']);
     }
 
-    /** "Delete account": typing the email (or DELETE) unlocks the red button. */
+    /** "Delete account": typing DELETE unlocks the red button (the email stays hidden on screen). */
     protected readonly deleting = signal(false);
     protected readonly typed = signal('');
     protected readonly deleteError = signal<string | null>(null);
-    protected readonly confirmWord = computed(() => this.auth.email() ?? 'DELETE');
+    protected readonly confirmWord = computed(() => 'DELETE');
     protected readonly canDelete = computed(() => this.typed().trim().toLowerCase() === this.confirmWord().toLowerCase());
     private readonly deleteBox = viewChild<ElementRef<HTMLElement>>('deleteBox');
 
@@ -139,6 +169,7 @@ export class Account {
         }
         // Now a fresh guest: the old account's rooms are forgotten in this tab.
         this.sessions.forgetAll();
+        this.my.reset();
         this.deleting.set(false);
         this.accountDeleted.set(true);
     }

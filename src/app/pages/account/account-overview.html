@@ -1,0 +1,135 @@
+<div class="overview">
+  <!-- Left: who you are and how you sign in, your room settings, Delete. -->
+  <div class="col side">
+    <section class="card profile" aria-label="Your profile">
+      <div class="who">
+        <app-avatar-choice [selected]="profile.avatar()" (pick)="setAvatar($event)" />
+        <div class="who-text">
+          <h2>{{ profile.name() || 'Your name' }}</h2>
+          @if (email(); as e) { <span class="small">{{ e }}</span> }
+          <span class="signed">● Signed in{{ signedInWith() ? ' with ' + signedInWith() : '' }}</span>
+        </div>
+      </div>
+
+      <!-- (submit) with preventDefault: a plain form here (no form group), so Enter or Save doesn't reload the page. -->
+      <form class="name-form" (submit)="$event.preventDefault(); saveName()">
+        <label for="account-name">Your name</label>
+        <div class="name-row">
+          <input id="account-name" class="box" [formControl]="nameControl" maxlength="16" autocomplete="nickname">
+          <button type="submit" class="btn" [disabled]="!nameChanged()">{{ nameSaved() ? 'Saved ✓' : 'Save' }}</button>
+        </div>
+        @if (nameControl.touched && nameControl.invalid) {
+          <span class="error-text">Use 2 to 16 letters or numbers.</span>
+        } @else {
+          <span class="small">Shown in the header and to the players in your games.</span>
+        }
+      </form>
+
+      <p class="follows"><span aria-hidden="true">✓</span> Your name, animal and Day/Night follow you to every device.</p>
+
+      <div class="methods" aria-label="Sign in with">
+        <span class="label">SIGN IN WITH</span>
+        @for (p of quick; track p) {
+          <div class="method">
+            <span class="method-icon" [class.google]="p === 'google'" [class.discord]="p === 'discord'" aria-hidden="true">{{ p === 'google' ? 'G' : 'D' }}</span>
+            <strong>{{ label[p] }}</strong>
+            @if (auth.providers().includes(p)) {
+              <span class="connected">✓ Connected</span>
+            } @else {
+              <button type="button" class="btn btn-ghost connect" [disabled]="connecting()" (click)="connect(p)">Connect</button>
+            }
+          </div>
+        }
+        @if (auth.providers().includes('email')) {
+          <div class="method">
+            <span class="method-icon" aria-hidden="true">@</span>
+            <strong>Email and password</strong>
+            <span class="connected">✓ Connected</span>
+          </div>
+        }
+      </div>
+      @if (auth.oauthError(); as message) { <p class="error-text" role="alert">{{ message }}</p> }
+      <button type="button" class="btn btn-ghost" (click)="signOut.emit()">Sign out</button>
+    </section>
+
+    <section class="card settings" aria-labelledby="settings-title">
+      <h2 id="settings-title">My room settings</h2>
+      @if (account.roomSettings(); as s) {
+        <span class="small">Create a room starts from these.</span>
+        <app-settings-summary [settings]="s" />
+      } @else {
+        <span class="small">None saved yet. Tick "Save these as my settings" when you create a room.</span>
+      }
+      <a routerLink="/create" class="btn btn-ghost">{{ account.roomSettings() ? 'Edit in Create room' : 'Create a room' }}</a>
+    </section>
+
+    <section class="card danger" aria-label="Delete my account">
+      <div>
+        <strong>Delete my account</strong>
+        <span class="small">Removes your email, sign-ins, history, lists and badges.</span>
+      </div>
+      <button type="button" class="btn btn-ghost delete" (click)="deleteAccount.emit()">Delete account…</button>
+    </section>
+  </div>
+
+  <!-- Right: back into a room, your numbers, recent games, badges. -->
+  <div class="col main">
+    @for (r of openRooms(); track r.id) {
+      <section class="continue" aria-label="Continue playing">
+        <span class="room-code">{{ r.room.code }}</span>
+        <div class="continue-text">
+          <strong>Continue playing</strong>
+          <span>{{ phaseLabel[r.room.status] }} · {{ r.role === 'admin' ? "you're the Admin" : 'as ' + r.name }}</span>
+        </div>
+        <button type="button" class="btn btn-primary" (click)="rejoin(r)">Rejoin</button>
+      </section>
+    }
+
+    <div class="tiles">
+      <div class="tile"><span class="t-label">GAMES PLAYED</span><span class="t-value">{{ my.stats().played }}</span><span class="t-sub">finished</span></div>
+      <div class="tile"><span class="t-label">GUESSED</span><span class="t-value">{{ my.stats().guessed }}</span><span class="t-sub">{{ my.stats().guessedPct }}% of games</span></div>
+      <div class="tile"><span class="t-label">AVERAGE</span><span class="t-value">{{ my.stats().average ?? '–' }}</span><span class="t-sub">questions to guess</span></div>
+      <div class="tile"><span class="t-label">BEST GAME</span>
+        @if (my.stats().best; as best) {
+          <span class="t-value">{{ best.questions_asked }}</span><span class="t-sub">{{ best.character ?? 'a guess' }}</span>
+        } @else {
+          <span class="t-value">–</span><span class="t-sub">no guess yet</span>
+        }
+      </div>
+    </div>
+
+    <div class="pair">
+      <section class="card" aria-labelledby="recent-title">
+        <div class="head"><h2 id="recent-title">Recent games</h2><a routerLink="/account/history" class="see">See all ›</a></div>
+        @if (my.state() === 'missing') {
+          <span class="small">Game history isn't switched on yet.</span>
+        } @else if (!recent().length) {
+          <span class="small">No finished games yet. Play one to the end and it shows up here.</span>
+        } @else {
+          <ul class="recent">
+            @for (g of recent(); track g.player_id) {
+              <li>
+                <span class="was"><span class="small">You were</span><strong>{{ g.character ?? '—' }}</strong></span>
+                <span class="chip" [class]="'chip ' + resultKind(g)">{{ resultText(g) }}</span>
+              </li>
+            }
+          </ul>
+        }
+      </section>
+
+      <section class="card" aria-labelledby="badges-title">
+        <div class="head"><h2 id="badges-title">Badges</h2><span class="small">{{ badges().earned }} of {{ badges().total }}</span></div>
+        <ul class="mini-badges">
+          @for (b of badges().preview; track b.id) {
+            <li [class.earned]="b.earned" [title]="b.how">
+              <span class="mark" aria-hidden="true">{{ b.glyph }}</span>
+              <span class="b-name">{{ b.name }}</span>
+              <span class="small">{{ b.earned ? 'Earned' : b.current + ' / ' + b.target }}</span>
+            </li>
+          }
+        </ul>
+        <a routerLink="/account/achievements" class="see">See all achievements ›</a>
+      </section>
+    </div>
+  </div>
+</div>
