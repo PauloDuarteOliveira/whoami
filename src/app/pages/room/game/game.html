@@ -72,10 +72,11 @@
             </div>
             }
             <section class="card turn" aria-label="Current turn">
-                @if (timeLeft !== null && room.turn_timer_sec) {
-                <div class="timer" [class.low]="timeLeft <= 10" role="timer" [attr.aria-label]="timeLabel() + ' left in this turn'">
-                    <div class="timer-track"><div class="timer-fill" [style.width.%]="timeLeft / room.turn_timer_sec * 100"></div></div>
-                    <span class="timer-text">{{ timeLeft === 0 && room.turn_phase === 'guess_vote' ? 'Judging…' : timeLabel() }}</span>
+                @if (timeLeft !== null && timeTotal) {
+                <div class="timer" [class.low]="timeLeft <= 10" role="timer" [attr.aria-label]="timeLabel() + ' left: ' + stepLabel()">
+                    <span class="timer-step">{{ stepLabel() }}</span>
+                    <div class="timer-track"><div class="timer-fill" [style.width.%]="timeLeft / timeTotal * 100"></div></div>
+                    <span class="timer-text">{{ timeLabel() }}</span>
                 </div>
                 }
                 @switch (room.turn_phase) {
@@ -201,6 +202,26 @@
                 }
                 }
                 }
+                }
+                @if (canDraft()) {
+                <!-- Your next move: written during the others' turns, already filled in when your turn comes. -->
+                <div class="draft" role="group" aria-labelledby="draft-title">
+                    <div class="draft-head">
+                        <strong id="draft-title">{{ iAmNext() ? "You're next · get ready" : 'Your next move' }}</strong>
+                        <span>only you see this</span>
+                    </div>
+                    <div class="draft-fields">
+                        <label class="draft-field">
+                            <span>Next question</span>
+                            <input class="box" [formControl]="questionText" maxlength="140" autocomplete="off" placeholder="Am I from a film?">
+                        </label>
+                        <label class="draft-field">
+                            <span>Guess, if you know</span>
+                            <input class="box" [formControl]="guessText" maxlength="40" autocomplete="off" placeholder="Shrek">
+                        </label>
+                    </div>
+                    <span class="draft-note">They'll be filled in when it's your turn.</span>
+                </div>
                 }
                 @if (isMyTurn() && (room.turn_phase === 'question' || room.turn_phase === 'guess')) {
                 <div class="give-up">

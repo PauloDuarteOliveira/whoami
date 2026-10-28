@@ -1,4 +1,6 @@
 import { Component, EventEmitter, Input, OnChanges, Output, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { merge } from 'rxjs';
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Answer, Character, ChatMessage, GuessVerdict, Note, Player, Question, Room, Vote, Whiteboard } from '../../../core/models';
 import { NgTemplateOutlet, UpperCasePipe } from '@angular/common';
@@ -21,6 +23,9 @@ type DockTool = 'notes' | 'history' | 'chat';
 
 /** Phones (upright or sideways) and tablets held upright show one part at a time, with the tab bar. */
 const PHONE_LAYOUT = '(max-width: 900px), (orientation: landscape) and (max-height: 500px)';
+
+/** Where your next question and guess are kept, per player (one player per room). */
+const DRAFT_KEY = 'whoami.draft.';
 
 @Component({
     selector: 'app-game',
@@ -47,6 +52,8 @@ export class Game implements OnChanges {
     @Input() canOverrule = false;
     /** Seconds left in this turn (null: the room has no turn timer). */
     @Input() timeLeft: number | null = null;
+    /** The clock's full length: the room's time to ask and to guess (it resumes), 30 s to vote or judge. */
+    @Input() timeTotal: number | null = null;
     /** The Admin and Helpers can close a stuck question vote. */
     @Input() canCloseVote = false;
     @Input() notes: Note[] = [];
@@ -84,6 +91,20 @@ export class Game implements OnChanges {
     });
 
     protected readonly guessText = new FormControl('', { nonNullable: true, validators: characterNameValidators });
+    /** The player whose drafts are loaded (the question and guess boxes double as "Your next move"). */
+    private draftsFor: string | null = null;
+
+    constructor() {
+        // Your next question and guess, typed during the others' turns, are kept for this room (a reload keeps them).
+        merge(this.questionText.valueChanges, this.guessText.valueChanges)
+            .pipe(takeUntilDestroyed())
+            .subscribe(() => {
+                if (!this.draftsFor) return;
+                try {
+                    localStorage.setItem(DRAFT_KEY + this.draftsFor, JSON.stringify({ q: this.questionText.value, g: this.guessText.value }));
+                } catch { /* private mode: the drafts last until the page closes */ }
+            });
+    }
 
     protected readonly answers: { value: Answer; label: string }[] = [
         { value: 'yes', label: 'Yes' },
@@ -114,6 +135,16 @@ export class Game implements OnChanges {
     protected readonly unread = signal(0);
 
     ngOnChanges(): void {
+        if (this.me && this.draftsFor !== this.me.id) {
+            this.draftsFor = this.me.id;
+            try {
+                const saved = JSON.parse(localStorage.getItem(DRAFT_KEY + this.me.id) ?? 'null') as { q?: string; g?: string } | null;
+                if (saved) {
+                    this.questionText.setValue(saved.q ?? '', { emitEvent: false });
+                    this.guessText.setValue(saved.g ?? '', { emitEvent: false });
+                }
+            } catch { /* nothing saved */ }
+        }
         if (!this.chatSeenAt()) this.chatSeenAt.set(this.messages[this.messages.length - 1]?.created_at ?? ' ');
         this.updateUnread();
     }
@@ -170,10 +201,34 @@ export class Game implements OnChanges {
             .sort((a, b) => a.turn_position! - b.turn_position!);
     }
 
+    /** What the clock is counting right now. */
+    protected stepLabel(): string {
+        switch (this.room.turn_phase) {
+            case 'question': return 'Asking';
+            case 'answer_vote': return 'Voting';
+            case 'guess': return 'Guess or end turn';
+            default: return 'Judging the guess';
+        }
+    }
+
     /** "1:05" */
     protected timeLabel(): string {
         const t = this.timeLeft ?? 0;
         return Math.floor(t / 60) + ':' + String(t % 60).padStart(2, '0');
+    }
+
+    /** "Your next move": while the others play, you can write your next question and guess. */
+    protected canDraft(): boolean {
+        return !this.isMyTurn() && this.me.status === 'playing' && this.me.role !== 'spectator' && this.me.turn_position !== null;
+    }
+
+    /** You ask next: the draft box says so. */
+    protected iAmNext(): boolean {
+        const queue = this.players
+            .filter(p => p.status === 'playing' && p.turn_position !== null)
+            .sort((a, b) => a.turn_position! - b.turn_position!);
+        const i = queue.findIndex(p => p.id === this.room.current_player_id);
+        return queue.length > 1 && queue[(i + 1) % queue.length]?.id === this.me.id;
     }
 
     protected isMyTurn(): boolean {
