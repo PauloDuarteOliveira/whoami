@@ -43,14 +43,19 @@
 .dot { position: absolute; right: -2px; bottom: -2px; width: 11px; height: 11px; border-radius: 50%; border: 2px solid var(--surface); background: var(--faint); }
 .dot.on { background: var(--yes); }
 
-.who { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
-.char { font-weight: 800; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.who { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+/* Line 1: "Leo is Cleopatra" (design C); the character gets the room's display font. */
+.line { min-width: 0; display: flex; align-items: baseline; gap: 5px; white-space: nowrap; overflow: hidden; }
+.line .name { flex: none; font-size: 15px; font-weight: 800; color: var(--text); }
+.verb { flex: none; font-size: 13px; color: var(--muted); }
+.char { min-width: 0; font-family: var(--font-display, 'Titan One', sans-serif); font-size: 16px; letter-spacing: .3px; color: var(--accent-text); overflow: hidden; text-overflow: ellipsis; }
 .char.hidden { color: var(--faint); letter-spacing: 2px; }
 .chev { flex: none; color: var(--muted); transition: transform .15s; }
 .card-top[aria-expanded="true"] .chev { transform: rotate(180deg); }
 .sub { display: flex; align-items: center; gap: 6px; min-width: 0; font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; }
-.sub.lead .name { font-weight: 800; font-size: 15px; color: var(--text); }
-.state { overflow: hidden; text-overflow: ellipsis; }
+/* Line 2: role badge, then the status with a dot in its colour. */
+.state { display: inline-flex; align-items: center; gap: 5px; min-width: 0; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
+.state::before { content: ''; flex: none; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
 .state.now { color: var(--accent-text); }
 .state.done { color: var(--yes-text); }
 .state.off { color: var(--no-text); }
@@ -60,9 +65,16 @@
 
 
 .clues { display: flex; flex-direction: column; gap: 8px; margin: 0 12px; padding: 10px 0 12px; border-top: 1px dashed var(--border-strong); }
-.clue-group { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
-.clue-group b { width: 74px; flex: none; font-size: 11px; letter-spacing: 1px; }
-.clue { padding: 5px 9px; border-radius: 10px; background: var(--bg); color: var(--text-3); font-size: 12px; overflow-wrap: anywhere; }
+.clue-title { font-size: 11px; font-weight: 800; letter-spacing: .6px; color: var(--muted); }
+.clue-group { display: flex; flex-direction: column; gap: 5px; }
+.clue-group b { display: flex; align-items: center; gap: 6px; font-size: 11px; letter-spacing: .5px; }
+.dot-s { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+.clue { padding: 6px 10px; border-radius: 10px; background: var(--bg); color: var(--text-3); font-size: 13px; overflow-wrap: anywhere; }
+.clue.guess { display: flex; align-items: center; gap: 8px; }
+.clue.guess > span:first-child { flex: 1; min-width: 0; }
+.verdict { flex: none; padding: 2px 9px; border-radius: 8px; font-size: 11px; font-weight: 800; }
+.verdict.correct { background: var(--yes-soft); color: var(--yes-text); }
+.verdict.wrong { background: var(--no-soft); color: var(--no-text); }
 .label-yes { color: var(--yes-text); }
 .label-no { color: var(--no-text); }
 .label-unsure { color: var(--unsure-text); }

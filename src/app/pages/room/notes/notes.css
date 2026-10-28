@@ -1,4 +1,6 @@
-.notes { display: flex; flex-direction: column; gap: 12px; padding: 24px; border-radius: 24px; }
+/* Same glass panel as the chat, filling the column; the note box grows with it. */
+:host { display: flex; flex-direction: column; min-height: 0; }
+.notes { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 12px; padding: 16px; border-radius: 22px; background: var(--glass); border: 1px solid var(--border); box-shadow: none; }
 .notes-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
 .notes-head h2 { margin: 0; font-size: 18px; }
 
@@ -6,7 +8,7 @@
 .tab { height: 30px; padding: 0 12px; border-radius: 15px; border: 1px solid var(--border-strong); background: transparent; color: var(--text-2); font-weight: 600; font-size: 13px; }
 .tab.active { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
 
-.box { width: 100%; resize: vertical; min-height: 110px; padding: 12px 14px; border-radius: var(--radius); border: 1px solid var(--border-strong); background: var(--surface-2); color: var(--text); font: inherit; }
+.box { flex: 1; width: 100%; resize: none; min-height: 110px; padding: 12px 14px; border-radius: var(--radius); border: 1px solid var(--border-strong); background: var(--surface-2); color: var(--text); font: inherit; }
 .box:focus { outline: none; border-color: var(--accent); }
 
 .notes-foot { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
@@ -16,4 +18,4 @@
 .notes-foot .state { margin-left: auto; }
 .notes-foot .btn { height: 34px; padding: 0 14px; }
 
-.shared-text { margin: 0; padding: 12px 14px; border-radius: var(--radius); background: var(--surface-2); white-space: pre-wrap; overflow-wrap: anywhere; }
+.shared-text { flex: 1; overflow-y: auto; margin: 0; padding: 12px 14px; border-radius: var(--radius); background: var(--surface-2); white-space: pre-wrap; overflow-wrap: anywhere; }

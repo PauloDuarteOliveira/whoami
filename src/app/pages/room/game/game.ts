@@ -45,6 +45,10 @@ export class Game implements OnChanges {
     @Input() guess: Question | null = null;
     @Input() guessVotes: Vote[] = [];
     @Input() canOverrule = false;
+    /** Seconds left in this turn (null: the room has no turn timer). */
+    @Input() timeLeft: number | null = null;
+    /** The Admin and Helpers can close a stuck question vote. */
+    @Input() canCloseVote = false;
     @Input() notes: Note[] = [];
     @Input() boards: Whiteboard[] = [];
     /** Players whose character this player may report as a troll entry. */
@@ -62,6 +66,7 @@ export class Game implements OnChanges {
     @Output() makeGuess = new EventEmitter<string>();
     @Output() judge = new EventEmitter<GuessVerdict>();
     @Output() overrule = new EventEmitter<GuessVerdict>();
+    @Output() closeVote = new EventEmitter<void>();
     @Output() giveUp = new EventEmitter<void>();
     @Output() saveNote = new EventEmitter<NoteDraft>();
     @Output() saveBoard = new EventEmitter<BoardDraft>();
@@ -165,6 +170,12 @@ export class Game implements OnChanges {
             .sort((a, b) => a.turn_position! - b.turn_position!);
     }
 
+    /** "1:05" */
+    protected timeLabel(): string {
+        const t = this.timeLeft ?? 0;
+        return Math.floor(t / 60) + ':' + String(t % 60).padStart(2, '0');
+    }
+
     protected isMyTurn(): boolean {
         return this.room.current_player_id === this.me.id;
     }
@@ -204,6 +215,25 @@ export class Game implements OnChanges {
         }
         this.makeGuess.emit(this.guessText.value);
         this.guessText.reset('');
+    }
+
+    /**
+     * The round: which question this is for the player asking now (their own count, not the room's turns).
+     * Passed turns don't count.
+     */
+    protected round(): number {
+        const asked = (id: string) => this.questions.filter(q => q.kind === 'question' && q.player_id === id).length;
+        const current = this.room.current_player_id;
+        const mine = current ? asked(current) + (this.room.turn_phase === 'question' ? 1 : 0) : 1;
+        return Math.max(1, mine);
+    }
+
+    protected hasVoted(player: Player, votes: Vote[]): boolean {
+        return votes.some(v => v.voter_id === player.id);
+    }
+
+    protected voteLabel(player: Player, votes: Vote[]): string {
+        return player.name + (this.hasVoted(player, votes) ? ' voted' : " hasn't voted yet");
     }
 
     protected myQuestionCount(): number {

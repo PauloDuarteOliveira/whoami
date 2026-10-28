@@ -22,6 +22,8 @@ export class History {
     @Input({ required: true }) questions: Question[] = [];
     @Input({ required: true }) players: Player[] = [];
     @Input({ required: true }) me!: Player;
+    /** "History" in the game; "Last game" in the lobby after it. */
+    @Input() heading = 'History';
 
     protected readonly filter = signal<HistoryFilter>('all');
     protected readonly filters: { value: HistoryFilter; label: string }[] = [
@@ -42,6 +44,13 @@ export class History {
         const list = this.questions.filter(q => q.result !== null && this.matches(q));
         const turnNumbers = [...new Set(list.map(q => q.turn_number))].sort((a, b) => b - a);
         return turnNumbers.map(turn => ({ turn, items: list.filter(q => q.turn_number === turn) }));
+    }
+
+    /** "ROUND 3 · LEO": the asker's own question count at that turn, not the room's turn number. */
+    protected groupTitle(group: TurnGroup): string {
+        const asker = group.items[0]?.player_id;
+        const round = this.questions.filter(q => q.kind === 'question' && q.player_id === asker && q.turn_number <= group.turn).length;
+        return `ROUND ${Math.max(1, round)} · ${this.nameOf(asker).toUpperCase()}`;
     }
 
     protected nameOf(playerId: string): string {
