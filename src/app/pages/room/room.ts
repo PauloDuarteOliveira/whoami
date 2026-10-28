@@ -130,22 +130,41 @@ export class RoomPage implements OnInit, OnDestroy {
         return room.turn_phase === 'question' || room.turn_phase === 'guess' ? room.turn_timer_sec : STEP_SECONDS;
     });
     /** When this turn's asking started (seen while it was the asking step), to know the time left for the guess. */
-    private askStart: { turn: number; at: number } | null = null;
+    private readonly askStart = signal<{ turn: number; at: number } | null>(null);
+    /** When this device first saw the question vote start (the asker's clock stopped there). */
+    private readonly voteStart = signal<{ turn: number; at: number } | null>(null);
 
     /**
      * The guess step: it resumes the asking clock where the question was sent, but never with less than 30 s.
      * Asked in 20 s of 1 min → 40 s to guess; asked in 50 s → 30 s. The bar picks up where it stopped.
      */
-    private guessStep(room: Room, question: Question): Partial<Room> {
+    private guessStep(room: Room): Partial<Room> {
         const now = Date.now();
         const total = room.turn_timer_sec;
-        if (!total) return { turn_phase: 'guess', turn_started_at: new Date(now).toISOString() };
-        const asked = new Date(question.created_at).getTime();
-        const used = this.askStart?.turn === room.turn_number ? Math.max(0, asked - this.askStart.at) / 1000 : total;
-        const left = Math.min(total, Math.max(STEP_SECONDS, total - used));
+        const left = this.timeAfterVote(room);
+        if (!total || left === null) return { turn_phase: 'guess', turn_started_at: new Date(now).toISOString() };
         // The clock counts down from the room's time, so start it as if (total − left) seconds had already gone.
         return { turn_phase: 'guess', turn_started_at: new Date(now - (total - left) * 1000).toISOString() };
     }
+
+    /** The asker's time waiting for them after the vote: what was left when they asked, at least 30 s. */
+    private timeAfterVote(room: Room): number | null {
+        const total = room.turn_timer_sec;
+        if (!total) return null;
+        // Measured on this device's own clock (a phone's clock can be minutes off from the others').
+        const ask = this.askStart();
+        const vote = this.voteStart();
+        const used = ask?.turn === room.turn_number && vote?.turn === room.turn_number ? Math.max(0, vote.at - ask.at) / 1000 : total;
+        return Math.round(Math.min(total, Math.max(STEP_SECONDS, total - used)));
+    }
+
+    /** During the question vote: the asker's paused time, shown next to the vote's own clock. */
+    protected readonly pausedTime = computed(() => {
+        const room = this.store.room();
+        const question = this.currentQuestion();
+        if (!room || room.status !== 'playing' || room.turn_phase !== 'answer_vote' || !question) return null;
+        return this.timeAfterVote(room);
+    });
     /** Seconds left in this step, or null when the room has no timer. */
     protected readonly timeLeft = computed(() => {
         const room = this.store.room();
@@ -340,7 +359,17 @@ export class RoomPage implements OnInit, OnDestroy {
             const players = this.playing();
             const characters = this.store.characters();
             if (!room || room.status !== 'writing' || me?.role !== 'admin' || this.starting) return;
-            const allWritten = players.length >= 2 && players.every(p => characters.some(c => c.written_by === p.id));
+            // Everyone else left while writing: back to the lobby (characters cleared), so the Admin can invite more friends.
+            if (players.length < 2) {
+                this.starting = true;
+                this.run(concat(
+                    this.characterService.removeAll(room.id),
+                    this.roomService.update(room.id, { status: 'lobby', writing_ends_at: null }),
+                ));
+                this.actionError.set('Everyone else left, so the room went back to the lobby. Invite more friends to play.');
+                return;
+            }
+            const allWritten = players.every(p => characters.some(c => c.written_by === p.id));
             if (allWritten) {
                 this.starting = true;
                 this.run(this.game.startCustom(room, players, characters));
@@ -360,7 +389,7 @@ export class RoomPage implements OnInit, OnDestroy {
                 this.run(
                     this.questionService
                         .setResult(question.id, majority(votes))
-                        .pipe(switchMap(() => this.roomService.update(room.id, this.guessStep(room, question)))),
+                        .pipe(switchMap(() => this.roomService.update(room.id, this.guessStep(room)))),
                 );
             }
         });
@@ -380,12 +409,13 @@ export class RoomPage implements OnInit, OnDestroy {
             }
         });
 
-        // Remembers when asking started, for the guess step's time.
+        // Remembers when this device saw the asking and the vote start, for the time left to guess.
         effect(() => {
             const room = this.store.room();
-            if (room?.status === 'playing' && room.turn_phase === 'question' && room.turn_started_at) {
-                this.askStart = { turn: room.turn_number, at: new Date(room.turn_started_at).getTime() };
-            }
+            if (room?.status !== 'playing') return;
+            const turn = room.turn_number;
+            if (room.turn_phase === 'question' && untracked(() => this.askStart())?.turn !== turn) this.askStart.set({ turn, at: Date.now() });
+            if (room.turn_phase === 'answer_vote' && untracked(() => this.voteStart())?.turn !== turn) this.voteStart.set({ turn, at: Date.now() });
         });
 
         // Time's up for this step. The player whose turn it is handles it, or the Admin if they're away:
@@ -408,7 +438,7 @@ export class RoomPage implements OnInit, OnDestroy {
                 if (room.turn_phase === 'answer_vote' && question && !this.finished.has(question.id)) {
                     this.finished.add(question.id);
                     this.run(this.questionService.setResult(question.id, majority(this.currentVotes()))
-                        .pipe(switchMap(() => this.roomService.update(room.id, this.guessStep(room, question)))));
+                        .pipe(switchMap(() => this.roomService.update(room.id, this.guessStep(room)))));
                 } else if (room.turn_phase === 'guess_vote' && guess && guess.result === null) {
                     this.resolveGuess(room, guess, verdict(this.guessVotes()));
                 } else if (room.turn_phase === 'question' || room.turn_phase === 'guess') {
@@ -630,7 +660,7 @@ export class RoomPage implements OnInit, OnDestroy {
         this.run(
             this.questionService
                 .setResult(question.id, majority(this.currentVotes()))
-                .pipe(switchMap(() => this.roomService.update(now.id, this.guessStep(now, question)))),
+                .pipe(switchMap(() => this.roomService.update(now.id, this.guessStep(now)))),
         );
     }
 
