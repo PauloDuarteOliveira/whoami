@@ -35,7 +35,7 @@ export class Home {
 
   /** Rooms you're still in, for "Continue playing". */
   protected readonly openRooms = signal<OpenRoom[]>([]);
-  protected readonly phaseLabel: Record<OpenRoom['room']['status'], string> = { lobby: 'Lobby', writing: 'Writing characters', playing: 'Game in progress' };
+  protected readonly phaseLabel: Record<OpenRoom['room']['status'], string> = { lobby: 'Lobby', writing: 'Writing characters', playing: 'Game in progress', finished: 'Game over · back in the lobby' };
 
   constructor() {
     const userId = this.auth.userId();
@@ -48,7 +48,8 @@ export class Home {
   /** Back into a room: this tab remembers you're that player, then the room opens. */
   protected rejoin(r: OpenRoom): void {
     this.sessions.save(r.room.code, r.id);
-    this.router.navigate(['/room', r.room.code]);
+    // A finished game: straight back to the lobby after it, not the results again.
+    this.router.navigate(['/room', r.room.code], r.room.status === 'finished' ? { queryParams: { lobby: 1 } } : {});
   }
 
   /** The "How to play" dialog. */

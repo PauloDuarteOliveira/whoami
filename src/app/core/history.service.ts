@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { Observable, map } from 'rxjs';
+import { Observable, map, of, switchMap } from 'rxjs';
 import { PlayerStatus } from './models';
 import { SupabaseApiService } from './supabase-api.service';
 
@@ -40,7 +40,7 @@ export interface OpenRoom {
     id: string;
     name: string;
     role: 'admin' | 'helper' | 'player' | 'spectator';
-    room: { code: string; status: 'lobby' | 'writing' | 'playing'; updated_at: string };
+    room: { id: string; code: string; status: 'lobby' | 'writing' | 'playing' | 'finished'; updated_at: string };
 }
 
 /** Your numbers, worked out from your games. */
@@ -84,21 +84,37 @@ export class HistoryService {
     }
 
     /**
-     * Rooms you're still in (lobby, writing or playing) that moved in the last 12 hours, newest first:
-     * Home's "Continue playing". Your account's players, so it works on any device you're signed in on.
+     * Rooms you're still in that moved in the last 12 hours, newest first: Home's "Continue playing".
+     * Lobby, writing or playing, and also a finished game whose room is still in use (the lobby after a game,
+     * with someone there in the last 2 minutes). Your account's players, so it works on any device you're signed in on.
      */
     openRooms(userId: string): Observable<OpenRoom[]> {
         const since = new Date(Date.now() - 12 * 3600 * 1000).toISOString();
         return this.api.select<OpenRoom>('players', {
             // players → rooms through the player's room (rooms also points back at its current player).
-            select: 'id,name,role,room:rooms!players_room_id_fkey!inner(code,status,updated_at)',
+            select: 'id,name,role,room:rooms!players_room_id_fkey!inner(id,code,status,updated_at)',
             user_id: `eq.${userId}`,
             status: 'not.in.(kicked,left)',
-            'room.status': 'neq.finished',
             'room.updated_at': `gte.${since}`,
             order: 'joined_at.desc',
-            limit: '3',
-        });
+            limit: '6',
+        }).pipe(
+            switchMap(rooms => {
+                const finished = rooms.filter(r => r.room.status === 'finished');
+                if (!finished.length) return of(rooms.slice(0, 3));
+                // A finished room counts only while someone is still in it (back in the lobby, waiting for Play again).
+                const recent = new Date(Date.now() - 2 * 60 * 1000).toISOString();
+                return this.api.select<{ room_id: string }>('players', {
+                    select: 'room_id',
+                    room_id: `in.(${finished.map(r => r.room.id).join(',')})`,
+                    status: 'not.in.(kicked,left)',
+                    last_seen: `gte.${recent}`,
+                }).pipe(map(here => {
+                    const alive = new Set(here.map(p => p.room_id));
+                    return rooms.filter(r => r.room.status !== 'finished' || alive.has(r.room.id)).slice(0, 3);
+                }));
+            }),
+        );
     }
 }
 

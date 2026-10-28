@@ -9,7 +9,7 @@ import { PlayersPanel } from '../players-panel/players-panel';
 import { NoteDraft, Notes } from '../notes/notes';
 import { History } from '../history/history';
 import { Board, BoardDraft } from '../board/board';
-import { SoundService } from '../../../core/sound.service';
+import { SoundToggle } from '../../../shared/sound-toggle';
 import { PreferencesService } from '../../../core/preferences.service';
 import { ConfirmService } from '../../../core/confirm.service';
 import { SkySwitch } from '../../../shared/sky-switch/sky-switch';
@@ -30,13 +30,12 @@ const DRAFT_KEY = 'whoami.draft.';
 
 @Component({
     selector: 'app-game',
-    imports: [ReactiveFormsModule, UpperCasePipe, NgTemplateOutlet, PlayersPanel, Notes, History, Board, SkySwitch, Logo, Chat, AvatarFace, HomeLink],
+    imports: [SoundToggle, ReactiveFormsModule, UpperCasePipe, NgTemplateOutlet, PlayersPanel, Notes, History, Board, SkySwitch, Logo, Chat, AvatarFace, HomeLink],
     templateUrl: './game.html',
     styleUrl: './game.css',
 })
 export class Game implements OnChanges {
     protected readonly prefs = inject(PreferencesService);
-    protected readonly sound = inject(SoundService);
     private readonly confirm = inject(ConfirmService);
 
     @Input({ required: true }) room!: Room;
