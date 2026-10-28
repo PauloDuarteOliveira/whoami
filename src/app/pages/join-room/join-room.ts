@@ -122,7 +122,8 @@ export class JoinRoom implements OnInit {
         this.joining.set(true);
         this.joinError.set(null);
         this.profile.setName(this.name.value);
-        const role = room.status === 'lobby' ? 'player' : 'spectator';
+        // In the lobby, or after a game (the next one starts from the same room): a player. Mid-game: watching.
+        const role = room.status === 'lobby' || room.status === 'finished' ? 'player' : 'spectator';
         const takenColors = this.players().map(p => p.color);
 
         this.playerService.join(room.id, this.profile.name(), role, takenColors, this.avatar()).subscribe({

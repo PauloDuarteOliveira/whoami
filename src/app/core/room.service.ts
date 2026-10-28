@@ -4,6 +4,7 @@ import { Observable, catchError, defer, map, switchMap, throwError } from 'rxjs'
 import { Player, Room } from './models';
 import { PlayerService } from './player.service';
 import { SupabaseApiService } from './supabase-api.service';
+import { SUPABASE } from './supabase.client';
 
 export type RoomSettings = Pick<
     Room,
@@ -16,6 +17,26 @@ const CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 export class RoomService {
     private readonly api = inject(SupabaseApiService);
     private readonly players = inject(PlayerService);
+    private readonly client = inject(SUPABASE);
+
+    /**
+     * Play again (migration 010): the finished game moves to a room of its own (so it stays in everyone's
+     * history) and this room goes back to the lobby with the new settings and the same code. Admin only.
+     */
+    playAgain(roomId: string, s: RoomSettings): Observable<void> {
+        return defer(() => this.client.rpc('play_again', {
+            p_room: roomId,
+            p_mode: s.mode,
+            p_source: s.character_source,
+            p_deck: s.deck_id,
+            p_list: s.list_id ?? null,
+            p_give_up: s.give_up_after,
+            p_turn_timer: s.turn_timer_sec,
+            p_writing_timer: s.writing_timer_sec,
+        })).pipe(map(({ error }) => {
+            if (error) throw new Error(error.code === 'PGRST202' ? 'PLAY_AGAIN_MISSING' : error.message);
+        }));
+    }
 
     getByCode(code: string): Observable<Room | null> {
         return this.api

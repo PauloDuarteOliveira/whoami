@@ -27,7 +27,7 @@ create table rooms (
   mode              text not null default 'novoice' check (mode in ('voice', 'novoice')),
   character_source  text not null default 'custom' check (character_source in ('deck', 'custom')),
   deck_id           uuid references decks(id),
-  give_up_after     int  not null default 10 check (give_up_after between 1 and 99),
+  give_up_after     int  not null default 5 check (give_up_after between 1 and 99),
   turn_timer_sec    int  check (turn_timer_sec in (60, 120, 180)),       -- null = no timer
   writing_timer_sec int  check (writing_timer_sec in (30, 60, 90)),      -- null = no timer
   hide_names        boolean not null default false,
