@@ -8,6 +8,7 @@ import { SessionService } from '../../core/session.service';
 import { SkySwitch } from '../../shared/sky-switch/sky-switch';
 import { Logo } from '../../shared/logo/logo';
 import { HomeLink } from '../../shared/home-link';
+import { MeChip } from '../../shared/me-chip';
 import { playerNameValidators } from '../../shared/validators';
 import { AvatarChoice } from '../../shared/avatar-choice';
 import { isAvatar } from '../../shared/avatars';
@@ -15,7 +16,7 @@ import { trapFocus } from '../../shared/focus';
 
 @Component({
   selector: 'app-home',
-  imports: [ReactiveFormsModule, RouterLink, SkySwitch, Logo, AvatarChoice, HomeLink],
+  imports: [ReactiveFormsModule, RouterLink, SkySwitch, Logo, AvatarChoice, HomeLink, MeChip],
   templateUrl: './home.html',
   styleUrl: './home.css',
 })
