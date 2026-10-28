@@ -1,30 +1,40 @@
-/* Same glass panel as the chat, filling the column; the turns scroll inside. */
+/* Same glass panel as the chat, filling the column; the rounds scroll inside. */
 :host { display: flex; flex-direction: column; min-height: 0; }
 .history { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 12px; padding: 16px; border-radius: 22px; background: var(--glass); border: 1px solid var(--border); box-shadow: none; }
 .history-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
 .history-head h2 { margin: 0; font-size: 18px; }
 
 .filters { display: flex; gap: 6px; flex-wrap: wrap; }
-.filter { height: 30px; padding: 0 12px; border-radius: 15px; border: 1px solid var(--border-strong); background: transparent; color: var(--text-2); font-weight: 600; font-size: 13px; }
+.filter { height: 30px; padding: 0 12px; border-radius: 15px; border: 1px solid var(--border-strong); background: transparent; color: var(--text-2); font-weight: 600; font-size: 13px; cursor: pointer; }
 .filter.active { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
 
-.turns { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; padding-right: 4px; }
-.turn-group { display: flex; flex-direction: column; gap: 4px; }
-.turn-title { font-size: 11px; font-weight: 700; letter-spacing: 1px; color: var(--muted); }
+.rounds { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; padding: 2px 4px 2px 2px; }
+.round { display: flex; flex-direction: column; gap: 8px; }
+.round-title { font-size: 11px; font-weight: 800; letter-spacing: .6px; color: var(--muted); }
 
-.line { width: 100%; display: grid; grid-template-columns: 64px minmax(0, 1fr) auto 14px; gap: 8px; align-items: center; padding: 6px 8px; border: none; border-radius: 10px; background: transparent; color: var(--text); font: inherit; font-size: 13px; text-align: left; }
-.line:hover, .line[aria-expanded="true"] { background: var(--surface-2); }
-.who { color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.chevron { color: var(--muted); font-size: 11px; }
+/* One card per question or guess (design: History column): face, "Leo · 2nd question", the question, the answer, the arrow. */
+.item { border-radius: 14px; background: var(--surface-2); border: 1px solid var(--border); }
+.item.open { border-color: var(--border-strong); }
+.item-top { width: 100%; display: flex; align-items: center; gap: 10px; padding: 8px 10px; border: none; border-radius: 14px; background: transparent; color: var(--text); font: inherit; text-align: left; cursor: pointer; }
+.item-top:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.face { position: relative; width: 30px; height: 30px; flex: none; border-radius: 50%; display: grid; place-items: center; }
+.face app-face { width: 74%; height: 74%; display: grid; place-items: center; }
+.body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.label { font-size: 11px; font-weight: 700; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.text { font-size: 13px; overflow-wrap: anywhere; }
+.chev { flex: none; color: var(--muted); transition: transform .15s; }
+.item-top[aria-expanded="true"] .chev { transform: rotate(180deg); }
 
-.votes { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; padding: 6px 8px 8px 80px; font-size: 12px; color: var(--text-2); }
-.vote { display: inline-flex; align-items: center; gap: 6px; }
+/* Opened: who voted what. */
+.votes { display: flex; flex-direction: column; gap: 6px; margin: 0 10px; padding: 8px 0 10px; border-top: 1px dashed var(--border-strong); font-size: 12px; color: var(--text-2); }
+.votes-title { font-size: 11px; font-weight: 800; letter-spacing: .5px; color: var(--muted); }
+.vote { display: flex; align-items: center; gap: 8px; }
+.vote-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .note { margin: 0; font-size: 12px; color: var(--muted); }
 .note.error { color: var(--no-text); }
-.retry { height: 30px; padding: 0 10px; font-size: 12px; }
+.retry { align-self: flex-start; height: 30px; padding: 0 10px; font-size: 12px; }
 
-.tag-answer { padding: 2px 8px; border-radius: 8px; font-weight: 700; font-size: 11px; }
+.tag-answer { flex: none; padding: 2px 9px; border-radius: 8px; font-weight: 800; font-size: 11px; }
 .tag-answer.yes, .tag-answer.correct { background: var(--yes-soft); color: var(--yes-text); }
 .tag-answer.no, .tag-answer.wrong { background: var(--no-soft); color: var(--no-text); }
 .tag-answer.unsure { background: var(--unsure-soft); color: var(--unsure-text); }

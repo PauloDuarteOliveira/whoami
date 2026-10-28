@@ -8,29 +8,42 @@
     </div>
   </div>
 
-  <div class="turns">
-    @for (t of turns(); track t.turn) {
-      <div class="turn-group">
-        <span class="turn-title">{{ groupTitle(t) }}</span>
-        @for (q of t.items; track q.id) {
-          <div class="entry">
-            <button type="button" class="line" [attr.aria-expanded]="open().has(q.id)" (click)="toggle(q)">
-              <span class="who">{{ nameOf(q.player_id) }}</span>
-              <span class="text">{{ q.kind === 'guess' ? 'Guess: ' + q.text : q.text }}</span>
-              <span [class]="'tag-answer ' + q.result">{{ q.result | uppercase }}</span>
-              <span class="chevron" aria-hidden="true">{{ open().has(q.id) ? '▴' : '▾' }}</span>
+  <!-- Grouped by round (each player's own question count), newest first. A card opens to show who voted what. -->
+  <div class="rounds">
+    @for (r of rounds(); track r.round) {
+      <div class="round">
+        <span class="round-title">ROUND {{ r.round }}</span>
+        @for (e of r.items; track e.q.id) {
+          <div class="item" [class.open]="open().has(e.q.id)">
+            <button type="button" class="item-top" [attr.aria-expanded]="open().has(e.q.id)" (click)="toggle(e.q)">
+              @if (e.player; as p) {
+                <span class="face" [style.background]="p.color"><app-face [player]="p" [players]="players" /></span>
+              } @else {
+                <span class="face"></span>
+              }
+              <span class="body">
+                <span class="label">{{ e.label }}</span>
+                <span class="text">{{ e.q.text }}</span>
+              </span>
+              <span [class]="'tag-answer ' + e.q.result">{{ answerLabel(e.q.result) }}</span>
+              <svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
+                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg>
             </button>
 
-            @if (open().has(q.id)) {
+            @if (open().has(e.q.id)) {
               <div class="votes">
-                @if (loading().has(q.id)) {
+                @if (loading().has(e.q.id)) {
                   <span class="note">Loading votes…</span>
-                } @else if (failed().has(q.id)) {
+                } @else if (failed().has(e.q.id)) {
                   <span class="note error">Couldn't load the votes.</span>
-                  <button type="button" class="btn btn-ghost retry" (click)="retry(q)">Try again</button>
+                  <button type="button" class="btn btn-ghost retry" (click)="retry(e.q)">Try again</button>
                 } @else {
-                  @for (v of votes()[q.id] ?? []; track v.id) {
-                    <span class="vote">{{ nameOf(v.voter_id) }} <span [class]="'tag-answer ' + v.value">{{ v.value | uppercase }}</span></span>
+                  <span class="votes-title">{{ e.q.kind === 'guess' ? 'WHO JUDGED' : 'WHO VOTED' }}{{ e.q.overruled ? ' · decided by the Admin' : '' }}</span>
+                  @for (v of votes()[e.q.id] ?? []; track v.id) {
+                    <span class="vote">
+                      <span class="vote-name">{{ nameOf(v.voter_id) }}</span>
+                      <span [class]="'tag-answer ' + v.value">{{ answerLabel(v.value) }}</span>
+                    </span>
                   } @empty {
                     <span class="note">No votes recorded.</span>
                   }
