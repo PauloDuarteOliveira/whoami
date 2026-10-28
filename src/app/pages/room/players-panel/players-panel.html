@@ -1,6 +1,6 @@
 <section class="panel" aria-label="Players and clues" data-menu-anchor>
   <div class="head">
-    <h2>Players &amp; clues</h2>
+    <h2>@if (lastGame) { Players } @else { Players &amp; clues }</h2>
     <span class="hint">tap a card to see its clues</span>
   </div>
 
@@ -8,16 +8,30 @@
     @for (f of filters; track f.value) {
       <button type="button" class="chip" [attr.aria-pressed]="filter() === f.value" (click)="filter.set(f.value)">{{ f.label }}</button>
     }
+    @if (!lastGame) {
     <button type="button" class="names" [attr.aria-pressed]="prefs.hideNames()" (click)="prefs.toggleHideNames()">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" /><circle cx="12" cy="12" r="3" />
         @if (prefs.hideNames()) { <line x1="3" y1="3" x2="21" y2="21" /> }
       </svg>
-      {{ prefs.hideNames() ? 'Show names' : 'Hide names' }}
+      {{ prefs.hideNames() ? 'Show characters' : 'Hide characters' }}
     </button>
+    }
   </div>
 
   <div class="cards">
+    @if (lastGame) {
+      <div class="group">LAST GAME</div>
+      @for (p of ranked(); track p.id) {
+        <ng-container *ngTemplateOutlet="card; context: { $implicit: p }" />
+      }
+      @if (newcomers().length) {
+        <div class="group">NEW IN THE ROOM</div>
+        @for (p of newcomers(); track p.id) {
+          <ng-container *ngTemplateOutlet="card; context: { $implicit: p }" />
+        }
+      }
+    } @else {
     <div class="group">PLAYING · TURN ORDER</div>
     @for (p of stillPlaying(); track p.id) {
       <ng-container *ngTemplateOutlet="card; context: { $implicit: p }" />
@@ -28,11 +42,12 @@
         <ng-container *ngTemplateOutlet="card; context: { $implicit: p }" />
       }
     }
+    }
   </div>
 </section>
 
 <ng-template #card let-p>
-  <div class="pcard" [class.current]="p.id === room.current_player_id" [class.mine]="isMine(p)" [class.away]="!isOnline(p)">
+  <div class="pcard" [class.current]="!lastGame && p.id === room.current_player_id" [class.mine]="isMine(p)" [class.away]="!isOnline(p)">
     <div class="card-row">
       <button type="button" class="card-top" [attr.aria-expanded]="open().has(p.id)" (click)="toggle(p)">
         <span class="avatar" [class.dashed]="!isOnline(p)" [style.background]="isOnline(p) ? p.color : 'transparent'" [style.color]="isOnline(p) ? null : p.color">
@@ -40,13 +55,17 @@
           <span class="dot" [class.on]="isOnline(p)"></span>
         </span>
         <span class="who">
-          @if (characterOf(p); as character) {
-            <span class="char" [class.hidden]="isMine(p) && p.status === 'playing'">{{ character }}</span>
-          }
-          <span class="sub" [class.lead]="characterOf(p) === null">
-            <span class="name">{{ isMine(p) ? 'You' : p.name }}</span>
+          <!-- "Leo is Cleopatra", "You are ???", "Leo was Cleopatra" after the game; just "Leo" with characters hidden. -->
+          <span class="line">
+            <strong class="name">{{ isMine(p) ? 'You' : p.name }}</strong>
+            @if (characterOf(p); as character) {
+              <span class="verb">{{ ' ' + verb(p) + ' ' }}</span>
+              <span class="char" [class.hidden]="isMine(p) && p.status === 'playing'">{{ character }}</span>
+            }
+          </span>
+          <span class="sub">
             @if (p.role === 'admin' || p.role === 'helper') { <span class="role" [class]="'role ' + p.role">{{ p.role === 'admin' ? 'ADMIN' : 'HELPER' }}</span> }
-            <span class="state" [class]="'state ' + state(p).tone">· {{ state(p).text }}</span>
+            <span class="state" [class]="'state ' + state(p).tone">{{ state(p).text }}</span>
           </span>
         </span>
         <svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
@@ -62,16 +81,27 @@
     </div>
 
     @if (open().has(p.id)) {
+      <!-- Questions grouped by answer (Yes, No, Unsure), then the guesses with their verdict. -->
       <div class="clues">
+        @if (questionCount(p)) {
+          <span class="clue-title">QUESTIONS · {{ questionCount(p) }}</span>
+        }
         @for (g of shownGroups(p); track g.answer) {
           <div class="clue-group">
-            <b [class]="'label-' + g.answer">{{ g.answer === 'yes' ? 'YES' : g.answer === 'no' ? 'NO' : 'UNSURE' }} · {{ g.items.length }}</b>
+            <b [class]="'label-' + g.answer"><span class="dot-s"></span>{{ g.answer === 'yes' ? 'YES' : g.answer === 'no' ? 'NO' : 'UNSURE' }} · {{ g.items.length }}</b>
             @for (q of g.items; track q.id) {
-              <span class="clue">{{ q.kind === 'guess' ? 'Guess: ' + q.text : q.text }}</span>
+              <span class="clue">{{ q.text }}</span>
             }
           </div>
-        } @empty {
-          <span class="empty">{{ groups(p).length ? 'No clues match the filter.' : 'No answers yet.' }}</span>
+        }
+        @if (filter() === 'all' && guessesOf(p).length) {
+          <span class="clue-title">GUESSES · {{ guessesOf(p).length }}</span>
+          @for (q of guessesOf(p); track q.id) {
+            <span class="clue guess"><span>{{ q.text }}</span><span [class]="'verdict ' + q.result">{{ q.result === 'correct' ? 'Correct' : 'Wrong' }}</span></span>
+          }
+        }
+        @if (!shownGroups(p).length && !(filter() === 'all' && guessesOf(p).length)) {
+          <span class="empty">{{ questionCount(p) ? 'No clues match the filter.' : 'No answers yet.' }}</span>
         }
       </div>
     }

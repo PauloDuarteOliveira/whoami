@@ -20,7 +20,7 @@
         <span class="code">{{ room.code }}</span>
         <span class="divider" aria-hidden="true"></span>
         <div class="turn-info">
-            <span class="strong">Turn {{ room.turn_number }}</span>
+            <span class="strong">Round {{ round() }}</span>
             <span class="muted mode">No-Voice · {{ ordered().length }} playing</span>
         </div>
 
@@ -49,9 +49,9 @@
         </div>
 
         <app-sky-switch class="sky" [compact]="true" />
-        <!-- Phone only: on bigger screens Hide names sits on the players panel it changes. -->
+        <!-- Phone only: on bigger screens Hide characters sits on the players panel it changes. -->
         <button type="button" class="btn btn-ghost eye" [attr.aria-pressed]="prefs.hideNames()"
-            [attr.aria-label]="prefs.hideNames() ? 'Show names' : 'Hide names'" (click)="prefs.toggleHideNames()">
+            [attr.aria-label]="prefs.hideNames() ? 'Show characters' : 'Hide characters'" (click)="prefs.toggleHideNames()">
             <ng-container *ngTemplateOutlet="eyeIcon" />
         </button>
         <button type="button" class="btn btn-ghost leave" (click)="leave.emit()">Leave</button>
@@ -72,6 +72,12 @@
             </div>
             }
             <section class="card turn" aria-label="Current turn">
+                @if (timeLeft !== null && room.turn_timer_sec) {
+                <div class="timer" [class.low]="timeLeft <= 10" role="timer" [attr.aria-label]="timeLabel() + ' left in this turn'">
+                    <div class="timer-track"><div class="timer-fill" [style.width.%]="timeLeft / room.turn_timer_sec * 100"></div></div>
+                    <span class="timer-text">{{ timeLeft === 0 && room.turn_phase === 'guess_vote' ? 'Judging…' : timeLabel() }}</span>
+                </div>
+                }
                 @switch (room.turn_phase) {
                 @case ('question') {
                 @if (isMyTurn() && waitingForCharacter) {
@@ -109,9 +115,25 @@
                 </div>
                 }
                 @if (voters.length > 0) {
+<div class="voter-faces" role="list" aria-label="Who voted">
+                    @for (v of voters; track v.id) {
+                    <span class="vf" role="listitem" [class.done]="hasVoted(v, votes)" [style.background]="v.color"
+                        [attr.title]="voteLabel(v, votes)"
+                        [attr.aria-label]="voteLabel(v, votes)">
+                        <app-face [player]="v" [players]="players" />
+                        @if (hasVoted(v, votes)) { <span class="tick" aria-hidden="true">✓</span> }
+                    </span>
+                    }
+                </div>
                 <p class="muted">{{ votes.length }} of {{ voters.length }} voted</p>
                 } @else {
                 <p class="muted">Waiting for the other players to come back online…</p>
+                }
+                @if (canCloseVote && votes.length < voters.length) {
+                <div class="overrule">
+                    <span>Someone stuck?</span>
+                    <button type="button" class="btn btn-ghost close-vote" [disabled]="busy" (click)="closeVote.emit()">Close the vote</button>
+                </div>
                 }
                 }
                 }
@@ -154,6 +176,16 @@
                 </div>
                 }
                 @if (voters.length > 0) {
+<div class="voter-faces" role="list" aria-label="Who voted">
+                    @for (v of voters; track v.id) {
+                    <span class="vf" role="listitem" [class.done]="hasVoted(v, guessVotes)" [style.background]="v.color"
+                        [attr.title]="voteLabel(v, guessVotes)"
+                        [attr.aria-label]="voteLabel(v, guessVotes)">
+                        <app-face [player]="v" [players]="players" />
+                        @if (hasVoted(v, guessVotes)) { <span class="tick" aria-hidden="true">✓</span> }
+                    </span>
+                    }
+                </div>
                 <p class="muted">{{ guessVotes.length }} of {{ voters.length }} judged · a tie counts as Wrong</p>
                 } @else {
                 <p class="muted">Waiting for the other players to come back online…</p>
@@ -196,6 +228,9 @@
                 } @else {
                 <span class="board-note">{{ votes.length }} of {{ voters.length }} voted</span>
                 }
+                @if (canCloseVote && votes.length < voters.length) {
+                <button type="button" class="board-close close-vote" [disabled]="busy" (click)="closeVote.emit()">Close vote</button>
+                }
                 } @else if (room.turn_phase === 'guess_vote' && guess) {
                 <span class="who-asks">{{ currentName() | uppercase }} {{ isMyTurn() ? 'GUESS' : 'GUESSES' }}</span>
                 <span class="board-q">Am I {{ guess.text }}?</span>
@@ -206,7 +241,7 @@
                 </span>
                 }
                 } @else {
-                <span class="who-asks">TURN {{ room.turn_number }}</span>
+                <span class="who-asks">ROUND {{ round() }}</span>
                 <span class="board-q">{{ isMyTurn() ? "It's your turn: close the board to ask" : currentName() + "'s turn" }}</span>
                 }
             </div>

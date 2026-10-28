@@ -1,0 +1,37 @@
+/* The lobby after a game: the same frame as the lobby and the game. Players | invite (+ Next game) | Last game & chat. */
+.after { height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
+
+.body {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 390px minmax(0, 1fr) 340px;
+  gap: 20px;
+  padding: 20px;
+}
+
+/* Last game's History on top, the chat under it; each scrolls inside. */
+.dock { min-height: 0; display: flex; flex-direction: column; gap: 16px; }
+.dock app-history, .dock app-chat { flex: 1 1 0; min-height: 0; }
+
+.waiting { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 14px; background: var(--surface-2); color: var(--text-2); font-size: 14px; text-align: left; }
+.face { width: 30px; height: 30px; flex: none; border-radius: 50%; display: grid; place-items: center; }
+.face app-face { width: 74%; height: 74%; display: grid; place-items: center; }
+
+/* Tablet: Players on the left; the invite on top and Last game & chat under it on the right. */
+@media (max-width: 1180px) {
+  .body { grid-template-columns: 320px minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; padding: 16px; }
+  .rail { grid-row: 1 / 3; }
+  .dock { flex-direction: row; }
+  .dock app-history, .dock app-chat { min-width: 0; }
+}
+
+/* Phone: one column that scrolls: the invite (and the Admin's Next game), the players, last game, the chat. */
+@media (max-width: 760px), (orientation: landscape) and (max-height: 500px) {
+  .after { height: auto; min-height: 100dvh; overflow: visible; }
+  .body { display: flex; flex-direction: column; gap: 16px; padding: 16px; }
+  .middle { order: 1; }
+  .rail { order: 2; max-height: 70dvh; }
+  .dock { order: 3; flex-direction: column; }
+  .dock app-history, .dock app-chat { flex: none; height: 420px; }
+}

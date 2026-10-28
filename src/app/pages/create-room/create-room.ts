@@ -14,7 +14,7 @@ import { PageHeader } from '../../shared/page-header/page-header';
 import { SettingsSummary } from '../../shared/settings-summary/settings-summary';
 
 /** Questions a player must ask before they can give up. */
-const DEFAULT_GIVE_UP_AFTER = 10;
+const DEFAULT_GIVE_UP_AFTER = 5;
 
 /** A deck must be picked when the room uses a pre-made deck, and a list when it uses one of yours. */
 function deckRequired(group: AbstractControl): ValidationErrors | null {

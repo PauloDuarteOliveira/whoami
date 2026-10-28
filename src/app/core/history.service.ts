@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, map } from 'rxjs';
 import { PlayerStatus } from './models';
 import { SupabaseApiService } from './supabase-api.service';
 
@@ -57,6 +57,16 @@ export interface GameStats {
     best: GameRecord | null;
 }
 
+/**
+ * How a player finished, even if they left the room afterwards ("Leave the room" on the results marks
+ * them as left): a finish place means they guessed, a finish turn without one means they gave up.
+ */
+export function resultStatus(p: { status: PlayerStatus; finish_place: number | null; finish_turn?: number | null }): PlayerStatus {
+    if (p.status !== 'left') return p.status;
+    if (p.finish_place !== null) return 'finished';
+    return p.finish_turn !== null && p.finish_turn !== undefined ? 'gave_up' : 'left';
+}
+
 /** Signed-in players' finished games (Account → Your games). */
 @Injectable({ providedIn: 'root' })
 export class HistoryService {
@@ -64,7 +74,13 @@ export class HistoryService {
 
     /** Your last 100 finished games, newest first. Row Level Security keeps it to your own. */
     myGames(): Observable<GameRecord[]> {
-        return this.api.select<GameRecord>('my_games', { order: 'ended_at.desc', limit: '100' });
+        return this.api.select<GameRecord>('my_games', { order: 'ended_at.desc', limit: '100' }).pipe(
+            map(games => games.map(g => ({
+                ...g,
+                status: resultStatus(g),
+                others: (g.others ?? []).map(o => ({ ...o, status: resultStatus(o) })),
+            }))),
+        );
     }
 
     /**

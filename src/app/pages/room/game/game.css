@@ -50,7 +50,8 @@
 .game[data-dock="notes"] app-history, .game[data-dock="notes"] app-chat,
 .game[data-dock="history"] app-notes, .game[data-dock="history"] app-chat,
 .game[data-dock="chat"] app-notes, .game[data-dock="chat"] app-history { display: none; }
-app-chat { flex: 1; }
+/* Notes, History and Chat each fill the whole column, like the players panel on the left. */
+app-chat, app-notes, app-history { flex: 1; }
 .count-badge { min-width: 18px; height: 18px; padding: 0 5px; margin-left: 6px; border-radius: 9px; background: var(--no); color: #3A1520; font-size: 11px; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; }
 
 /* The turn ---------------------------------------------------------------------------------------------- */
@@ -102,6 +103,8 @@ app-board { display: none; }
 .board-q { font-weight: 700; font-size: 16px; overflow-wrap: anywhere; }
 .board-note { margin-left: auto; font-size: 12px; color: var(--muted); }
 .board-answers { margin-left: auto; display: flex; gap: 8px; }
+.board-close { flex: none; height: 32px; padding: 0 12px; border-radius: 10px; border: 1px solid var(--border-strong); background: transparent; color: var(--text); font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
+.board-close:hover:not(:disabled) { border-color: var(--accent); }
 .board-answers .answer { width: auto; height: 40px; padding: 0 18px; font-size: 16px; }
 
 /* Tablet landscape (up to 1180 px): narrower columns. Notes or History sit beside the turn, on the same
@@ -155,7 +158,7 @@ app-board { display: none; }
   .game[data-pane="notes"] .main,
   .game[data-pane="chat"] .main { display: none; }
   .game[data-pane="history"] app-history,
-  .game[data-pane="notes"] app-notes { display: block; }
+  .game[data-pane="notes"] app-notes,
   .game[data-pane="chat"] app-chat { display: flex; flex: none; height: calc(100dvh - 56px - 64px - 32px); }
   .game:not([data-pane="play"]) .turn,
   .game:not([data-pane="play"]) .out-banner { display: none; }
@@ -229,5 +232,24 @@ app-board { display: none; }
   .tabbar button { flex-direction: row; gap: 6px; font-size: 12px; }
   .tabbar button::before { width: 4px; height: 20px; }
   .badge { top: 8px; right: 10px; }
-  .game[data-pane="chat"] app-chat { height: calc(100dvh - 48px - 20px); }
+  .game[data-pane="chat"] app-chat,
+  .game[data-pane="notes"] app-notes,
+  .game[data-pane="history"] app-history { height: calc(100dvh - 48px - 20px); }
 }
+
+/* Turn timer: a bar that empties, red for the last 10 seconds. */
+.turn { position: relative; }
+.timer { position: absolute; top: 14px; left: 20px; right: 20px; display: flex; align-items: center; gap: 10px; }
+.timer-track { flex: 1; height: 8px; border-radius: 4px; background: var(--border); overflow: hidden; }
+.timer-fill { height: 100%; border-radius: 4px; background: var(--accent); transition: width 1s linear; }
+.timer.low .timer-fill { background: var(--no); }
+.timer-text { flex: none; min-width: 40px; text-align: right; font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--muted); }
+.timer.low .timer-text { color: var(--no); }
+.turn:has(> .timer) { padding-top: 44px; }
+
+/* Who voted: a face for each voter, faded until they vote, then a green tick. */
+.voter-faces { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+.vf { position: relative; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; opacity: .35; filter: grayscale(.6); transition: opacity .2s, filter .2s; }
+.vf.done { opacity: 1; filter: none; }
+.vf app-face { width: 74%; height: 74%; display: grid; place-items: center; }
+.vf .tick { position: absolute; right: -4px; bottom: -4px; width: 16px; height: 16px; border-radius: 50%; background: var(--yes); color: #0b1a10; font-size: 10px; font-weight: 800; display: grid; place-items: center; border: 2px solid var(--surface, #fff); }

@@ -3,9 +3,10 @@ import { NgTemplateOutlet } from '@angular/common';
 import { Answer, Character, ClueGroup, Player, Question, Room } from '../../../core/models';
 import { PreferencesService } from '../../../core/preferences.service';
 import { clueGroups } from '../../../core/question.service';
+import { rankPlayers } from '../../../core/game.service';
 import { PlayerMenu } from '../../../shared/player-menu/player-menu';
 import { AvatarFace } from '../../../shared/avatar-face';
-import { placeLabel } from '../../../shared/format';
+import { placeLabel, plural } from '../../../shared/format';
 
 type Filter = Answer | 'all';
 
@@ -31,6 +32,8 @@ export class PlayersPanel implements OnChanges {
     @Input({ required: true }) isOnline!: (player: Player) => boolean;
     /** Players whose character this player may report. */
     @Input() reportable: string[] = [];
+    /** The lobby after a game: last game's cards (characters shown, ranked), then who joined since. */
+    @Input() lastGame = false;
 
     @Output() skip = new EventEmitter<void>();
     @Output() kick = new EventEmitter<Player>();
@@ -53,7 +56,7 @@ export class PlayersPanel implements OnChanges {
     ngOnChanges(): void {
         // A new turn opens the asking player's card (yours on your turn), so their clues are on screen.
         const turn = `${this.room.turn_number}:${this.room.current_player_id}`;
-        if (turn !== this.shownTurn && this.room.current_player_id) {
+        if (turn !== this.shownTurn && this.room.current_player_id && !this.lastGame) {
             this.shownTurn = turn;
             this.open.set(new Set([this.room.current_player_id]));
         }
@@ -71,6 +74,16 @@ export class PlayersPanel implements OnChanges {
         return this.players.filter(p => p.turn_position !== null && p.status !== 'playing').sort(this.byTurn);
     }
 
+    /** Last game, in the results' order: who guessed (1st, 2nd…), who gave up, who didn't guess. */
+    protected ranked(): Player[] {
+        return rankPlayers(this.players, this.characters, this.questions).map(r => r.player);
+    }
+
+    /** Players who joined after the game started: they play the next one. */
+    protected newcomers(): Player[] {
+        return this.players.filter(p => p.turn_position === null && p.status !== 'kicked' && p.status !== 'left');
+    }
+
     // One card ---------------------------------------------------------------------------------------------------
 
     protected toggle(p: Player): void {
@@ -86,15 +99,33 @@ export class PlayersPanel implements OnChanges {
         return p.id === this.me.id;
     }
 
-    /** Your own character stays hidden (???) while you play; with Hide names on, the others' are removed. */
+    /** Your own character stays hidden (???) while you play; with Hide characters on, the others' are removed. */
     protected characterOf(p: Player): string | null {
+        const character = this.characters.find(c => c.assigned_to === p.id)?.name ?? null;
+        if (this.lastGame) return character;
         if (this.isMine(p) && p.status === 'playing') return '???';
         if (this.prefs.hideNames() && !this.isMine(p)) return null;
-        return this.characters.find(c => c.assigned_to === p.id)?.name ?? '—';
+        return character ?? '—';
     }
 
+    /** "is" while playing, "was" once the game is over; "are" / "were" for you. */
+    protected verb(p: Player): string {
+        const over = this.room.status !== 'playing';
+        if (this.isMine(p)) return over ? 'were' : 'are';
+        return over ? 'was' : 'is';
+    }
+
+    /** The answered questions, grouped by Yes / No / Unsure (guesses are listed apart). */
     protected groups(p: Player): ClueGroup[] {
-        return clueGroups(p.id, this.questions);
+        return clueGroups(p.id, this.questions.filter(q => q.kind === 'question'));
+    }
+
+    protected questionCount(p: Player): number {
+        return this.groups(p).reduce((sum, g) => sum + g.items.length, 0);
+    }
+
+    protected guessesOf(p: Player): Question[] {
+        return this.questions.filter(q => q.kind === 'guess' && q.player_id === p.id && q.result !== null);
     }
 
     /** The clues shown in an open card, after the Yes / No / Unsure filter. */
@@ -102,16 +133,25 @@ export class PlayersPanel implements OnChanges {
         return this.groups(p).filter(g => this.filter() === 'all' || g.answer === this.filter());
     }
 
+    /** How many questions this player asked (their own count, not the room's turns). */
+    protected asked(p: Player): number {
+        return this.questions.filter(q => q.kind === 'question' && q.player_id === p.id).length;
+    }
+
     /** The status after the name: asking now, next, offline, ★ 1st, gave up… */
     protected state(p: Player): { text: string; tone: 'now' | 'done' | 'off' | '' } {
-        if (p.status === 'finished') return { text: `★ ${placeLabel(p.finish_place)} · turn ${p.finish_turn ?? '?'}`, tone: 'done' };
-        if (p.status === 'gave_up') return { text: 'gave up', tone: '' };
-        if (!this.isOnline(p)) return { text: 'offline', tone: 'off' };
-        if (p.id === this.room.current_player_id) return { text: 'asking now', tone: 'now' };
+        if (p.status === 'finished') return { text: `★ ${placeLabel(p.finish_place)} · ${plural(this.asked(p), 'question')}`, tone: 'done' };
+        if (p.status === 'gave_up') return { text: `Gave up · ${plural(this.asked(p), 'question')}`, tone: '' };
+        if (this.lastGame) {
+            if (p.turn_position === null) return { text: this.isOnline(p) ? 'Plays the next game' : 'Offline', tone: this.isOnline(p) ? '' : 'off' };
+            return { text: `Didn't guess · ${plural(this.asked(p), 'question')}`, tone: '' };
+        }
+        if (!this.isOnline(p)) return { text: 'Offline', tone: 'off' };
+        if (p.id === this.room.current_player_id) return { text: 'Asking now', tone: 'now' };
         const queue = this.stillPlaying();
         const i = queue.findIndex(x => x.id === this.room.current_player_id);
-        if (queue.length > 1 && queue[(i + 1) % queue.length]?.id === p.id) return { text: 'next', tone: '' };
-        return { text: 'playing', tone: '' };
+        if (queue.length > 1 && queue[(i + 1) % queue.length]?.id === p.id) return { text: 'Next', tone: '' };
+        return { text: 'Playing', tone: '' };
     }
 
     // The ⋯ menu (design 5.1) ----------------------------------------------------------------------------------
@@ -121,7 +161,7 @@ export class PlayersPanel implements OnChanges {
     }
 
     protected canSkip(p: Player): boolean {
-        return this.canManage() && p.id === this.room.current_player_id && p.id !== this.me.id;
+        return !this.lastGame && this.canManage() && p.id === this.room.current_player_id && p.id !== this.me.id;
     }
 
     protected canKick(p: Player): boolean {
@@ -138,6 +178,7 @@ export class PlayersPanel implements OnChanges {
 
     /** The line under the name in the menu: what matters for the decision. */
     protected menuContext(p: Player): string {
+        if (this.lastGame) return this.isOnline(p) ? 'In the lobby · plays the next game' : 'Offline';
         const theirTurn = p.id === this.room.current_player_id;
         if (!this.isOnline(p)) return theirTurn ? 'Offline · it\'s their turn' : 'Offline · it\'s not their turn';
         if (p.status === 'finished') return 'Finished · still answers for the others';

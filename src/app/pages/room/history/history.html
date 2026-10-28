@@ -1,6 +1,6 @@
 <section class="card history" aria-label="History">
   <div class="history-head">
-    <h2>History</h2>
+    <h2>{{ heading }}</h2>
     <div class="filters" role="group" aria-label="Filter the history">
       @for (f of filters; track f.value) {
         <button type="button" class="filter" [class.active]="filter() === f.value" (click)="filter.set(f.value)">{{ f.label }}</button>
@@ -11,7 +11,7 @@
   <div class="turns">
     @for (t of turns(); track t.turn) {
       <div class="turn-group">
-        <span class="turn-title">TURN {{ t.turn }}</span>
+        <span class="turn-title">{{ groupTitle(t) }}</span>
         @for (q of t.items; track q.id) {
           <div class="entry">
             <button type="button" class="line" [attr.aria-expanded]="open().has(q.id)" (click)="toggle(q)">
