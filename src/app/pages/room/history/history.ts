@@ -1,18 +1,27 @@
 import { Component, Input, inject, signal } from '@angular/core';
-import { UpperCasePipe } from '@angular/common';
 import { QuestionService } from '../../../core/question.service';
 import { Player, Question, Vote } from '../../../core/models';
+import { AvatarFace } from '../../../shared/avatar-face';
+import { placeLabel } from '../../../shared/format';
 
 type HistoryFilter = 'all' | 'questions' | 'guesses' | 'mine';
 
-interface TurnGroup {
-    turn: number;
-    items: Question[];
+/** One question or guess in the History: who asked it and "Leo · 2nd question". */
+interface Entry {
+    q: Question;
+    player: Player | null;
+    label: string;
+}
+
+/** A round: everyone's 1st question, everyone's 2nd… (each player's own count, as on the cards). */
+interface RoundGroup {
+    round: number;
+    items: Entry[];
 }
 
 @Component({
     selector: 'app-history',
-    imports: [UpperCasePipe],
+    imports: [AvatarFace],
     templateUrl: './history.html',
     styleUrl: './history.css',
 })
@@ -39,18 +48,39 @@ export class History {
     protected readonly loading = signal<Set<string>>(new Set());
     protected readonly failed = signal<Set<string>>(new Set());
 
-    /** Answered questions and guesses that match the filter, newest turn first. */
-    protected turns(): TurnGroup[] {
-        const list = this.questions.filter(q => q.result !== null && this.matches(q));
-        const turnNumbers = [...new Set(list.map(q => q.turn_number))].sort((a, b) => b - a);
-        return turnNumbers.map(turn => ({ turn, items: list.filter(q => q.turn_number === turn) }));
+    /** Answered questions and guesses that match the filter, by round, newest first. */
+    protected rounds(): RoundGroup[] {
+        const list = this.questions
+            .filter(q => q.result !== null && this.matches(q))
+            .map(q => ({ q, round: this.roundOf(q) }));
+        const numbers = [...new Set(list.map(e => e.round))].sort((a, b) => b - a);
+        return numbers.map(round => ({
+            round,
+            items: list
+                .filter(e => e.round === round)
+                .sort((a, b) => b.q.created_at.localeCompare(a.q.created_at))
+                .map(e => this.entry(e.q, e.round)),
+        }));
     }
 
-    /** "ROUND 3 · LEO": the asker's own question count at that turn, not the room's turn number. */
-    protected groupTitle(group: TurnGroup): string {
-        const asker = group.items[0]?.player_id;
-        const round = this.questions.filter(q => q.kind === 'question' && q.player_id === asker && q.turn_number <= group.turn).length;
-        return `ROUND ${Math.max(1, round)} · ${this.nameOf(asker).toUpperCase()}`;
+    /** A player's round: how many questions they had asked by then (a guess belongs to the round of its question). */
+    private roundOf(q: Question): number {
+        const asked = this.questions.filter(x => x.kind === 'question' && x.player_id === q.player_id && x.turn_number <= q.turn_number).length;
+        return Math.max(1, asked);
+    }
+
+    private entry(q: Question, round: number): Entry {
+        const name = this.nameOf(q.player_id);
+        return {
+            q,
+            player: this.players.find(p => p.id === q.player_id) ?? null,
+            label: q.kind === 'guess' ? `${name} · guess` : `${name} · ${placeLabel(round)} question`,
+        };
+    }
+
+    /** "Yes", "Correct"… */
+    protected answerLabel(value: string | null): string {
+        return value ? value.charAt(0).toUpperCase() + value.slice(1) : '';
     }
 
     protected nameOf(playerId: string): string {
