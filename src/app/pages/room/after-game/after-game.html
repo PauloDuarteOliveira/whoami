@@ -26,7 +26,8 @@
     </app-invite>
 
     <aside class="dock" aria-label="Last game and chat">
-      <app-history heading="Last game" [questions]="questions" [players]="everyone" [me]="me" />
+      <!-- Voice mode: nothing typed, so no "Last game" history; the chat takes the column. -->
+      @if (room.mode !== 'voice') { <app-history heading="Last game" [questions]="questions" [players]="everyone" [me]="me" /> }
       <app-chat [messages]="messages" [players]="everyone" [me]="me" [busy]="busy" (send)="sendMessage.emit($event)" />
     </aside>
   </div>

@@ -21,7 +21,7 @@
         <span class="divider" aria-hidden="true"></span>
         <div class="turn-info">
             <span class="strong">Round {{ round() }}</span>
-            <span class="muted mode">No-Voice · {{ ordered().length }} playing</span>
+            <span class="muted mode">{{ isVoice() ? 'Voice' : 'No-Voice' }} · {{ ordered().length }} playing</span>
         </div>
 
         <!-- Phone: the players as a row of avatars; a tap opens the Clues tab. -->
@@ -41,7 +41,9 @@
             <div class="tabs" role="group" aria-label="Tools">
                 <button type="button" [attr.aria-pressed]="pane() !== 'board' && dock() === 'notes' && dockOpen()" (click)="toggleTool('notes')">Notes</button>
                 <button type="button" [attr.aria-pressed]="pane() === 'board'" (click)="toggleTool('board')">Board</button>
+                @if (!isVoice()) {
                 <button type="button" [attr.aria-pressed]="pane() !== 'board' && dock() === 'history' && dockOpen()" (click)="toggleTool('history')">History</button>
+                }
                 <button type="button" [attr.aria-pressed]="pane() !== 'board' && dock() === 'chat' && dockOpen()" (click)="toggleTool('chat')">
                     Chat
                     @if (unread()) { <span class="count-badge" [attr.aria-label]="unread() + ' new messages'">{{ unread() }}</span> }
@@ -109,6 +111,19 @@
                 <span class="pill accent">It's your turn</span>
                 <h1>Your character is being replaced</h1>
                 <p class="muted">You can ask as soon as the new one is in.</p>
+                } @else if (isMyTurn() && isVoice()) {
+                <!-- Voice mode: ask out loud; the others answer out loud. -->
+                <span class="pill accent">It's your turn</span>
+                <h1>Ask your question out loud</h1>
+                <p class="muted">Everyone answers out loud. Think you know? Say your guess, then tap Guess. Otherwise tap Next turn.</p>
+                <div class="voice-actions">
+                    <button type="button" class="btn btn-primary" [disabled]="busy" (click)="voiceGuess.emit()">Guess</button>
+                    <button type="button" class="btn btn-ghost" [disabled]="busy" (click)="voiceNext.emit()">Next turn</button>
+                </div>
+                } @else if (isVoice()) {
+                <span class="pill">{{ currentName() }}'s turn</span>
+                <h1>{{ currentName() }} is asking out loud</h1>
+                <p class="muted">Answer out loud: yes, no or not sure.</p>
                 } @else if (isMyTurn()) {
                 <span class="pill accent">It's your turn</span>
                 <h1>Ask a yes-or-no question</h1>
@@ -191,7 +206,14 @@
                 @case ('guess_vote') {
                 @if (guess; as g) {
                 <span class="pill accent">{{ currentName() }} {{ isMyTurn() ? 'guess' : 'guesses' }}</span>
+                @if (isVoice()) {
+                <p class="question">{{ isMyTurn() ? 'You said your guess out loud' : currentName() + ' said a guess out loud' }}</p>
+                @if (!isMyTurn()) {
+                <p class="muted">Was it right? {{ currentName() }}'s character is <strong>{{ currentCharacter() }}</strong>.</p>
+                }
+                } @else {
                 <p class="question">Am I {{ g.text }}?</p>
+                }
                 @if (iCanJudge()) {
                 <div class="answers judge">
                     <button type="button" class="answer correct" [disabled]="busy"
@@ -279,7 +301,7 @@
                 }
                 } @else if (room.turn_phase === 'guess_vote' && guess) {
                 <span class="who-asks">{{ currentName() | uppercase }} {{ isMyTurn() ? 'GUESS' : 'GUESSES' }}</span>
-                <span class="board-q">Am I {{ guess.text }}?</span>
+                <span class="board-q">{{ isVoice() ? 'Said a guess out loud' : 'Am I ' + guess.text + '?' }}</span>
                 @if (iCanJudge()) {
                 <span class="board-answers">
                     <button type="button" class="answer correct" [disabled]="busy" (click)="judge.emit('correct')">Correct</button>
@@ -297,7 +319,8 @@
         </main>
 
         <aside class="dock" aria-label="Notes, history and chat">
-            <app-history [questions]="questions" [players]="players" [me]="me" />
+            <!-- Voice mode: nothing typed, so no History. -->
+            @if (!isVoice()) { <app-history [questions]="questions" [players]="players" [me]="me" /> }
             <app-notes [me]="me" [players]="players" [notes]="notes" (save)="saveNote.emit($event)" />
             <app-chat [messages]="messages" [players]="everyone" [me]="me" [busy]="busy" (send)="sendMessage.emit($event)" />
         </aside>
@@ -305,7 +328,7 @@
 
     <!-- Phone: the bottom tab bar replaces the side panels. -->
     <nav class="tabbar" aria-label="Game sections">
-        @for (t of tabs; track t.value) {
+        @for (t of visibleTabs(); track t.value) {
         <button type="button" [class.on]="pane() === t.value" [attr.aria-pressed]="pane() === t.value"
             (click)="openPane(t.value)">
             {{ t.label }}

@@ -5,8 +5,11 @@
   </div>
 
   <div class="filters" role="group" aria-label="Filter the clues">
-    @for (f of filters; track f.value) {
-      <button type="button" class="chip" [attr.aria-pressed]="filter() === f.value" (click)="filter.set(f.value)">{{ f.label }}</button>
+    <!-- Voice mode: answers are spoken, so there's nothing to filter. -->
+    @if (room.mode !== 'voice') {
+      @for (f of filters; track f.value) {
+        <button type="button" class="chip" [attr.aria-pressed]="filter() === f.value" (click)="filter.set(f.value)">{{ f.label }}</button>
+      }
     }
     @if (!lastGame) {
     <button type="button" class="names" [attr.aria-pressed]="prefs.hideNames()" (click)="prefs.toggleHideNames()">
@@ -108,7 +111,7 @@
           }
         }
         @if (!shownGroups(p).length && !(filter() === 'all' && guessesOf(p).length)) {
-          <span class="empty">{{ questionCount(p) ? 'No clues match the filter.' : 'No answers yet.' }}</span>
+          <span class="empty">{{ questionCount(p) ? 'No clues match the filter.' : room.mode === 'voice' ? 'Voice mode: answers are said out loud.' : 'No answers yet.' }}</span>
         }
       </div>
     }

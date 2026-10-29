@@ -74,6 +74,10 @@ export class Game implements OnChanges {
     @Output() ask = new EventEmitter<string>();
     @Output() vote = new EventEmitter<Answer>();
     @Output() endTurn = new EventEmitter<void>();
+    /** Voice mode: the guess was said out loud (the others then judge it). */
+    @Output() voiceGuess = new EventEmitter<void>();
+    /** Voice mode: asked and answered out loud; pass the turn on. */
+    @Output() voiceNext = new EventEmitter<void>();
     @Output() leave = new EventEmitter<void>();
     @Output() makeGuess = new EventEmitter<string>();
     @Output() judge = new EventEmitter<GuessVerdict>();
@@ -134,6 +138,11 @@ export class Game implements OnChanges {
         { value: 'notes', label: 'Notes' },
         { value: 'chat', label: 'Chat' },
     ];
+
+    /** The phone tabs; Voice mode has no History (questions and guesses are only spoken). */
+    protected visibleTabs(): { value: GamePane; label: string }[] {
+        return this.isVoice() ? this.tabs.filter(t => t.value !== 'history') : this.tabs;
+    }
 
     /** Messages from the others since you last had the chat open (the Lobby's count as read). */
     private readonly chatSeenAt = signal('');
@@ -231,8 +240,19 @@ export class Game implements OnChanges {
     }
 
     /** "Your next move": while the others play, you can write your next question and guess. */
+    /** Voice mode: everything is spoken; the app tracks the turns and the guesses. */
+    protected isVoice(): boolean {
+        return this.room.mode === 'voice';
+    }
+
+    /** The character of the player whose turn it is (the judges see it while judging a spoken guess). */
+    protected currentCharacter(): string {
+        const current = this.players.find(p => p.id === this.room.current_player_id);
+        return current ? this.characterOf(current) : '—';
+    }
+
     protected canDraft(): boolean {
-        return !this.isMyTurn() && this.me.status === 'playing' && this.me.role !== 'spectator' && this.me.turn_position !== null;
+        return !this.isVoice() && !this.isMyTurn() && this.me.status === 'playing' && this.me.role !== 'spectator' && this.me.turn_position !== null;
     }
 
     /** You ask next: the draft box says so. */
