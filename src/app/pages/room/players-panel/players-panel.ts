@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnChanges, Output, inject, signal } from '@angular/core';
+import { Component, EventEmitter, Input, Output, inject, signal } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
 import { Answer, Character, ClueGroup, Player, Question, Room } from '../../../core/models';
 import { PreferencesService } from '../../../core/preferences.service';
@@ -13,7 +13,8 @@ type Filter = Answer | 'all';
 /**
  * Players & clues (design Layout A): one card per player with their character, role, status and
  * Yes / No / Unsure counts; a card opens to show that player's clues. It replaces the old sidebar
- * and the clue board. The asking player's card opens by itself when the turn changes.
+ * and the clue board. Every card starts closed and only opens or closes when the player taps it;
+ * the clues inside and the yellow "asking now" card update by themselves.
  */
 @Component({
     selector: 'app-players-panel',
@@ -21,7 +22,7 @@ type Filter = Answer | 'all';
     templateUrl: './players-panel.html',
     styleUrl: './players-panel.css',
 })
-export class PlayersPanel implements OnChanges {
+export class PlayersPanel {
     protected readonly prefs = inject(PreferencesService);
 
     @Input({ required: true }) room!: Room;
@@ -51,18 +52,8 @@ export class PlayersPanel implements OnChanges {
         { value: 'no', label: 'No' },
         { value: 'unsure', label: 'Unsure' },
     ];
-    /** The cards that are open. */
+    /** The cards the player opened (none at the start; a new turn doesn't change them). */
     protected readonly open = signal<Set<string>>(new Set());
-    private shownTurn: string | null = null;
-
-    ngOnChanges(): void {
-        // A new turn opens the asking player's card (yours on your turn), so their clues are on screen.
-        const turn = `${this.room.turn_number}:${this.room.current_player_id}`;
-        if (turn !== this.shownTurn && this.room.current_player_id && !this.lastGame) {
-            this.shownTurn = turn;
-            this.open.set(new Set([this.room.current_player_id]));
-        }
-    }
 
     // Groups -----------------------------------------------------------------------------------------------------
 
