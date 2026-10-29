@@ -3,13 +3,19 @@ import { Observable, of } from 'rxjs';
 import { Answer, ClueGroup, GuessVerdict, Question, Room, Vote } from './models';
 import { SupabaseApiService } from './supabase-api.service';
 
+/**
+ * The answer to a question.
+ * - If more people are unsure than voted for Yes or for No, the answer is Unsure (5 Unsure + 1 Yes → Unsure).
+ * - Otherwise Yes and No are compared: more votes wins, a tie is Unsure (Yes + No → Unsure).
+ * Someone who knows still beats one who isn't sure: Yes + Unsure → Yes.
+ */
 export function majority(votes: Vote[]): Answer {
-    const count = (value: Answer) => votes.filter(v => v.value === value).length;
-    const yes = count('yes');
-    const no = count('no');
-    const unsure = count('unsure');
-    if (yes > no && yes > unsure) return 'yes';
-    if (no > yes && no > unsure) return 'no';
+    const yes = votes.filter(v => v.value === 'yes').length;
+    const no = votes.filter(v => v.value === 'no').length;
+    const unsure = votes.filter(v => v.value === 'unsure').length;
+    if (unsure > Math.max(yes, no)) return 'unsure';
+    if (yes > no) return 'yes';
+    if (no > yes) return 'no';
     return 'unsure';
 }
 
@@ -29,6 +35,10 @@ export function clueGroups(playerId: string, questions: Question[]): ClueGroup[]
         .map(answer => ({ answer, items: answered.filter(q => groupOf(q) === answer) }))
         .filter(group => group.items.length > 0);
 }
+
+/** Voice mode: questions and guesses are spoken, so the app records only that they happened. */
+export const VOICE_QUESTION = 'Asked out loud';
+export const VOICE_GUESS = 'Said out loud';
 
 @Injectable({ providedIn: 'root' })
 export class QuestionService {

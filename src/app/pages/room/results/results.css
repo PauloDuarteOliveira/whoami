@@ -30,6 +30,8 @@
 .chip.right { background: var(--yes-soft); color: var(--yes-text); }
 .chip.out { background: var(--surface-2); color: var(--text-2); }
 
+/* Voice mode: only the ranking, centred. */
+.layout.single { grid-template-columns: minmax(0, 620px); justify-content: center; }
 @media (max-width: 900px) { .layout { grid-template-columns: 1fr; padding: 16px; } }
 .sky { margin-left: auto; }
 

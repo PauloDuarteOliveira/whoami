@@ -8,7 +8,7 @@
     <app-sky-switch class="sky" />
   </header>
 
-  <main class="layout">
+  <main class="layout" [class.single]="room.mode === 'voice'">
     <section class="card hero">
       @if (mine(); as r) {
         <span class="label">YOU WERE</span>
@@ -43,6 +43,8 @@
       <span class="or">or <button type="button" class="link-leave" (click)="leave.emit()">Leave the room</button></span>
     </section>
 
+    <!-- Voice mode: guesses were spoken, so there are no stories to tell. -->
+    @if (room.mode !== 'voice') {
     <section class="card stories">
       <h2>The guess stories</h2>
       @for (r of ranking(); track r.player.id) {
@@ -59,5 +61,6 @@
         </div>
       }
     </section>
+    }
   </main>
 </div>

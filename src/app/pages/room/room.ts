@@ -3,9 +3,9 @@ import { CharacterService, sameCharacter } from '../../core/character.service';
 import { GameService } from '../../core/game.service';
 import { Writing } from './writing/writing';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { Observable, concat, map, switchMap, tap } from 'rxjs';
+import { Observable, concat, defer, map, of, switchMap, tap } from 'rxjs';
 import { DeckService } from '../../core/deck.service';
-import { QuestionService, majority, verdict } from '../../core/question.service';
+import { QuestionService, VOICE_GUESS, VOICE_QUESTION, majority, verdict } from '../../core/question.service';
 import { Deck, Player, Answer, GuessVerdict, Question, Room } from '../../core/models';
 import { PlayerService } from '../../core/player.service';
 import { RoomService, RoomSettings } from '../../core/room.service';
@@ -519,6 +519,9 @@ export class RoomPage implements OnInit, OnDestroy {
                         .pipe(switchMap(() => this.roomService.update(room.id, this.guessStep(room)))));
                 } else if (room.turn_phase === 'guess_vote' && guess && guess.result === null) {
                     this.resolveGuess(room, guess, verdict(this.guessVotes()));
+                } else if (room.mode === 'voice' && room.turn_phase === 'question' && room.current_player_id === me.id) {
+                    // Voice: they asked out loud while the clock ran, so the question counts.
+                    this.run(concat(this.recordSpokenQuestion(room, me.id), defer(() => this.game.nextTurn(room, this.store.players()))));
                 } else if (room.turn_phase === 'question' || room.turn_phase === 'guess') {
                     this.run(this.game.nextTurn(room, this.store.players()));
                 }
@@ -675,6 +678,40 @@ export class RoomPage implements OnInit, OnDestroy {
                 this.actionError.set('Could not send your answer. Try again.');
             },
         });
+    }
+
+    // Voice mode ------------------------------------------------------------------------------------------
+    // The question and the answers are spoken; the app counts the question (Round, Give up, results)
+    // and runs the guess vote, exactly as in No-Voice.
+
+    /** This turn's spoken question, recorded once (the player who asked records it). */
+    private recordSpokenQuestion(room: Room, playerId: string): Observable<unknown> {
+        if (this.currentQuestion()) return of(null);
+        return this.questionService.ask(room, playerId, VOICE_QUESTION).pipe(tap(q => this.store.addQuestion(q)));
+    }
+
+    /** Voice: asked out loud, answered out loud; the turn passes on. */
+    protected voiceNextTurn(): void {
+        const room = this.store.room();
+        const me = this.store.me();
+        if (!room || !me || room.current_player_id !== me.id) return;
+        this.run(concat(this.recordSpokenQuestion(room, me.id), defer(() => this.game.nextTurn(room, this.store.players()))));
+    }
+
+    /** Voice: the guess was said out loud; the others vote Correct or Wrong. */
+    protected voiceGuess(): void {
+        const room = this.store.room();
+        const me = this.store.me();
+        if (!room || !me || room.current_player_id !== me.id) return;
+        this.run(concat(
+            this.recordSpokenQuestion(room, me.id),
+            this.questionService.guess(room, me.id, VOICE_GUESS).pipe(
+                switchMap(guess => {
+                    this.store.addQuestion(guess);
+                    return this.roomService.update(room.id, { turn_phase: 'guess_vote', turn_started_at: new Date().toISOString() });
+                }),
+            ),
+        ));
     }
 
     protected endTurn(): void {
