@@ -22,10 +22,8 @@ type GamePane = 'play' | 'clues' | 'board' | 'history' | 'notes' | 'chat';
 type GameTool = 'notes' | 'board' | 'history' | 'chat';
 type DockTool = 'notes' | 'history' | 'chat';
 
-/** Phones (upright or sideways) and tablets held upright show one part at a time, with the tab bar. */
 const PHONE_LAYOUT = '(max-width: 900px), (orientation: landscape) and (max-height: 500px)';
 
-/** Where your next question and guess are kept, per player (one player per room). */
 const DRAFT_KEY = 'whoami.draft.';
 
 @Component({
@@ -51,32 +49,22 @@ export class Game implements OnChanges {
     @Input() guess: Question | null = null;
     @Input() guessVotes: Vote[] = [];
     @Input() canOverrule = false;
-    /** Seconds left in this turn (null: the room has no turn timer). */
     @Input() timeLeft: number | null = null;
-    /** The clock's full length: the room's time to ask and to guess (it resumes), 30 s to vote or judge. */
     @Input() timeTotal: number | null = null;
-    /** During the question vote: the asker's time that waits for them (to guess) after the vote. */
     @Input() pausedTime: number | null = null;
-    /** The Admin and Helpers can close a stuck question vote. */
     @Input() canCloseVote = false;
     @Input() notes: Note[] = [];
     @Input() boards: Whiteboard[] = [];
-    /** Players whose character this player may report as a troll entry. */
     @Input() reportable: string[] = [];
-    /** Players who joined during the game: listed as Spectators. */
     @Input() spectators: Player[] = [];
-    /** True while this player's character is being rewritten: their turn waits. */
     @Input() waitingForCharacter = false;
-    /** The room chat, and everyone who has been in the room (so old messages keep their author). */
     @Input() messages: ChatMessage[] = [];
     @Input() everyone: Player[] = [];
 
     @Output() ask = new EventEmitter<string>();
     @Output() vote = new EventEmitter<Answer>();
     @Output() endTurn = new EventEmitter<void>();
-    /** Voice mode: the guess was said out loud (the others then judge it). */
     @Output() voiceGuess = new EventEmitter<void>();
-    /** Voice mode: asked and answered out loud; pass the turn on. */
     @Output() voiceNext = new EventEmitter<void>();
     @Output() leave = new EventEmitter<void>();
     @Output() makeGuess = new EventEmitter<string>();
@@ -100,18 +88,16 @@ export class Game implements OnChanges {
     });
 
     protected readonly guessText = new FormControl('', { nonNullable: true, validators: characterNameValidators });
-    /** The player whose drafts are loaded (the question and guess boxes double as "Your next move"). */
     private draftsFor: string | null = null;
 
     constructor() {
-        // Your next question and guess, typed during the others' turns, are kept for this room (a reload keeps them).
         merge(this.questionText.valueChanges, this.guessText.valueChanges)
             .pipe(takeUntilDestroyed())
             .subscribe(() => {
                 if (!this.draftsFor) return;
                 try {
                     localStorage.setItem(DRAFT_KEY + this.draftsFor, JSON.stringify({ q: this.questionText.value, g: this.guessText.value }));
-                } catch { /* private mode: the drafts last until the page closes */ }
+                } catch { /* storage blocked */ }
             });
     }
 
@@ -121,12 +107,6 @@ export class Game implements OnChanges {
         { value: 'unsure', label: 'Unsure' },
     ];
 
-    /**
-     * Layout A: the dock on the right shows Notes or History; the Board takes the middle and the dock.
-     * Clicking the open tool again closes the dock and the turn gets the whole width. On a laptop the
-     * dock starts open; on a tablet it's a drawer that starts closed; on a phone the tab bar switches panes.
-     * Panels that aren't shown are only hidden, so unsaved notes and drawings survive a switch.
-     */
     protected readonly pane = signal<GamePane>('play');
     protected readonly dock = signal<DockTool>('notes');
     protected readonly dockOpen = signal(window.innerWidth > 1180);
@@ -139,12 +119,10 @@ export class Game implements OnChanges {
         { value: 'chat', label: 'Chat' },
     ];
 
-    /** The phone tabs; Voice mode has no History (questions and guesses are only spoken). */
     protected visibleTabs(): { value: GamePane; label: string }[] {
         return this.isVoice() ? this.tabs.filter(t => t.value !== 'history') : this.tabs;
     }
 
-    /** Messages from the others since you last had the chat open (the Lobby's count as read). */
     private readonly chatSeenAt = signal('');
     protected readonly unread = signal(0);
 
@@ -157,7 +135,7 @@ export class Game implements OnChanges {
                     this.questionText.setValue(saved.q ?? '', { emitEvent: false });
                     this.guessText.setValue(saved.g ?? '', { emitEvent: false });
                 }
-            } catch { /* nothing saved */ }
+            } catch { /* storage blocked */ }
         }
         if (!this.chatSeenAt()) this.chatSeenAt.set(this.messages[this.messages.length - 1]?.created_at ?? ' ');
         this.updateUnread();
@@ -179,7 +157,6 @@ export class Game implements OnChanges {
         this.unread.set(this.messages.filter(m => m.player_id !== this.me.id && m.created_at > seen).length);
     }
 
-    /** Header tools: Board opens or closes the board; Notes and History open the dock, or close it if already open. */
     protected toggleTool(tool: GameTool): void {
         if (tool === 'board') {
             this.pane.update(p => (p === 'board' ? 'play' : 'board'));
@@ -192,7 +169,6 @@ export class Game implements OnChanges {
         this.updateUnread();
     }
 
-    /** Any player can pass their own turn without asking (it only costs them that turn). */
     protected async passTurn(): Promise<void> {
         const yes = await this.confirm.ask({
             tone: 'normal', icon: 'skip', title: 'Pass your turn?',
@@ -202,7 +178,6 @@ export class Game implements OnChanges {
         if (yes && this.isMyTurn() && this.room.turn_phase === 'question') this.endTurn.emit();
     }
 
-    /** True when the game is waiting for this player, to flag the Play tab while another tab is open. */
     protected needsMe(): boolean {
         if (this.room.turn_phase === 'answer_vote') return this.iCanVote();
         if (this.room.turn_phase === 'guess_vote') return this.iCanJudge();
@@ -215,7 +190,6 @@ export class Game implements OnChanges {
             .sort((a, b) => a.turn_position! - b.turn_position!);
     }
 
-    /** What the clock is counting right now. */
     protected stepLabel(): string {
         const whose = this.isMyTurn() ? 'Your time' : `${this.currentName()}'s time`;
         switch (this.room.turn_phase) {
@@ -225,12 +199,10 @@ export class Game implements OnChanges {
         }
     }
 
-    /** Voting and judging: everyone's clock (blue), not the asker's. */
     protected isVoteStep(): boolean {
         return this.room.turn_phase === 'answer_vote' || this.room.turn_phase === 'guess_vote';
     }
 
-    /** "1:05" */
     protected timeLabel(): string {
         return this.clock(this.timeLeft ?? 0);
     }
@@ -239,13 +211,10 @@ export class Game implements OnChanges {
         return Math.floor(seconds / 60) + ':' + String(seconds % 60).padStart(2, '0');
     }
 
-    /** "Your next move": while the others play, you can write your next question and guess. */
-    /** Voice mode: everything is spoken; the app tracks the turns and the guesses. */
     protected isVoice(): boolean {
         return this.room.mode === 'voice';
     }
 
-    /** The character of the player whose turn it is (the judges see it while judging a spoken guess). */
     protected currentCharacter(): string {
         const current = this.players.find(p => p.id === this.room.current_player_id);
         return current ? this.characterOf(current) : '—';
@@ -255,7 +224,6 @@ export class Game implements OnChanges {
         return !this.isVoice() && !this.isMyTurn() && this.me.status === 'playing' && this.me.role !== 'spectator' && this.me.turn_position !== null;
     }
 
-    /** You ask next: the draft box says so. */
     protected iAmNext(): boolean {
         const queue = this.players
             .filter(p => p.status === 'playing' && p.turn_position !== null)
@@ -277,8 +245,6 @@ export class Game implements OnChanges {
         if (p.id === this.me.id && p.status === 'playing') return '???';
         return this.characters.find(c => c.assigned_to === p.id)?.name ?? '—';
     }
-
-    // Managing the room: the Admin and Helpers -------------------------------------------------------
 
     protected isAdmin(): boolean {
         return this.me.role === 'admin';
@@ -305,10 +271,6 @@ export class Game implements OnChanges {
         this.guessText.reset('');
     }
 
-    /**
-     * The round: which question this is for the player asking now (their own count, not the room's turns).
-     * Passed turns don't count.
-     */
     protected round(): number {
         const asked = (id: string) => this.questions.filter(q => q.kind === 'question' && q.player_id === id).length;
         const current = this.room.current_player_id;

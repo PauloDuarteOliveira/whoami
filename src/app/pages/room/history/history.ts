@@ -6,14 +6,12 @@ import { placeLabel } from '../../../shared/format';
 
 type HistoryFilter = 'all' | 'questions' | 'guesses' | 'mine';
 
-/** One question or guess in the History: who asked it and "Leo · 2nd question". */
 interface Entry {
     q: Question;
     player: Player | null;
     label: string;
 }
 
-/** A round: everyone's 1st question, everyone's 2nd… (each player's own count, as on the cards). */
 interface RoundGroup {
     round: number;
     items: Entry[];
@@ -31,7 +29,6 @@ export class History {
     @Input({ required: true }) questions: Question[] = [];
     @Input({ required: true }) players: Player[] = [];
     @Input({ required: true }) me!: Player;
-    /** "History" in the game; "Last game" in the lobby after it. */
     @Input() heading = 'History';
 
     protected readonly filter = signal<HistoryFilter>('all');
@@ -42,13 +39,11 @@ export class History {
         { value: 'mine', label: 'Mine' },
     ];
 
-    /** Questions whose votes are open, and the votes loaded so far (fetched only when opened). */
     protected readonly open = signal<Set<string>>(new Set());
     protected readonly votes = signal<Record<string, Vote[]>>({});
     protected readonly loading = signal<Set<string>>(new Set());
     protected readonly failed = signal<Set<string>>(new Set());
 
-    /** Answered questions and guesses that match the filter, by round, newest first. */
     protected rounds(): RoundGroup[] {
         const list = this.questions
             .filter(q => q.result !== null && this.matches(q))
@@ -63,7 +58,6 @@ export class History {
         }));
     }
 
-    /** A player's round: how many questions they had asked by then (a guess belongs to the round of its question). */
     private roundOf(q: Question): number {
         const asked = this.questions.filter(x => x.kind === 'question' && x.player_id === q.player_id && x.turn_number <= q.turn_number).length;
         return Math.max(1, asked);
@@ -78,7 +72,6 @@ export class History {
         };
     }
 
-    /** "Yes", "Correct"… */
     protected answerLabel(value: string | null): string {
         return value ? value.charAt(0).toUpperCase() + value.slice(1) : '';
     }
@@ -112,7 +105,6 @@ export class History {
         }
     }
 
-    /** Loads the votes of one question the first time it's opened (or again after an error). */
     private loadVotes(questionId: string): void {
         if (this.votes()[questionId] || this.loading().has(questionId)) return;
         this.loading.update(set => new Set(set).add(questionId));

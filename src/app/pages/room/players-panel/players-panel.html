@@ -5,7 +5,6 @@
   </div>
 
   <div class="filters" role="group" aria-label="Filter the clues">
-    <!-- Voice mode: answers are spoken, so there's nothing to filter. -->
     @if (room.mode !== 'voice') {
       @for (f of filters; track f.value) {
         <button type="button" class="chip" [attr.aria-pressed]="filter() === f.value" (click)="filter.set(f.value)">{{ f.label }}</button>
@@ -45,7 +44,6 @@
         <ng-container *ngTemplateOutlet="card; context: { $implicit: p }" />
       }
     }
-    <!-- Joined during the game: they watch, chat and see every character, and play the next game. -->
     @if (spectators.length) {
       <div class="group">SPECTATORS · PLAY THE NEXT GAME</div>
       @for (p of spectators; track p.id) {
@@ -65,7 +63,6 @@
           <span class="dot" [class.on]="isOnline(p)"></span>
         </span>
         <span class="who">
-          <!-- "Leo is Cleopatra", "You are ???", "Leo was Cleopatra" after the game; just "Leo" with characters hidden. -->
           <span class="line">
             <strong class="name">{{ isMine(p) ? 'You' : p.name }}</strong>
             @if (characterOf(p); as character) {
@@ -91,7 +88,6 @@
     </div>
 
     @if (open().has(p.id)) {
-      <!-- Questions grouped by answer (Yes, No, Unsure), then the guesses with their verdict. -->
       <div class="clues">
         @if (questionCount(p)) {
           <span class="clue-title">QUESTIONS · {{ questionCount(p) }}</span>

@@ -2,7 +2,6 @@ import { Component, Input } from '@angular/core';
 
 export type DialogIconName = 'kick' | 'skip' | 'crown' | 'flag' | 'vote' | 'pen' | 'warn';
 
-/** The icons used in dialogs (24 × 24, drawn in the text colour). */
 @Component({
     selector: 'app-dialog-icon',
     template: `

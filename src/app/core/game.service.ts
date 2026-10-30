@@ -39,7 +39,6 @@ export class GameService {
     private readonly decks = inject(DeckService);
     private readonly lists = inject(ListService);
 
-
     startCustom(room: Room, writers: Player[], characters: Character[]): Observable<Room> {
         const circle = shuffle(writers);
         const dealing = circle.map((writer, i) => {
@@ -56,7 +55,6 @@ export class GameService {
         );
     }
 
-    /** Starts with characters from the host's own list (only the host can read it, and only the host starts). */
     startList(room: Room, players: Player[]): Observable<Room> {
         return this.lists.get(room.list_id!).pipe(
             switchMap(list => {
@@ -67,7 +65,6 @@ export class GameService {
         );
     }
 
-    /** Shuffles the names, gives each player one, then starts the first turn. */
     private deal(room: Room, players: Player[], names: string[]): Observable<Room> {
         const picked = shuffle(names).slice(0, players.length);
         return this.api

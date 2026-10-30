@@ -20,7 +20,6 @@ export class CharacterService {
     return this.api.insertOne<Character>('characters', { room_id: roomId, written_by: playerId, name: cleanName(name) });
   }
 
-  /** Clears the room's characters (the writing phase starts over from the lobby). */
   removeAll(roomId: string): Observable<void> {
     return this.api.delete('characters', { room_id: `eq.${roomId}` });
   }

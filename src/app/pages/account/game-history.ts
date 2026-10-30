@@ -7,10 +7,6 @@ import { avatarUrl, isAvatar } from '../../shared/avatars';
 
 type LoadState = 'loading' | 'ready' | 'error' | 'missing';
 
-/**
- * Account → Your games: your numbers (games, guessed, average questions, best game) and every finished game.
- * Open a game to see who was who. Only for signed-in players: guests have no lasting account to keep it in.
- */
 @Component({
     selector: 'app-game-history',
     imports: [DatePipe, RouterLink],
@@ -143,7 +139,6 @@ type LoadState = 'loading' | 'ready' | 'error' | 'missing';
     @media (max-width: 700px) {
       .history { padding: 18px; }
       .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      /* A row keeps "You were …" and the result; the faces are in the opened game. */
       .when, .row .faces { display: none; }
       .others { grid-template-columns: 1fr; }
     }
@@ -152,7 +147,6 @@ type LoadState = 'loading' | 'ready' | 'error' | 'missing';
 export class GameHistory implements OnInit {
     private readonly my = inject(MyGames);
 
-    /** Loaded once and shared with Overview and Achievements. */
     protected readonly state = computed<LoadState>(() => (this.my.state() === 'idle' ? 'loading' : this.my.state()) as LoadState);
     protected readonly games = this.my.games;
     protected readonly stats = this.my.stats;

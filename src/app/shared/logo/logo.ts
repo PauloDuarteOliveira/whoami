@@ -1,9 +1,5 @@
 import { Component, Input } from '@angular/core';
 
-/**
- * The WhoAmI logo: a yellow speech bubble with a "?", because the game is all about asking.
- * The "?" is the Titan One font the app already loads. The favicon is a picture of this logo.
- */
 @Component({
     selector: 'app-logo',
     template: `
@@ -16,6 +12,5 @@ import { Component, Input } from '@angular/core';
     styles: `:host { display: inline-flex; flex: none; line-height: 0; }`,
 })
 export class Logo {
-    /** Width and height in pixels. */
     @Input() size = 30;
 }

@@ -11,11 +11,6 @@ export interface ReportVoteEvent { report: Report; value: ReportVoteValue; }
 export interface RewriteEvent { report: Report; name: string; }
 export interface DecisionEvent { report: Report; choice: 'chance' | 'kick'; }
 
-/**
- * The troll-character dialogs (design canvas, section 7), for whoever needs to act now:
- * the Admin or a Helper after a second strike (7.4), the writer who has to rewrite (7.3),
- * a player who hasn't voted yet (7.2), and the receiver, who only learns their character is being replaced (7.5).
- */
 import { AvatarFace } from '../../../shared/avatar-face';
 
 @Component({
@@ -38,7 +33,6 @@ export class ReportDialogs {
     @Output() decide = new EventEmitter<DecisionEvent>();
 
     private readonly box = viewChild<ElementRef<HTMLElement>>('box');
-    /** Which dialog is open, so focus moves into it once when it appears. */
     private readonly focusedFor = signal<string | null>(null);
 
     protected readonly newName = new FormControl('', {
@@ -57,28 +51,22 @@ export class ReportDialogs {
         });
     }
 
-    // What this player sees --------------------------------------------------------------------------------
-
     protected isHost(): boolean {
         return this.me.role === 'admin' || this.me.role === 'helper';
     }
 
-    /** 7.4 · a second strike waiting for the Admin or a Helper. */
     protected decision(): Report | null {
         if (!this.isHost()) return null;
-        // Never the writer: a Helper doesn't decide about their own character.
         return this.reports.find(r =>
             r.status === 'replaced' && r.admin_decision === 'pending'
             && r.writer_id !== this.me.id && writerOf(r, this.characters) !== this.me.id,
         ) ?? null;
     }
 
-    /** 7.3 · a replaced character this player has to write again. */
     protected toRewrite(): Report | null {
         return this.reports.find(r => r.status === 'replaced' && r.admin_decision !== 'pending' && writerOf(r, this.characters) === this.me.id) ?? null;
     }
 
-    /** 7.2 · a vote this player can still cast. */
     protected toVote(): Report | null {
         return this.reports.find(r =>
             r.status === 'voting'
@@ -87,12 +75,9 @@ export class ReportDialogs {
         ) ?? null;
     }
 
-    /** 7.5 · the receiver only learns that a new character is on its way. */
     protected beingReplaced(): boolean {
         return this.reports.some(r => r.status === 'replaced' && r.receiver_id === this.me.id);
     }
-
-    // Helpers for the template -------------------------------------------------------------------------------
 
     protected voters(report: Report): Player[] {
         return reportVoters(report, this.players, this.characters, this.votes, this.isOnline);
@@ -117,7 +102,6 @@ export class ReportDialogs {
         return this.players.find(p => p.id === id) ?? null;
     }
 
-    /** The original writer, for the second-strike box (they may already be gone). */
     protected writerName(report: Report): string {
         return this.player(report.writer_id)?.name ?? 'The writer';
     }
@@ -131,7 +115,6 @@ export class ReportDialogs {
         this.newName.reset('');
     }
 
-    /** The new character can't be the reported one, or one already in the game. */
     private notTaken(value: string): ValidationErrors | null {
         const report = this.toRewrite();
         if (!value || !report) return null;

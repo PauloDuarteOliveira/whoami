@@ -9,8 +9,6 @@
     </svg>
 </ng-template>
 
-<!-- Layout A (design canvas): players & clues on the left, the turn in the middle, one dock on the right
-     for Notes or History. The Board takes the middle and the dock. Phones use the tab bar instead. -->
 <div class="game" [attr.data-pane]="pane()" [attr.data-dock]="dock()" [class.dock-open]="dockOpen()">
     <header class="top">
         <a appHomeLink [askFirst]="true">
@@ -24,7 +22,6 @@
             <span class="muted mode">{{ isVoice() ? 'Voice' : 'No-Voice' }} · {{ ordered().length }} playing</span>
         </div>
 
-        <!-- Phone: the players as a row of avatars; a tap opens the Clues tab. -->
         <button type="button" class="avatars" aria-label="Players and clues" (click)="openPane('clues')">
             @for (p of ordered(); track p.id) {
             <span class="mini" [class.current]="p.id === room.current_player_id"
@@ -51,10 +48,8 @@
             </div>
         </div>
 
-        <!-- Sound cues on (the default) or muted on this device. -->
         <app-sound-toggle />
         <app-sky-switch class="sky" [compact]="true" />
-        <!-- Phone only: on bigger screens Hide characters sits on the players panel it changes. -->
         <button type="button" class="btn btn-ghost eye" [attr.aria-pressed]="prefs.hideNames()"
             [attr.aria-label]="prefs.hideNames() ? 'Show characters' : 'Hide characters'" (click)="prefs.toggleHideNames()">
             <ng-container *ngTemplateOutlet="eyeIcon" />
@@ -84,7 +79,6 @@
             <section class="card turn" aria-label="Current turn" [class.timed]="timeLeft !== null && !!timeTotal"
                 [class.paused]="timeLeft !== null && !!timeTotal && room.turn_phase === 'answer_vote' && pausedTime !== null">
                 @if (timeLeft !== null && timeTotal) {
-                <!-- Yellow: the asker's own time (asking, then guessing). Blue: everyone's time to vote, while the asker's clock waits. -->
                 <div class="timer" [class.vote]="isVoteStep()" [class.low]="timeLeft <= 10" role="timer"
                     [attr.aria-label]="stepLabel() + ' ' + timeLabel()">
                     <div class="timer-row">
@@ -112,7 +106,6 @@
                 <h1>Your character is being replaced</h1>
                 <p class="muted">You can ask as soon as the new one is in.</p>
                 } @else if (isMyTurn() && isVoice()) {
-                <!-- Voice mode: ask out loud; the others answer out loud. -->
                 <span class="pill accent">It's your turn</span>
                 <h1>Ask your question out loud</h1>
                 <p class="muted">Everyone answers out loud. Think you know? Say your guess, then tap Guess. Otherwise tap Next turn.</p>
@@ -251,7 +244,6 @@
                 }
                 @if (canDraft()) {
                 <span class="grow" aria-hidden="true"></span>
-                <!-- Your next move: written during the others' turns, already filled in when your turn comes. -->
                 <div class="draft" role="group" aria-labelledby="draft-title">
                     <div class="draft-head">
                         <strong id="draft-title">{{ iAmNext() ? "You're next · get ready" : 'Your next move' }}</strong>
@@ -281,7 +273,6 @@
                 }
             </section>
 
-            <!-- The Board: the question stays on top, so you can vote without closing it. -->
             @if (pane() === 'board') {
             <div class="board-turn">
                 @if (room.turn_phase === 'answer_vote' && question) {
@@ -319,14 +310,12 @@
         </main>
 
         <aside class="dock" aria-label="Notes, history and chat">
-            <!-- Voice mode: nothing typed, so no History. -->
             @if (!isVoice()) { <app-history [questions]="questions" [players]="players" [me]="me" /> }
             <app-notes [me]="me" [players]="players" [notes]="notes" (save)="saveNote.emit($event)" />
             <app-chat [messages]="messages" [players]="everyone" [me]="me" [busy]="busy" (send)="sendMessage.emit($event)" />
         </aside>
     </div>
 
-    <!-- Phone: the bottom tab bar replaces the side panels. -->
     <nav class="tabbar" aria-label="Game sections">
         @for (t of visibleTabs(); track t.value) {
         <button type="button" [class.on]="pane() === t.value" [attr.aria-pressed]="pane() === t.value"

@@ -4,10 +4,6 @@ import { AuthService } from '../core/auth.service';
 import { ProfileService } from '../core/profile.service';
 import { avatarLabel, avatarUrl } from './avatars';
 
-/**
- * Signed in: your animal and your name in the header, linking to Your account.
- * (Your email never shows here.) Guests see nothing, or the page's own "Sign in".
- */
 @Component({
     selector: 'app-me-chip',
     imports: [RouterLink],
@@ -28,7 +24,6 @@ import { avatarLabel, avatarUrl } from './avatars';
     .face img { width: 78%; height: 78%; display: block; }
     .name { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     @media (max-width: 600px) { .me { max-width: 130px; } }
-    /* The smallest phones: just your animal. */
     @media (max-width: 380px) { .me { padding: 0 3px; } .name { display: none; } }
   `,
 })

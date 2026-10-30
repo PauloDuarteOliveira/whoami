@@ -25,7 +25,6 @@ export class Home {
   protected readonly profile = inject(ProfileService);
   private readonly router = inject(Router);
 
-  /** Home only asks for your name; the room code is asked on the Join screen (or comes in the invite link). */
   protected readonly form = new FormGroup({
     name: new FormControl(this.profile.name(), { nonNullable: true, validators: playerNameValidators }),
   });
@@ -33,26 +32,21 @@ export class Home {
   private readonly history = inject(HistoryService);
   private readonly sessions = inject(SessionService);
 
-  /** Rooms you're still in, for "Continue playing". */
   protected readonly openRooms = signal<OpenRoom[]>([]);
   protected readonly phaseLabel: Record<OpenRoom['room']['status'], string> = { lobby: 'Lobby', writing: 'Writing characters', playing: 'Game in progress', finished: 'Game over · back in the lobby' };
 
   constructor() {
     const userId = this.auth.userId();
     if (userId) {
-      // Nothing to show when it fails: Home works as before.
       this.history.openRooms(userId).subscribe({ next: rooms => this.openRooms.set(rooms), error: () => undefined });
     }
   }
 
-  /** Back into a room: this tab remembers you're that player, then the room opens. */
   protected rejoin(r: OpenRoom): void {
     this.sessions.save(r.room.code, r.id);
-    // A finished game: straight back to the lobby after it, not the results again.
     this.router.navigate(['/room', r.room.code], r.room.status === 'finished' ? { queryParams: { lobby: 1 } } : {});
   }
 
-  /** The "How to play" dialog. */
   protected readonly rulesOpen = signal(false);
   private readonly rulesBox = viewChild<ElementRef<HTMLElement>>('rulesBox');
   private returnFocus: HTMLElement | null = null;
@@ -64,7 +58,6 @@ export class Home {
   protected openRules(): void {
     this.returnFocus = document.activeElement as HTMLElement | null;
     this.rulesOpen.set(true);
-    // Focus "Got it" once the dialog is on screen, so Enter or Escape closes it.
     setTimeout(() => this.rulesBox()?.nativeElement.querySelector<HTMLElement>('[data-close]')?.focus());
   }
 
@@ -98,7 +91,6 @@ export class Home {
     this.go('/join');
   }
 
-  /** Both need a valid name, which is remembered for the next screen. */
   private go(path: string): void {
     if (this.name.invalid) {
       this.name.markAsTouched();

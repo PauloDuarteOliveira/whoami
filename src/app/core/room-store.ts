@@ -12,10 +12,8 @@ import { SessionService } from './session.service';
 import { QuestionService } from './question.service';
 import { WhiteboardService } from './whiteboard.service';
 
-/** Without a live connection the room is reloaded every 2 s; with one, only as a backup every 8 × 2 s = 16 s. */
 const POLL_MS = 2_000;
 const LIVE_POLL_EVERY = 8;
-/** Live changes that arrive close together (a vote and the room update after it) cause a single reload. */
 const CHANGES_DEBOUNCE_MS = 100;
 const CLOCK_MS = 1_000;
 const HEARTBEAT_MS = 10_000;
@@ -41,16 +39,12 @@ export class RoomStore {
     readonly questions = signal<Question[]>([]);
     readonly votes = signal<Vote[]>([]);
     readonly notes = signal<Note[]>([]);
-    /** Your board and the shared ones, with their pictures. */
     readonly boards = signal<Whiteboard[]>([]);
-    /** Reported (troll) characters and their votes. */
     readonly reports = signal<Report[]>([]);
     readonly reportVotes = signal<ReportVote[]>([]);
-    /** The last 100 chat messages, oldest first. */
     readonly messages = signal<ChatMessage[]>([]);
     readonly loadState = signal<LoadState>('loading');
     readonly connectionLost = signal(false);
-    /** True while Supabase Realtime is connected for this room. */
     readonly live = signal(false);
     readonly now = signal(Date.now());
 
@@ -65,7 +59,6 @@ export class RoomStore {
         this.stop();
         this.myId.set(this.session.getPlayerId(code));
 
-        // Reload when Realtime says something changed, plus a timer: every tick while offline, a backup when live.
         const pollTicks = timer(0, POLL_MS).pipe(filter(tick => !this.live() || tick % LIVE_POLL_EVERY === 0));
         const liveChanges = this.changes.pipe(debounceTime(CHANGES_DEBOUNCE_MS));
 
@@ -121,7 +114,6 @@ export class RoomStore {
                 }),
         );
 
-        // Keeps "now" ticking for timers and online dots, now that reloads aren't every 2 seconds.
         this.subscriptions.add(timer(0, CLOCK_MS).subscribe(() => this.now.set(Date.now())));
 
         this.subscriptions.add(
@@ -152,14 +144,12 @@ export class RoomStore {
         });
     }
 
-    /** Applies a player row pushed by Realtime (adds it if it's new). */
     private putPlayer(player: Player): void {
         this.players.update(list =>
             list.some(p => p.id === player.id) ? list.map(p => (p.id === player.id ? player : p)) : [...list, player],
         );
     }
 
-    /** Adds a message once (it can arrive live and with a reload), keeping the last 100 in order. */
     addMessage(message: ChatMessage): void {
         this.messages.update(list =>
             list.some(m => m.id === message.id)
@@ -168,7 +158,6 @@ export class RoomStore {
         );
     }
 
-    /** A reload brings the latest 100; messages that arrived since (live, or your own) are kept. */
     private syncMessages(loaded: ChatMessage[]): void {
         const newest = loaded[loaded.length - 1]?.created_at ?? '';
         const later = this.messages().filter(m => m.created_at > newest && !loaded.some(l => l.id === m.id));
@@ -215,13 +204,8 @@ export class RoomStore {
         this.characters.update(list => list.map(c => (c.id === id ? { ...c, ...changes } : c)));
     }
 
-    /** Boards whose picture is being downloaded, by player, with the version asked for. */
     private readonly boardDownloads = new Map<string, string>();
 
-    /**
-     * Keeps `boards` in step with the room: downloads a board's picture only when it's new or changed,
-     * and drops boards that are gone (or no longer shared, since then they aren't returned).
-     */
     private syncBoards(infos: WhiteboardInfo[]): void {
         this.boards.update(list => list.filter(b => infos.some(i => i.player_id === b.player_id)));
         for (const info of infos) {

@@ -25,7 +25,6 @@ export function verdict(votes: Vote[]): GuessVerdict {
     return correct > wrong ? 'correct' : 'wrong';
 }
 
-/** A player's answered questions and guesses, grouped into YES / NO / UNSURE (a right guess counts as YES, a wrong one as NO). */
 export function clueGroups(playerId: string, questions: Question[]): ClueGroup[] {
     const answered = questions.filter(q => q.player_id === playerId && q.result !== null);
     const groupOf = (q: Question): Answer =>
@@ -36,7 +35,6 @@ export function clueGroups(playerId: string, questions: Question[]): ClueGroup[]
         .filter(group => group.items.length > 0);
 }
 
-/** Voice mode: questions and guesses are spoken, so the app records only that they happened. */
 export const VOICE_QUESTION = 'Asked out loud';
 export const VOICE_GUESS = 'Said out loud';
 

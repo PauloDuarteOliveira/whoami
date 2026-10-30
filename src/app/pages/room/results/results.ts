@@ -53,7 +53,6 @@ export class Results {
         return plural(count, word);
     }
 
-    /** The last turn that was played (room.turn_number has already moved on to the next one). */
     protected turnsPlayed(): number {
         return Math.max(0, ...this.questions.map(q => q.turn_number));
     }

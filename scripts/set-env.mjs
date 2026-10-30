@@ -1,4 +1,3 @@
-// Creates src/environments/environment.ts from environment variables.
 // GitHub Actions runs this before the build, with the values taken from the repository secrets.
 import { writeFileSync } from 'node:fs';
 

@@ -2,7 +2,6 @@ import { Injectable, inject } from '@angular/core';
 import { Observable, map } from 'rxjs';
 import { SupabaseApiService } from './supabase-api.service';
 
-/** One of your character lists (migration 009). Only you can read or change it. */
 export interface CharacterList {
     id: string;
     name: string;
@@ -14,7 +13,6 @@ export const LIST_NAME_MAX = 40;
 export const LIST_SIZE_MAX = 200;
 export const CHARACTER_MAX = 40;
 
-/** Signed-in players' character lists: managed in Your account, used by "My lists" in Create room. */
 @Injectable({ providedIn: 'root' })
 export class ListService {
     private readonly api = inject(SupabaseApiService);

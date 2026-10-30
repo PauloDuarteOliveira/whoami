@@ -1,4 +1,3 @@
-/** Keeps Tab and Shift+Tab inside an open dialog, so keyboard users can't wander behind it. */
 export function trapFocus(container: HTMLElement, event: KeyboardEvent): void {
     const focusable = Array.from(
         container.querySelectorAll<HTMLElement>('button:not([disabled]), input:not([disabled]), [href], [tabindex]:not([tabindex="-1"])'),

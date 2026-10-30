@@ -1,10 +1,8 @@
-<!-- Layout A (design canvas): the same frame as the game, with the Players rail on the left. -->
 <div class="lobby">
   <app-room-top [code]="room.code" title="Lobby" subtitle="The game hasn't started yet"
     [connectionLost]="connectionLost" (leave)="leave.emit()" />
 
   <div class="body">
-    <!-- The players, and the room chat under them. -->
     <div class="rail">
       <app-roster phase="lobby" [players]="players" [me]="me" [isOnline]="isOnline"
         (kick)="kick.emit($event)" (toggleHelper)="toggleHelper.emit($event)" (handOver)="handOver.emit($event)"

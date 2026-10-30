@@ -24,7 +24,6 @@ const TABS: { id: Tab; label: string; link: string }[] = [
     { id: 'achievements', label: 'Achievements', link: '/account/achievements' },
 ];
 
-/** Both password fields must be the same. */
 function passwordsMatch(group: AbstractControl): ValidationErrors | null {
     const password = group.get('password')?.value;
     const confirm = group.get('confirm')?.value;
@@ -43,7 +42,6 @@ export class Account {
     protected readonly my = inject(MyGames);
     private readonly route = inject(ActivatedRoute);
 
-    /** Overview · History · Lists · Achievements, from the address (#/account/history…). */
     protected readonly tabs = TABS;
     protected readonly tab = toSignal(
         this.route.paramMap.pipe(map(p => (TABS.find(t => t.id === p.get('tab'))?.id ?? 'overview') as Tab)),
@@ -53,8 +51,6 @@ export class Account {
     private readonly router = inject(Router);
 
     constructor() {
-        // Signed in: your games load once for every tab (Overview, History and Achievements all use them),
-        // whichever tab the page opens on.
         effect(() => {
             if (!this.auth.isAnonymous()) untracked(() => this.my.load());
         });
@@ -63,17 +59,14 @@ export class Account {
     protected readonly mode = signal<Mode>('create');
     protected readonly busy = signal(false);
     protected readonly error = signal<string | null>(null);
-    /** The quick sign-ins, in the order they're shown. */
     protected readonly quick: OAuthProvider[] = ['google', 'discord'];
     protected readonly label = PROVIDER_LABEL;
 
-    /** Leaves for Google or Discord; comes back to this page signed in (or with a message). */
     protected async continueWith(provider: OAuthProvider): Promise<void> {
         if (this.busy()) return;
         this.busy.set(true);
         this.error.set(null);
         const message = await this.auth.continueWith(provider);
-        // No message: the browser is on its way, so the buttons stay disabled.
         if (message) {
             this.auth.oauthError.set(message);
             this.busy.set(false);
@@ -99,7 +92,6 @@ export class Account {
         this.error.set(null);
     }
 
-    /** Keeps the guest account (and its games) and adds an email and password to it. */
     protected async create(): Promise<void> {
         if (this.createForm.invalid || this.busy()) {
             this.createForm.markAllAsTouched();
@@ -109,7 +101,6 @@ export class Account {
         await this.run(() => this.auth.createAccount(email.trim(), password, this.profile.name()));
     }
 
-    /** Switches this tab to an existing account. The guest's games can't be continued, so they're forgotten. */
     protected async signIn(): Promise<void> {
         if (this.signInForm.invalid || this.busy()) {
             this.signInForm.markAllAsTouched();
@@ -138,7 +129,6 @@ export class Account {
         this.router.navigate(['/']);
     }
 
-    /** "Delete account": typing DELETE unlocks the red button (the email stays hidden on screen). */
     protected readonly deleting = signal(false);
     protected readonly typed = signal('');
     protected readonly deleteError = signal<string | null>(null);
@@ -167,14 +157,12 @@ export class Account {
             this.deleteError.set(message);
             return;
         }
-        // Now a fresh guest: the old account's rooms are forgotten in this tab.
         this.sessions.forgetAll();
         this.my.reset();
         this.deleting.set(false);
         this.accountDeleted.set(true);
     }
 
-    /** Shown once on the guest view after deleting. */
     protected readonly accountDeleted = signal(false);
 
     @HostListener('document:keydown', ['$event'])
@@ -189,7 +177,6 @@ export class Account {
         }
     }
 
-    /** Runs an account action with the busy and error states. Returns true when it worked. */
     private async run(action: () => Promise<string | null>): Promise<boolean> {
         this.busy.set(true);
         this.error.set(null);

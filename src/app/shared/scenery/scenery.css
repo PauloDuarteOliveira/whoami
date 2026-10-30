@@ -2,7 +2,6 @@
   position: fixed;
   inset: 0;
   z-index: -1;
-  /* The sky (styles.css --page-bg), always exactly the screen, however long the page. */
   background: var(--page-bg);
   pointer-events: none;
   overflow: hidden;
@@ -10,15 +9,11 @@
 
 svg { width: 100%; height: 100%; display: block; }
 
-/* Night: stars, the moon and a shooting star about every 3 minutes ---------------------------- */
-
 .stars, .moon, .shoot { transition: opacity 0.9s; }
 .twinkle { fill: #FFF8EC; animation: twinkle 4s ease-in-out infinite alternate; }
 .moon circle, .shoot circle { fill: #FFF8EC; }
 
 .shoot { animation: shoot 180s linear -170s infinite; }
-
-/* Day: the sun rises, the stars and moon fade, seagulls fly by about every 3 minutes ---------------- */
 
 .sun { opacity: 0; transform: translateY(60px); transition: opacity 0.9s, transform 1.2s ease-out; }
 .gulls { opacity: 0; transition: opacity 0.6s; }
@@ -35,8 +30,6 @@ svg { width: 100%; height: 100%; display: block; }
 :host-context(html[data-sky="day"]) .shoot { opacity: 0; }
 :host-context(html[data-sky="day"]) .sun { opacity: 1; transform: translateY(0); }
 :host-context(html[data-sky="day"]) .gulls { opacity: 1; }
-
-/* Palms: dark shadows at night, soft green by day, swaying slowly ------------------------------- */
 
 .palm path { transition: fill 0.9s, stroke 0.9s, opacity 0.9s; opacity: var(--palm-opacity); }
 .stem { fill: none; stroke: var(--palm); stroke-width: 5; stroke-linecap: round; }
@@ -64,7 +57,6 @@ svg { width: 100%; height: 100%; display: block; }
 @keyframes flap-left { 0% { transform: rotate(16deg); } 100% { transform: rotate(-12deg); } }
 @keyframes flap-right { 0% { transform: rotate(-16deg); } 100% { transform: rotate(12deg); } }
 
-/* "Reduce motion" (a system setting): no twinkling, swaying or rare events. */
 @media (prefers-reduced-motion: reduce) {
   .twinkle, .shoot, .palm-left, .palm-right, .gull, .wing { animation: none; }
   .shoot, .gulls { opacity: 0 !important; }

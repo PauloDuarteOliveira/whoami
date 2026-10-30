@@ -1,7 +1,5 @@
-// Interfaces for the main WhoAmI entities. They mirror the tables in supabase/schema.sql.
 
 export type GameMode = 'voice' | 'novoice';
-/** custom: everyone writes · deck: a pre-made deck · list: one of the host's own lists (migration 009). */
 export type CharacterSource = 'deck' | 'custom' | 'list';
 export type RoomStatus = 'lobby' | 'writing' | 'playing' | 'finished';
 export type TurnPhase = 'question' | 'answer_vote' | 'guess' | 'guess_vote';
@@ -30,7 +28,6 @@ export interface Room {
   mode: GameMode;
   character_source: CharacterSource;
   deck_id: string | null;
-  /** The host's character list, when character_source is 'list'. */
   list_id?: string | null;
   give_up_after: number;
   turn_timer_sec: 60 | 120 | 180 | null;
@@ -57,7 +54,6 @@ export interface Player {
   finish_place: number | null;
   finish_turn: number | null;
   muted: boolean;
-  /** One of the 30 animals (shared/avatars.ts); null for players from before avatars. */
   avatar?: string | null;
   last_seen: string;
   joined_at: string;
@@ -115,7 +111,6 @@ export interface Note {
   updated_at: string;
 }
 
-/** A player's drawing Board: one per player, saved as a PNG data URL. */
 export interface Whiteboard {
   player_id: string;
   room_id: string;
@@ -124,12 +119,9 @@ export interface Whiteboard {
   updated_at: string;
 }
 
-/** A board without its picture: enough to know if it changed. */
 export type WhiteboardInfo = Omit<Whiteboard, 'image'>;
 
-/** A reported (troll) character: the room votes, then the writer rewrites it (game design, section 4). */
 export type ReportStatus = 'voting' | 'kept' | 'replaced' | 'rewritten';
-/** Second time a writer's character is replaced: the Admin or a Helper decides. */
 export type ReportDecision = 'pending' | 'chance' | 'kicked';
 
 export interface Report {
@@ -155,11 +147,9 @@ export interface ReportVote {
   created_at: string;
 }
 
-/** A chat message in a room (see supabase/migrations/006). */
 export interface ChatMessage {
   id: string;
   room_id: string;
-  /** Null for a message from the app itself. */
   player_id: string | null;
   text: string;
   created_at: string;

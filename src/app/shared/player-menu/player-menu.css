@@ -23,7 +23,6 @@
     outline-offset: 2px;
 }
 
-/* Design 5.1: floats beside the panel, with the player's name and what matters for the decision. */
 .menu {
     position: fixed;
     z-index: 70;

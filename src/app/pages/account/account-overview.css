@@ -1,4 +1,3 @@
-/* Overview: the concept's two columns (360px | the rest), one column on phones. */
 :host { display: block; min-width: 0; }
 .overview { display: grid; grid-template-columns: 360px minmax(0, 1fr); gap: 20px; align-items: start; }
 .col { min-width: 0; display: flex; flex-direction: column; gap: 16px; }
@@ -8,8 +7,6 @@
 .small { font-size: 12px; color: var(--muted); }
 .btn { align-self: stretch; }
 
-/* Profile */
-/* The animal (tap to change it; the 30 open underneath) and your name: the grid app-avatar-choice expects. */
 .who { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 12px 16px; align-items: center; }
 .who-text { grid-column: 2; grid-row: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .who-text h2 { font-size: 26px; overflow-wrap: anywhere; }
@@ -32,28 +29,24 @@
 .connected { margin-left: auto; font-size: 13px; font-weight: 800; color: var(--yes-text); white-space: nowrap; }
 .connect { margin-left: auto; align-self: auto; height: 32px; padding: 0 12px; font-size: 13px; }
 
-/* Delete: under the badges on desktop (no scrolling), last on the page on phones. */
 .stack { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
 .phone-only { display: none; }
 .danger { flex-direction: row; align-items: center; gap: 12px; border-color: var(--no-soft); }
 .danger div { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .delete { align-self: auto; flex: none; height: 38px; padding: 0 14px; font-size: 13px; color: var(--no-text); border-color: var(--no); }
 
-/* Continue playing */
 .continue { display: flex; align-items: center; gap: 14px; padding: 16px 20px; border-radius: 22px; background: var(--accent-tint); border: 1px solid var(--accent); }
 .room-code { flex: none; padding: 8px 12px; border-radius: 12px; background: var(--bg); font-family: var(--font-display); font-size: 20px; letter-spacing: 3px; color: var(--accent-text); }
 .continue-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .continue-text span { font-size: 13px; color: var(--text-2); }
 .continue .btn { align-self: auto; flex: none; padding: 0 26px; }
 
-/* Numbers */
 .tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
 .tile { min-width: 0; padding: 14px 16px; border-radius: 18px; background: var(--surface-2); border: 1px solid var(--border); display: flex; flex-direction: column; gap: 4px; }
 .t-label { font-size: 11px; font-weight: 700; letter-spacing: .6px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .t-value { font-family: var(--font-display); font-size: 34px; line-height: 1.1; }
 .t-sub { font-size: 12px; color: var(--text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-/* Recent games and badges, side by side */
 .pair { display: grid; grid-template-columns: minmax(0, 1fr) 330px; gap: 16px; align-items: start; }
 .head { display: flex; align-items: baseline; gap: 10px; }
 .head .small, .head .see { margin-left: auto; }

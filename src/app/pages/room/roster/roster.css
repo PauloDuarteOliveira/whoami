@@ -1,5 +1,3 @@
-/* The Players rail (design Layout A): same panel and cards as the game's Players & clues. */
-/* Above the middle column, so the ⋯ menu that floats beside the rail is never covered by its cards. */
 :host { display: block; min-height: 0; min-width: 0; position: relative; z-index: 3; }
 
 .panel {
@@ -49,13 +47,11 @@
 .waiting { flex: none; display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 16px; border: 1px dashed var(--border-strong); color: var(--faint); }
 .plus { width: 34px; height: 34px; flex: none; border-radius: 50%; border: 1px dashed var(--border-strong); display: grid; place-items: center; }
 
-/* Phone: the rail is a card in the page, which scrolls as a whole. */
 @media (max-width: 760px), (orientation: landscape) and (max-height: 500px) {
   .panel { height: auto; }
   .cards { overflow: visible; }
 }
 
-/* Small phones (320 px): "Players", "12 players" and "Change avatar" on one line. */
 @media (max-width: 360px) {
   .head h2 { font-size: 18px; }
   .count { font-size: 11px; }

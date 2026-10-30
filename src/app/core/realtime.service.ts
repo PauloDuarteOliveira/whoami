@@ -3,25 +3,16 @@ import { ChatMessage, Player } from './models';
 import { SUPABASE } from './supabase.client';
 
 export interface RoomWatchers {
-    /** Something in the room changed (room, characters, questions, votes, notes, boards, players joining or leaving). */
     changed: () => void;
-    /** A player row changed (status, role, heartbeat…): the new row is applied without reloading everything. */
     player: (player: Player) => void;
-    /** A new chat message: added straight away, without reloading the room. */
     message: (message: ChatMessage) => void;
-    /** Whether the live connection is up, so the app can fall back to frequent polling when it isn't. */
     live: (connected: boolean) => void;
 }
 
-/**
- * Live updates with Supabase Realtime: the database pushes a message when a row of this room changes.
- * Row Level Security applies, so a player only hears about rooms they're in.
- */
 @Injectable({ providedIn: 'root' })
 export class RealtimeService {
     private readonly client = inject(SUPABASE);
 
-    /** Starts listening to one room. Returns a function that stops listening. */
     watchRoom(roomId: string, on: RoomWatchers): () => void {
         const inRoom = `room_id=eq.${roomId}`;
         const changed = () => on.changed();
@@ -48,8 +39,6 @@ export class RealtimeService {
             // a duplicate character removed) just triggers a reload.
             .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'players' }, changed)
             .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'characters' }, changed)
-            // If Supabase refuses the changes (for example a table missing from the Realtime publication),
-            // no change arrives at all, so the room goes back to frequent reloads.
             .on('system', {}, (message: { status?: string; extension?: string }) => {
                 if (message.status === 'error' && message.extension === 'postgres_changes') on.live(false);
             })

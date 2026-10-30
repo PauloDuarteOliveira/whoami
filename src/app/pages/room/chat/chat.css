@@ -1,4 +1,3 @@
-/* The room chat: a card that fills its space; the messages scroll inside, the box stays at the bottom. */
 :host { display: flex; flex-direction: column; min-height: 0; }
 
 .chat {

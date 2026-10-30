@@ -1,4 +1,3 @@
-/* The code to share: a glass panel filling its grid cell. */
 :host { display: flex; flex-direction: column; min-height: 0; min-width: 0; }
 
 .invite {
@@ -20,12 +19,10 @@
 .share { display: flex; flex-direction: column; align-items: center; gap: 18px; }
 .muted { margin: 0; max-width: 440px; color: var(--muted); line-height: 1.55; }
 
-/* The QR code holds the invite link: scanning it opens Join with the code already filled in. */
 .qr { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 8px; }
 .qr img { display: block; width: 160px; height: 160px; padding: 8px; border-radius: 16px; background: #FFFFFF; box-shadow: 0 4px 0 rgba(0, 0, 0, 0.18); }
 .qr figcaption { font-size: 12px; font-weight: 600; color: var(--muted); }
 
-/* Share and the QR code button sit on phones, where the QR code doesn't fit next to the code. */
 .share-btn, .qr-btn { display: none; }
 .qr-btn { gap: 6px; background: var(--accent-soft); color: var(--accent-text); border-color: var(--accent); }
 .qr-btn svg { flex: none; }
@@ -41,7 +38,6 @@
 }
 .buttons { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
 
-/* Compact (the lobby after a game, for the Admin): the QR code next to the code, a smaller code. */
 :host(.compact) .invite { padding: 22px 26px; gap: 14px; justify-content: flex-start; }
 :host(.compact) .top-row { flex-direction: row-reverse; flex-wrap: wrap; justify-content: center; gap: 12px 28px; }
 :host(.compact) .share { gap: 10px; }
@@ -49,7 +45,6 @@
 :host(.compact) .qr img { width: 120px; height: 120px; }
 :host(.compact) .qr figcaption { display: none; }
 
-/* The full-screen QR code: centred (not a bottom sheet) and as big as the screen allows, to scan from a distance. */
 .qr-layer { align-items: center; }
 .qr-dialog { align-items: center; text-align: center; gap: 14px; }
 .qr-dialog::before { display: none; }
@@ -67,14 +62,12 @@
 }
 .qr-code { font-family: var(--font-display); font-size: 40px; letter-spacing: .2em; padding-left: .2em; line-height: 1; color: var(--accent-text); }
 .qr-done { width: 100%; height: 52px; font-size: 16px; }
-/* A phone held sideways is short: the QR code on the left, the words and Done on the right. */
 @media (orientation: landscape) and (max-height: 500px) {
   .qr-dialog { width: min(640px, 100%); display: grid; grid-template-columns: auto minmax(0, 1fr); align-content: center; gap: 10px 28px; padding: 20px 24px; }
   .qr-dialog > * { grid-column: 2; }
   .qr-dialog .qr-big { grid-column: 1; grid-row: 1 / span 5; width: min(300px, 74dvh); }
 }
 
-/* Tablet: the code and the QR code side by side. */
 @media (max-width: 1180px) {
   .invite { padding: 24px; gap: 12px; }
   .top-row { flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 12px 36px; }
@@ -84,7 +77,6 @@
   .qr img { width: 136px; height: 136px; }
 }
 
-/* Phone: no QR code on the page (it opens full screen); Share invite across the top, then QR code · Copy code · Copy link. */
 @media (max-width: 760px), (orientation: landscape) and (max-height: 500px) {
   .invite { padding: 28px 16px; gap: 14px; }
   :host(.compact) .invite { padding: 22px 16px; }
@@ -95,7 +87,6 @@
   .qr-btn { display: inline-flex; }
   .wide-only { display: none; }
 }
-/* Small phones (320 px): the three buttons keep one line each; the QR icon makes room for the words. */
 @media (max-width: 360px) {
   .buttons .btn:not(.share-btn) { padding: 0 4px; font-size: 13px; }
   .qr-btn svg { display: none; }

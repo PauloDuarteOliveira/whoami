@@ -3,15 +3,9 @@ import { Component } from '@angular/core';
 interface Frond { stem: string; leaves: string; }
 interface Star { x: number; y: number; r: number; duration: string; delay: string; }
 
-/** The scene is drawn for a 1440 × 900 screen and scaled to cover any size. */
 const W = 1440;
 const H = 900;
 
-/**
- * Palm shadows scenery behind every screen (from the design canvas): palm fronds in two corners,
- * the moon and twinkling stars at night, the sun by day, and a rare shooting star or pair of seagulls.
- * It's decoration only: hidden from screen readers and it never catches clicks.
- */
 @Component({
     selector: 'app-scenery',
     templateUrl: './scenery.html',
@@ -38,7 +32,6 @@ type Point = [number, number];
 
 const round = (n: number) => Math.round(n * 10) / 10;
 
-/** One palm frond: a curved stem (a quadratic curve from p0 to p2) with pairs of leaves along it. */
 function frond(p0: Point, p1: Point, p2: Point, maxLeaf: number, count: number, side = 1): Frond {
     let leaves = '';
     for (let i = 1; i <= count; i++) {
@@ -64,7 +57,6 @@ function frond(p0: Point, p1: Point, p2: Point, maxLeaf: number, count: number, 
     return { stem: `M${p0[0]} ${p0[1]} Q${p1[0]} ${p1[1]} ${p2[0]} ${p2[1]}`, leaves };
 }
 
-/** 70 stars, always in the same places (a seeded random generator), most of them high in the sky. */
 function makeStars(): Star[] {
     const random = seeded(11);
     return Array.from({ length: 70 }, () => ({

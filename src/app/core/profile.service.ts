@@ -8,7 +8,6 @@ const AVATAR_KEY = 'whoami.avatar';
 @Injectable({ providedIn: 'root' })
 export class ProfileService {
     readonly name = signal(this.load());
-    /** Your animal, remembered like your name; a random one the first time. */
     readonly avatar = signal<AvatarId>(this.loadAvatar());
 
     setAvatar(avatar: AvatarId): void {
@@ -16,7 +15,7 @@ export class ProfileService {
         try {
             localStorage.setItem(AVATAR_KEY, avatar);
         } catch {
-            // Storage blocked: the avatar just isn't remembered.
+            /* storage blocked */
         }
     }
 
@@ -25,7 +24,7 @@ export class ProfileService {
             const saved = localStorage.getItem(AVATAR_KEY);
             if (isAvatar(saved)) return saved;
         } catch {
-            // Storage blocked.
+            /* storage blocked */
         }
         return randomAvatar();
     }
@@ -36,7 +35,7 @@ export class ProfileService {
         try {
             localStorage.setItem(STORAGE_KEY, clean);
         } catch {
-            // Storage blocked (e.g. private mode): the name just isn't remembered.
+            /* storage blocked */
         }
     }
 

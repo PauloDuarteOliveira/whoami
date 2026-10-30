@@ -13,10 +13,8 @@ import { SessionService } from '../../core/session.service';
 import { PageHeader } from '../../shared/page-header/page-header';
 import { SettingsSummary } from '../../shared/settings-summary/settings-summary';
 
-/** Questions a player must ask before they can give up. */
 const DEFAULT_GIVE_UP_AFTER = 5;
 
-/** A deck must be picked when the room uses a pre-made deck, and a list when it uses one of yours. */
 function deckRequired(group: AbstractControl): ValidationErrors | null {
   const { characterSource, deckId, listId } = group.value;
   if (characterSource === 'deck' && !deckId) return { deckRequired: true };
@@ -41,13 +39,10 @@ export class CreateRoom implements OnInit {
   private readonly account = inject(AccountSync);
   private readonly auth = inject(AuthService);
 
-  /** Signed-in players can keep these settings for next time. */
   protected readonly signedIn = computed(() => !this.auth.isAnonymous());
-  /** The form started from the account's saved settings. */
   protected readonly fromSaved = signal(false);
   protected readonly saveAsMine = signal(true);
   private readonly listService = inject(ListService);
-  /** Your character lists for "My lists" (null while loading; empty without any or before migration 009). */
   protected readonly myLists = signal<CharacterList[] | null>(null);
 
   protected readonly turnTimers = [null, 60, 120, 180];
@@ -66,7 +61,6 @@ export class CreateRoom implements OnInit {
     { validators: deckRequired },
   );
 
-  /** The form value as a signal, so the summary on the right updates live. */
   private readonly formValue = toSignal(this.form.valueChanges, { initialValue: this.form.getRawValue() });
 
   protected readonly deckList = signal<Deck[]>([]);
@@ -76,13 +70,11 @@ export class CreateRoom implements OnInit {
   protected readonly submitError = signal<string | null>(null);
 
   ngOnInit(): void {
-    // The name is typed on Home. Without it, go back there first.
     if (!this.profile.name()) {
       this.router.navigate(['/']);
       return;
     }
 
-    // Signed in with saved settings: start from them.
     const saved = this.account.roomSettings();
     if (saved) {
       this.form.setValue({
@@ -101,7 +93,6 @@ export class CreateRoom implements OnInit {
       this.listService.myLists().subscribe({
         next: lists => {
           this.myLists.set(lists);
-          // A saved list that was deleted since: the player picks another one.
           const listId = this.form.controls.listId.value;
           if (listId && !lists.some(l => l.id === listId)) this.form.controls.listId.setValue(null);
         },
@@ -113,7 +104,6 @@ export class CreateRoom implements OnInit {
       next: decks => {
         this.deckList.set(decks);
         this.decksLoading.set(false);
-        // A saved deck that no longer exists: the player picks another one.
         const deckId = this.form.controls.deckId.value;
         if (deckId && !decks.some(d => d.id === deckId)) this.form.controls.deckId.setValue(null);
       },
@@ -124,7 +114,6 @@ export class CreateRoom implements OnInit {
     });
   }
 
-  /** The settings in the shape the database expects. */
   protected settings(): RoomSettings {
     const v = this.formValue();
     const custom = v.characterSource === 'custom';
@@ -147,7 +136,6 @@ export class CreateRoom implements OnInit {
     return this.deckList().find(d => d.id === this.formValue().deckId)?.name ?? null;
   }
 
-  /** Option buttons (mode, source, deck, timers) set their form control directly. */
   protected pick(control: OptionControl, value: string | number | null): void {
     const target = this.form.controls[control] as FormControl<string | number | null>;
     target.setValue(value);
@@ -168,7 +156,6 @@ export class CreateRoom implements OnInit {
     this.submitError.set(null);
 
     const settings = this.settings();
-    // Kept with the account for next time (in the background: the room doesn't wait for it).
     if (this.signedIn() && this.saveAsMine()) void this.account.saveRoomSettings(settings);
 
     this.rooms.create(settings, this.profile.name(), this.profile.avatar()).subscribe({

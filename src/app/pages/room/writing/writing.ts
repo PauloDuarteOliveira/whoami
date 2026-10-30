@@ -6,7 +6,6 @@ import { plural } from '../../../shared/format';
 import { RoomTop } from '../room-top/room-top';
 import { Roster } from '../roster/roster';
 
-/** The writing phase (design Layout A): the Players rail with who's done, and your character to write. */
 @Component({
   selector: 'app-writing',
   imports: [ReactiveFormsModule, RoomTop, Roster],
@@ -23,7 +22,6 @@ export class Writing implements OnChanges {
   @Input() now = Date.now();
   @Input() busy = false;
   @Input() notice: string | null = null;
-  /** Everyone still in the room, watchers included (for the Players rail). */
   @Input({ required: true }) everyone: Player[] = [];
   @Input({ required: true }) isOnline!: (player: Player) => boolean;
   @Input() connectionLost = false;

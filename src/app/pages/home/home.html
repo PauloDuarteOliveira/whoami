@@ -3,7 +3,6 @@
     <app-logo class="logo" />
     <span class="brand">Who<span class="am">Am</span>I</span>
   </a>
-  <!-- Guests: Sign in. Signed in: your animal and name (never the email). -->
   @if (auth.isAnonymous()) {
     <a routerLink="/account" class="account">Sign in</a>
   } @else {
@@ -36,12 +35,10 @@
         <div class="rule-text">Fewest turns wins.</div>
       </div>
     </div>
-    <!-- The cards are a summary; the full rules open in a dialog. -->
     <button type="button" class="more-rules" aria-haspopup="dialog" (click)="openRules()">Full rules ›</button>
   </section>
 
   <form class="play" aria-label="Play" [formGroup]="form" (ngSubmit)="create()">
-    <!-- Rooms you're still in: back in one tap (on any device, when signed in). -->
     @for (r of openRooms(); track r.id) {
       <div class="continue">
         <span class="room-code">{{ r.room.code }}</span>

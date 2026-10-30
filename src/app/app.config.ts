@@ -13,7 +13,6 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient(withFetch(), withInterceptors([authInterceptor])),
     // Sign in before the first screen loads, so every request already carries the player's token.
     provideAppInitializer(() => {
-      // Signed-in players: their name, avatar and Day/Night follow them to every device.
       inject(AccountSync);
       return inject(AuthService).signIn();
     }),

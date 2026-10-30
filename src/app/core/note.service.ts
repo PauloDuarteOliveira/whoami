@@ -11,7 +11,6 @@ export class NoteService {
     return this.api.select<Note>('notes', { room_id: `eq.${roomId}` });
   }
 
-  /** Each player has one note per room, so saving creates it the first time and updates it after. */
   save(roomId: string, playerId: string, text: string, visible: boolean): Observable<Note> {
     return this.api.upsert<Note>('notes', {
       player_id: playerId,

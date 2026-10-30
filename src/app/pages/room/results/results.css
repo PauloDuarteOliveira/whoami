@@ -30,12 +30,10 @@
 .chip.right { background: var(--yes-soft); color: var(--yes-text); }
 .chip.out { background: var(--surface-2); color: var(--text-2); }
 
-/* Voice mode: only the ranking, centred. */
 .layout.single { grid-template-columns: minmax(0, 620px); justify-content: center; }
 @media (max-width: 900px) { .layout { grid-template-columns: 1fr; padding: 16px; } }
 .sky { margin-left: auto; }
 
-/* Phone: a short header, and each ranking tag on its own line under the name. */
 @media (max-width: 600px) {
   .head { height: 56px; padding: 0 16px; }
   .head .muted { display: none; }
@@ -47,7 +45,6 @@
   .ranking .btn { align-self: stretch; height: 52px; }
 }
 
-/* Back to lobby, with Leave the room as a quiet link under it. */
 .ranking .back { align-self: stretch; height: 54px; font-size: 17px; }
 .or { align-self: center; font-size: 13px; color: var(--muted); }
 .link-leave { padding: 0; border: none; background: none; color: var(--no-text); font: inherit; font-weight: 700; cursor: pointer; }

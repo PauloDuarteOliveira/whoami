@@ -3,10 +3,6 @@ import { ConfirmService } from '../../core/confirm.service';
 import { DialogIcon } from '../dialog-icon/dialog-icon';
 import { trapFocus } from '../focus';
 
-/**
- * The confirmation box (design canvas, section 6). It follows the Day / Night theme, says what will happen,
- * and repeats the action on its button. Esc, a click outside, or Cancel answers no.
- */
 @Component({
     selector: 'app-confirm-dialog',
     imports: [DialogIcon],

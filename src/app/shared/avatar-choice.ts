@@ -2,11 +2,6 @@ import { Component, EventEmitter, Input, Output, signal } from '@angular/core';
 import { AvatarPicker } from './avatar-picker';
 import { avatarLabel, avatarUrl } from './avatars';
 
-/**
- * Your animal next to your name (Home, Join): tap it to open the 30 animals underneath.
- * The host is display: contents, so it sits in its parent's grid: the button in the first column,
- * the picker across the whole row below (give the parent `grid-template-columns: auto 1fr`).
- */
 @Component({
     selector: 'app-avatar-choice',
     imports: [AvatarPicker],
@@ -58,7 +53,6 @@ import { avatarLabel, avatarUrl } from './avatars';
 })
 export class AvatarChoice {
     @Input({ required: true }) selected!: string;
-    /** Animals other players in the room already have (on the Join screen). */
     @Input() taken: (string | null)[] = [];
     @Output() pick = new EventEmitter<string>();
 

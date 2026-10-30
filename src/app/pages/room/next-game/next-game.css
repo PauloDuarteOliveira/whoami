@@ -1,4 +1,3 @@
-/* The Admin's Next game settings, under the QR code (design: Lobby after a game · Admin). */
 :host { display: block; width: 100%; max-width: 560px; }
 
 .next { display: flex; flex-direction: column; gap: 14px; padding-top: 16px; border-top: 1px solid var(--border); text-align: left; }
