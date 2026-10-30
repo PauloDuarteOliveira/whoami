@@ -14,17 +14,14 @@ export function isAvatar(id: string | null | undefined): id is AvatarId {
   return !!id && (AVATARS as readonly string[]).includes(id);
 }
 
-/** Relative to the page's <base href>, so it works on localhost and on GitHub Pages. */
 export function avatarUrl(id: string): string {
   return `avatars/${id}.svg`;
 }
 
-/** "fox" → "Fox", for labels read by screen readers. */
 export function avatarLabel(id: string): string {
   return id.charAt(0).toUpperCase() + id.slice(1);
 }
 
-/** The avatar you asked for if it's free in the room, otherwise the first free one (or any, if all 30 are taken). */
 export function freeAvatar(wanted: string | null, taken: (string | null)[]): AvatarId {
   if (isAvatar(wanted) && !taken.includes(wanted)) return wanted;
   return AVATARS.find(a => !taken.includes(a)) ?? AVATARS[taken.length % AVATARS.length];

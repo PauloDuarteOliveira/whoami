@@ -14,10 +14,6 @@ import { maskEmail } from '../../shared/mask-email';
 import { SettingsSummary } from '../../shared/settings-summary/settings-summary';
 import { playerNameValidators } from '../../shared/validators';
 
-/**
- * Your account → Overview (the concept's layout): who you are and how you sign in on the left,
- * with your room settings and Delete; Continue playing, your numbers, recent games and badges on the right.
- */
 @Component({
     selector: 'app-account-overview',
     imports: [ReactiveFormsModule, RouterLink, AvatarChoice, SettingsSummary],
@@ -39,13 +35,11 @@ export class AccountOverview implements OnInit {
     protected readonly quick: OAuthProvider[] = ['google', 'discord'];
     protected readonly label = PROVIDER_LABEL;
     protected readonly email = computed(() => maskEmail(this.auth.email()));
-    /** "Signed in with Google": the first way this account signs in. */
     protected readonly signedInWith = computed(() => {
         const first = this.auth.providers().find(p => p !== 'anonymous');
         return first === 'google' || first === 'discord' ? PROVIDER_LABEL[first] : first === 'email' ? 'email' : null;
     });
 
-    /** Your name, editable here; it shows in the header and follows you to every device. */
     protected readonly nameControl = new FormControl(this.profile.name(), { nonNullable: true, validators: playerNameValidators });
     protected readonly nameSaved = signal(false);
     protected readonly connecting = signal(false);
@@ -53,7 +47,6 @@ export class AccountOverview implements OnInit {
     protected readonly openRooms = signal<OpenRoom[]>([]);
     protected readonly phaseLabel: Record<OpenRoom['room']['status'], string> = { lobby: 'Lobby', writing: 'Writing characters', playing: 'Game in progress', finished: 'Game over · back in the lobby' };
 
-    /** Badges preview: earned ones first, then the ones you're closest to. */
     protected readonly badges = computed(() => {
         const all = badgesFor(this.my.games());
         const sorted = [...all].sort((a, b) => Number(b.earned) - Number(a.earned) || b.current / b.target - a.current / a.target);
@@ -62,8 +55,6 @@ export class AccountOverview implements OnInit {
     protected readonly recent = computed(() => this.my.games().slice(0, 4));
 
     constructor() {
-        // The account's name can arrive just after the page opens (a new device): keep the box in step
-        // until the player starts typing.
         effect(() => {
             const name = this.profile.name();
             if (!this.nameControl.dirty) this.nameControl.setValue(name, { emitEvent: false });
@@ -107,7 +98,6 @@ export class AccountOverview implements OnInit {
 
     protected rejoin(r: OpenRoom): void {
         this.sessions.save(r.room.code, r.id);
-        // A finished game: straight back to the lobby after it, not the results again.
         this.router.navigate(['/room', r.room.code], r.room.status === 'finished' ? { queryParams: { lobby: 1 } } : {});
     }
 

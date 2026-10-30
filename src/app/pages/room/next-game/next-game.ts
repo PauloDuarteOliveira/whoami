@@ -8,10 +8,6 @@ import { RoomSettings } from '../../../core/room.service';
 type TurnTimer = RoomSettings['turn_timer_sec'];
 type WritingTimer = RoomSettings['writing_timer_sec'];
 
-/**
- * The lobby after a game, Admin only: the next game's settings (starting from the last game's) and Play again.
- * The same choices as Create a room, in a compact form that fits under the QR code.
- */
 @Component({
   selector: 'app-next-game',
   templateUrl: './next-game.html',
@@ -23,7 +19,6 @@ export class NextGame implements OnInit {
   private readonly auth = inject(AuthService);
 
   @Input({ required: true }) room!: Room;
-  /** Players who will play (Play again needs at least 2). */
   @Input() players = 0;
   @Input() busy = false;
   @Output() playAgain = new EventEmitter<RoomSettings>();
@@ -43,13 +38,11 @@ export class NextGame implements OnInit {
   protected readonly turnTimers: TurnTimer[] = [null, 60, 120, 180];
   protected readonly writingTimers: WritingTimer[] = [null, 30, 60, 90];
 
-  /** A deck or a list must be picked when the game uses one. */
   protected readonly missing = computed(() =>
     this.source() === 'deck' && !this.deckId() ? 'Pick a deck.' : this.source() === 'list' && !this.listId() ? 'Pick a list.' : null,
   );
 
   ngOnInit(): void {
-    // Start from the game that just ended.
     this.mode.set(this.room.mode);
     this.source.set(this.room.character_source);
     this.deckId.set(this.room.deck_id);

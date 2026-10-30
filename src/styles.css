@@ -1,11 +1,7 @@
-/* Palm shadows theme. Night is the base (a first visit follows the device's light or dark mode); html[data-sky="day"] switches every colour to its day version.
-   Fills (--accent, --yes…) and text (--accent-text, --yes-text…) are separate, because a colour that
-   works as a button on a dark night sky is too light to read as text on a bright day sky. */
 :root {
   --page-bg: radial-gradient(circle at 82% 19%, rgba(255, 248, 236, 0.10), transparent 30%),
     radial-gradient(circle at 9% 13%, rgba(255, 201, 60, 0.14), transparent 22%),
     linear-gradient(180deg, #082C37 0%, #0A3A47 55%, #0D4A52 100%);
-  /* The sky's bottom colour, under everything (shows only when a phone overscrolls). */
   --page-base: #0D4A52;
   --bg: #0A3440;
   --surface: #0F4553;
@@ -43,7 +39,6 @@
   --palm: #05222A;
   --palm-opacity: 1;
 
-  /* Dialogs and menus float above the panels, so they get a tint of their own. */
   --dialog-bg: #155566;
   --dialog-border: rgba(255, 248, 236, 0.22);
   --dialog-shadow: 0 18px 44px rgba(0, 0, 0, 0.45);
@@ -112,9 +107,6 @@ html[data-sky="day"] {
 
 html, body { height: 100%; }
 
-/* The sky gradient is painted by the scenery layer (shared/scenery), which is fixed to the screen like the
-   palms, moon and stars: "background-attachment: fixed" on the page only covered the first screen,
-   so long pages (Achievements) showed a dark band when scrolled. */
 html { background: var(--page-base); }
 
 body {
@@ -131,12 +123,9 @@ h1, h2, h3 { margin: 0; font-family: var(--font-display); font-weight: 400; lett
 a:not(.btn) { color: var(--accent-text); }
 a:not(.btn):hover { color: var(--accent-hover); }
 
-/* The header logo + WhoAmI, as a link to Home (shared/home-link.ts): looks like the logo, not like a link. */
 a.home-link { display: inline-flex; align-items: center; gap: 10px; flex: none; color: inherit; text-decoration: none; border-radius: 10px; }
 a.home-link:hover { color: inherit; }
 a.home-link:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
-
-/* Buttons ----------------------------------------------------------------- */
 
 .btn {
   display: inline-flex;
@@ -160,19 +149,12 @@ a.home-link:focus-visible { outline: 2px solid var(--accent); outline-offset: 4p
 .btn-primary { background: var(--accent); color: var(--on-accent); font-weight: 800; }
 .btn-ghost { background: transparent; border-color: var(--border-strong); color: var(--text-2); }
 
-/*
- * One rule for every button: an ACTION (it does something: Create, Start, Copy, Skip, Leave…) has a
- * 3D bottom edge and sinks when pressed. A CHOICE (filters, tabs, Night/Day, options you pick) is flat,
- * with the picked one filled yellow. Actions that aren't a .btn take the .press class.
- */
 .btn, .press { box-shadow: 0 4px 0 var(--btn-shadow); transition: transform .08s, box-shadow .08s; }
 .btn:active:not(:disabled), .press:active:not(:disabled) { transform: translateY(3px); box-shadow: 0 1px 0 var(--btn-shadow); }
 .btn-primary { box-shadow: 0 5px 0 var(--accent-deep); }
 .btn-primary:active:not(:disabled) { box-shadow: 0 2px 0 var(--accent-deep); }
 .btn-ghost { box-shadow: 0 3px 0 var(--border-strong); }
 .btn-ghost:active:not(:disabled) { box-shadow: 0 1px 0 var(--border-strong); }
-
-/* Form fields ------------------------------------------------------------- */
 
 .field {
   display: flex;
@@ -198,8 +180,6 @@ a.home-link:focus-visible { outline: 2px solid var(--accent); outline-offset: 4p
 
 .error-text { font-size: 12px; color: var(--no-text); }
 
-/* Surfaces and small parts ------------------------------------------------ */
-
 .card {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -223,11 +203,8 @@ a.home-link:focus-visible { outline: 2px solid var(--accent); outline-offset: 4p
 * { scrollbar-width: thin; scrollbar-color: var(--border-strong) transparent; }
 *:hover { scrollbar-color: var(--accent) transparent; }
 
-/* Red button for actions you can't take back (Kick, Give up, Replace) */
 .btn-destructive { background: var(--destructive); color: var(--on-destructive); font-weight: 800; box-shadow: 0 5px 0 var(--destructive-deep); }
 .btn-destructive:active:not(:disabled) { box-shadow: 0 2px 0 var(--destructive-deep); }
-
-/* Dialogs (confirmation boxes, troll-character votes): the Palm shadows design, sections 6 and 7 ------ */
 
 .dialog-layer {
   position: fixed;
@@ -280,7 +257,6 @@ a.home-link:focus-visible { outline: 2px solid var(--accent); outline-offset: 4p
 
 @keyframes dialog-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 
-/* On a phone the dialog slides up from the bottom, with full-width buttons near the thumb. */
 @media (max-width: 600px) {
   .dialog-layer { align-items: flex-end; padding: 10px; }
   .dialog { padding: 22px 20px 20px; border-radius: 26px; }
@@ -293,6 +269,4 @@ a.home-link:focus-visible { outline: 2px solid var(--accent); outline-offset: 4p
 
 @media (prefers-reduced-motion: reduce) { .dialog { animation: none; } }
 
-/* The WhoAmI wordmark: "Am" in the logo's yellow, by night and by day. It sits on the left of the
-   header, away from the sun (top right), so the yellow never lands on the yellow sun. */
 .brand .am { color: var(--accent); }

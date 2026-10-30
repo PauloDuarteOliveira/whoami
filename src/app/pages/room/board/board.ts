@@ -5,30 +5,22 @@ import { DatePipe } from '@angular/common';
 import { Player, Whiteboard } from '../../../core/models';
 
 export interface BoardDraft {
-    /** The drawing as a PNG data URL, or '' when the board is empty. */
     image: string;
     shared: boolean;
 }
 
 type Tool = 'pen' | 'eraser';
 
-/** The drawing is kept at this size and scaled to fit the screen, so it looks the same on every device. */
 const WIDTH = 1200;
 const HEIGHT = 900;
 const PEN_SIZE = 8;
 const ERASER_SIZE = 44;
 const UNDO_STEPS = 30;
-/** Saves shortly after you stop drawing, so a quick sketch is one save instead of one per line. */
 const SAVE_DELAY_MS = 700;
-/** The board is a chalkboard in both themes, so the pen colours always show. */
 const CHALKBOARD = '#0A3440';
 
 interface Snapshot { pixels: ImageData; blank: boolean; }
 
-/**
- * Your own drawing board for theories, like Notes but drawn with a finger, a stylus or the mouse.
- * Shared boards can be viewed by the rest of the room, live.
- */
 @Component({
     selector: 'app-board',
     imports: [DatePipe],
@@ -39,7 +31,6 @@ export class Board implements OnChanges, AfterViewInit, OnDestroy {
     @Input({ required: true }) me!: Player;
     @Input({ required: true }) players: Player[] = [];
     @Input({ required: true }) boards: Whiteboard[] = [];
-    /** False while the board is hidden (another tab is open), so Escape doesn't close it. */
     @Input() open = false;
 
     @Output() save = new EventEmitter<BoardDraft>();
@@ -57,7 +48,6 @@ export class Board implements OnChanges, AfterViewInit, OnDestroy {
         { value: '#A8CBFF', label: 'Blue' },
     ];
 
-    /** 'me' for your own board, or the id of the player whose board is open. */
     protected readonly tab = signal('me');
     protected readonly tool = signal<Tool>('pen');
     protected readonly color = signal(this.colors[1].value);
@@ -70,7 +60,6 @@ export class Board implements OnChanges, AfterViewInit, OnDestroy {
     private undo: Snapshot[] = [];
     private drawing = false;
     private last: { x: number; y: number } | null = null;
-    /** Your saved board is drawn once, when it arrives, unless you've already started a new drawing. */
     private loaded = false;
     private touched = false;
     private saveTimer: ReturnType<typeof setTimeout> | null = null;
@@ -93,7 +82,6 @@ export class Board implements OnChanges, AfterViewInit, OnDestroy {
         if (this.open) this.closed.emit();
     }
 
-    /** Other players' boards that are shared with the room and not empty. */
     protected others(): Whiteboard[] {
         return this.boards.filter(b => b.player_id !== this.me.id && b.shared && b.image !== '');
     }
@@ -102,7 +90,6 @@ export class Board implements OnChanges, AfterViewInit, OnDestroy {
         return this.others().find(b => b.player_id === playerId) ?? null;
     }
 
-    /** The open tab, or your own board when the open one is no longer shared. */
     protected current(): string {
         return this.tab() === 'me' || this.boardOf(this.tab()) ? this.tab() : 'me';
     }
@@ -111,16 +98,13 @@ export class Board implements OnChanges, AfterViewInit, OnDestroy {
         return this.players.find(p => p.id === playerId)?.name ?? 'Someone';
     }
 
-    // Drawing ------------------------------------------------------------------------------------------
-
     protected startStroke(event: PointerEvent): void {
         if (!this.context || event.button > 0) return;
         event.preventDefault();
-        // Keeps the line going if the finger slides off the board. Not every pointer can be captured.
         try {
             (event.target as HTMLCanvasElement).setPointerCapture(event.pointerId);
         } catch {
-            // Drawing still works without it.
+            /* pointer capture not supported */
         }
         this.remember();
         this.drawing = true;
@@ -131,7 +115,6 @@ export class Board implements OnChanges, AfterViewInit, OnDestroy {
 
     protected moveStroke(event: PointerEvent): void {
         if (!this.drawing || !this.last) return;
-        // Fast movements arrive as several points in one event; drawing all of them keeps lines smooth.
         const points = event.getCoalescedEvents?.().length ? event.getCoalescedEvents() : [event];
         for (const e of points) {
             const next = this.point(e);
@@ -175,7 +158,6 @@ export class Board implements OnChanges, AfterViewInit, OnDestroy {
         this.saveNow();
     }
 
-    /** Saves the open board as a PNG, on the chalkboard colour (the board itself is see-through). */
     protected download(): void {
         const source = this.current() === 'me' ? this.canvasRef?.nativeElement.toDataURL('image/png') : this.boardOf(this.current())?.image;
         if (!source) return;
@@ -198,7 +180,6 @@ export class Board implements OnChanges, AfterViewInit, OnDestroy {
         image.src = source;
     }
 
-    /** Where the pointer is on the drawing, whatever size the board is shown at. */
     private point(event: PointerEvent): { x: number; y: number } {
         const rect = (event.target as HTMLCanvasElement).getBoundingClientRect();
         return {
@@ -222,15 +203,12 @@ export class Board implements OnChanges, AfterViewInit, OnDestroy {
         context.stroke();
     }
 
-    /** Keeps a copy of the board before a change, for Undo. */
     private remember(): void {
         if (!this.context) return;
         this.undo.push({ pixels: this.context.getImageData(0, 0, WIDTH, HEIGHT), blank: this.blank() });
         if (this.undo.length > UNDO_STEPS) this.undo.shift();
         this.canUndo.set(true);
     }
-
-    // Saving and loading -------------------------------------------------------------------------------
 
     private scheduleSave(): void {
         this.saving.set('unsaved');

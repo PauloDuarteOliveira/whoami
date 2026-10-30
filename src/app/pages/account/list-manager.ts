@@ -5,17 +5,12 @@ import { CHARACTER_MAX, CharacterList, LIST_NAME_MAX, LIST_SIZE_MAX, ListService
 
 type LoadState = 'loading' | 'ready' | 'error' | 'missing';
 
-/** What the editor is working on: an existing list (id) or a new one (id null). */
 interface Draft {
     id: string | null;
     name: string;
     characters: string[];
 }
 
-/**
- * Account → Character lists: make your own lists ("Our class", "Disney villains") to host with.
- * Pick one under "My lists" in Create room, and each player gets a character from it.
- */
 @Component({
     selector: 'app-list-manager',
     template: `
@@ -147,7 +142,6 @@ export class ListManager implements OnInit {
     protected readonly busy = signal(false);
     protected readonly saved = signal(false);
 
-    /** Saving needs a name and at least one character, and something changed. */
     protected readonly canSave = computed(() => {
         const d = this.draft();
         if (!d || !d.name.trim() || d.characters.length === 0) return false;
@@ -166,7 +160,6 @@ export class ListManager implements OnInit {
                 this.lists.set(lists);
                 this.state.set('ready');
             },
-            // The table isn't there until migration 009 runs.
             error: (e: HttpErrorResponse) => this.state.set(e.status === 404 || e.error?.code === 'PGRST205' ? 'missing' : 'error'),
         });
     }
@@ -187,7 +180,6 @@ export class ListManager implements OnInit {
         this.saved.set(false);
     }
 
-    /** Adds what's typed: one name, or several separated by commas (or lines, when pasted). */
     protected add(): void {
         const d = this.draft();
         if (!d) return;

@@ -1,4 +1,3 @@
-/* The dialog look itself is global (styles.css, "Dialogs"); these are the parts only troll reports use. */
 
 .dialog-backdrop { cursor: default; }
 
@@ -16,7 +15,6 @@
 .field label { font-size: 13px; color: var(--text-2); letter-spacing: 0; }
 .input.big { height: 50px; font-size: 16px; background: var(--bg); }
 
-/* 7.5 · a notice for the receiver, above the game but not blocking it */
 .replacing {
   position: fixed;
   z-index: 60;
@@ -37,7 +35,6 @@
 .replacing strong { font-size: 17px; }
 .replacing span:not(.dialog-badge) { color: var(--muted); font-size: 14px; line-height: 1.45; }
 
-/* Phone: just above the tab bar, so it never covers the turn card's heading */
 @media (max-width: 900px) {
   .replacing { bottom: calc(76px + env(safe-area-inset-bottom)); padding: 14px 16px; gap: 12px; }
   .replacing strong { font-size: 15px; }

@@ -31,7 +31,6 @@ export class SupabaseApiService {
     return this.insert<T>(table, row).pipe(map(rows => rows[0]));
   }
 
-  /** Inserts the row, or updates it if a row with the same primary key already exists. */
   upsert<T>(table: string, row: Partial<T>): Observable<T> {
     return this.http
       .post<T[]>(`${this.baseUrl}/${table}`, row, {

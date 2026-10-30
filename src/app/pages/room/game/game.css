@@ -1,8 +1,5 @@
-/* Layout A (design canvas): header across the top, then players & clues | the turn | the dock.
-   Everything fits one screen; long lists scroll inside their own panel, never the page. */
 .game { height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
 
-/* Header ------------------------------------------------------------------------------------------- */
 .top {
   min-height: 60px;
   flex: none;
@@ -32,7 +29,6 @@
 .leave { height: 38px; color: var(--no-text); }
 .eye, .avatars, .tabbar { display: none; }
 
-/* Body: the three columns ---------------------------------------------------------------------------- */
 .body {
   flex: 1;
   min-height: 0;
@@ -41,7 +37,6 @@
   gap: 20px;
   padding: 20px;
 }
-/* With Notes or History open the dock takes a third column; with nothing chosen the turn gets the space. */
 .game.dock-open:not([data-pane="board"]) .body { grid-template-columns: 390px minmax(0, 1fr) 340px; }
 .rail { min-height: 0; }
 .main { min-width: 0; min-height: 0; display: flex; flex-direction: column; gap: 16px; overflow-y: auto; }
@@ -50,11 +45,9 @@
 .game[data-dock="notes"] app-history, .game[data-dock="notes"] app-chat,
 .game[data-dock="history"] app-notes, .game[data-dock="history"] app-chat,
 .game[data-dock="chat"] app-notes, .game[data-dock="chat"] app-history { display: none; }
-/* Notes, History and Chat each fill the whole column, like the players panel on the left. */
 app-chat, app-notes, app-history { flex: 1; }
 .count-badge { min-width: 18px; height: 18px; padding: 0 5px; margin-left: 6px; border-radius: 9px; background: var(--no); color: #3A1520; font-size: 11px; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; }
 
-/* The turn ---------------------------------------------------------------------------------------------- */
 .main .card { border-radius: 24px; padding: 32px; display: flex; flex-direction: column; gap: 16px; }
 .turn { flex: 1; align-items: center; justify-content: center; text-align: center; background: var(--glass); backdrop-filter: blur(10px); }
 .turn h1 { font-size: 32px; text-wrap: balance; }
@@ -71,7 +64,6 @@ app-chat, app-notes, app-history { flex: 1; }
 .box { height: 52px; padding: 0 16px; border-radius: var(--radius); border: 1px solid var(--border-strong); background: var(--bg); color: var(--text); font: 500 16px var(--font); }
 .box:focus { outline: none; border-color: var(--accent); }
 
-/* Yes / No / Unsure, Correct / Wrong */
 .answers { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
 .answer { width: 150px; height: 58px; border: none; border-radius: 16px; font: 400 22px var(--font-display); cursor: pointer; transition: transform .08s; }
 .answer:active:not(:disabled) { transform: translateY(3px); }
@@ -91,7 +83,6 @@ app-chat, app-notes, app-history { flex: 1; }
 .main .out-banner { flex: none; display: block; padding: 16px 24px; background: var(--accent-tint); border: 1px solid var(--accent); }
 .give-up { width: 100%; display: flex; justify-content: center; padding-top: 12px; border-top: 1px dashed var(--border); }
 
-/* The Board: takes the middle and the dock; the question stays on top ---------------------------------- */
 app-board { display: none; }
 .game[data-pane="board"] .body { grid-template-columns: 390px minmax(0, 1fr); }
 .game[data-pane="board"] .dock,
@@ -107,8 +98,6 @@ app-board { display: none; }
 .board-close:hover:not(:disabled) { border-color: var(--accent); }
 .board-answers .answer { width: auto; height: 40px; padding: 0 18px; font-size: 16px; }
 
-/* Tablet landscape (up to 1180 px): narrower columns. Notes or History sit beside the turn, on the same
-   level, and the rail gives up some width so the turn keeps room for its answer buttons. ---------------- */
 @media (max-width: 1180px) {
   .body,
   .game[data-pane="board"] .body { grid-template-columns: 340px minmax(0, 1fr); gap: 16px; padding: 16px; }
@@ -121,7 +110,6 @@ app-board { display: none; }
   .game.dock-open:not([data-pane="board"]) .answer { width: 124px; }
 }
 
-/* Phone (upright or sideways), and a tablet held upright: one part at a time and a tab bar ---------------- */
 @media (max-width: 900px), (orientation: landscape) and (max-height: 500px) {
   .game { height: auto; min-height: 100dvh; overflow: visible; }
   .top { position: sticky; top: 0; z-index: 10; min-height: 56px; padding: 0 12px; gap: 6px; }
@@ -141,14 +129,12 @@ app-board { display: none; }
   .mini { width: 28px; height: 28px; margin-left: -8px; border-radius: 50%; border: 2px solid var(--surface); color: var(--on-accent); font-weight: 700; font-size: 12px; display: flex; align-items: center; justify-content: center; }
   .mini:first-child { margin-left: 0; }
   .mini.current { position: relative; z-index: 1; box-shadow: 0 0 0 2px var(--accent); }
-  /* The same arrow as the cards: it opens the Clues tab. */
   .chevron { width: 26px; height: 26px; margin-left: 4px; flex: none; border-radius: 50%; background: var(--surface-2); color: var(--text-2); display: grid; place-items: center; }
 
   .body, .game[data-pane="board"] .body { display: block; padding: 12px 12px 88px; }
   .main { overflow: visible; }
   .main .card { padding: 20px; border-radius: 20px; }
 
-  /* Only the chosen tab's part is shown (the others stay alive, just hidden). */
   .rail, .dock, .game.dock-open:not([data-pane="board"]) .dock, app-history, app-notes, app-chat { display: none; }
   .game[data-pane="clues"] .rail { display: block; }
   .game[data-pane="clues"] .main { display: none; }
@@ -165,7 +151,6 @@ app-board { display: none; }
   .game:not([data-pane="play"]) .out-banner { display: none; }
   .game[data-pane="board"] app-board { display: block; }
 
-  /* The turn card fills the screen; its actions sit at the bottom, where the thumb rests. */
   .turn { min-height: calc(100dvh - 56px - 64px - 32px); justify-content: flex-start; padding-top: 28px; }
   .turn h1 { font-size: 26px; }
   .question { font-size: 30px; }
@@ -200,8 +185,6 @@ app-board { display: none; }
   .badge { position: absolute; top: 12px; right: calc(50% - 26px); width: 8px; height: 8px; border-radius: 50%; background: var(--no); }
 }
 
-/* Phone held sideways: the tab bar becomes a column on the left, so the turn gets the whole height,
-   and the answer buttons sit in one row. ------------------------------------------------------------- */
 @media (orientation: landscape) and (max-height: 500px) {
   .top { min-height: 48px; padding: 0 12px 0 calc(12px + env(safe-area-inset-left)); }
   .body, .game[data-pane="board"] .body { padding: 10px calc(10px + env(safe-area-inset-right)) 10px calc(96px + env(safe-area-inset-left)); }
@@ -238,11 +221,9 @@ app-board { display: none; }
   .game[data-pane="history"] app-history { height: calc(100dvh - 48px - 20px); }
 }
 
-/* Turn timer: a bar that empties, red for the last 10 seconds. */
 .turn { position: relative; }
 .timer { position: absolute; top: 14px; left: 20px; right: 20px; display: flex; flex-direction: column; align-items: stretch; gap: 6px; }
 .timer-row { display: flex; align-items: center; gap: 10px; }
-/* Voting and judging: everyone's clock, in blue, so it isn't mistaken for the asker's time. */
 .timer.vote .timer-fill { background: var(--unsure-text); }
 .timer.vote .timer-step, .timer.vote .timer-text { color: var(--unsure-text); }
 .paused-note { align-self: flex-start; padding: 2px 10px; border-radius: 8px; background: var(--accent-soft); color: var(--accent-text); font-size: 12px; font-weight: 700; }
@@ -252,11 +233,9 @@ app-board { display: none; }
 .timer.low .timer-fill { background: var(--no); }
 .timer-text { flex: none; min-width: 40px; text-align: right; font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--muted); }
 .timer.low .timer-text { color: var(--no); }
-/* Room for the timer bar (and the paused note) above the turn, on every screen size. */
 .main .turn.timed { padding-top: 52px; }
 .main .turn.timed.paused { padding-top: 84px; }
 
-/* Who voted: a face for each voter, faded until they vote, then a green tick. */
 .voter-faces { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
 .vf { position: relative; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; opacity: .35; filter: grayscale(.6); transition: opacity .2s, filter .2s; }
 .vf.done { opacity: 1; filter: none; }
@@ -265,8 +244,6 @@ app-board { display: none; }
 .timer-step { flex: none; display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 700; color: var(--accent-text); }
 .timer.low .timer-step { color: var(--no); }
 
-/* Your next move: at the bottom of the turn card while the others play. */
-/* With the draft box, the turn stays centred in the space above it. */
 .grow { flex: 1 1 0; }
 .draft { width: 100%; max-width: 620px; display: flex; flex-direction: column; gap: 10px; padding: 14px 16px; border-radius: 16px; border: 1px dashed var(--border-strong); background: var(--surface-2); text-align: left; }
 .draft-head { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
@@ -279,7 +256,6 @@ app-board { display: none; }
   .draft-fields { grid-template-columns: minmax(0, 1fr); }
 }
 
-/* Small phones (≤ 380 px): a little tighter header, so "Round" and the faces never touch. */
 @media (max-width: 380px) {
   .top { gap: 4px; padding: 0 8px; }
   .eye { width: 36px; }
@@ -288,7 +264,6 @@ app-board { display: none; }
   .mini { width: 26px; height: 26px; }
 }
 
-/* Voice mode: Guess and Next turn side by side (stacked on phones). */
 .voice-actions { width: 100%; max-width: 460px; display: flex; gap: 10px; }
 .voice-actions .btn { flex: 1; height: 52px; font-size: 16px; }
 @media (max-width: 760px) {

@@ -19,10 +19,6 @@ export class RoomService {
     private readonly players = inject(PlayerService);
     private readonly client = inject(SUPABASE);
 
-    /**
-     * Play again (migration 010): the finished game moves to a room of its own (so it stays in everyone's
-     * history) and this room goes back to the lobby with the new settings and the same code. Admin only.
-     */
     playAgain(roomId: string, s: RoomSettings): Observable<void> {
         return defer(() => this.client.rpc('play_again', {
             p_room: roomId,
@@ -56,9 +52,7 @@ export class RoomService {
         );
     }
 
-
     private insertWithFreeCode(settings: RoomSettings, attemptsLeft: number): Observable<Room> {
-        // list_id only goes with a list, so rooms can still be created before migration 009 runs.
         const { list_id, ...rest } = settings;
         const row: Partial<Room> = settings.character_source === 'list' ? { ...rest, list_id } : rest;
         return defer(() => this.api.insertOne<Room>('rooms', { ...row, code: this.randomCode() })).pipe(

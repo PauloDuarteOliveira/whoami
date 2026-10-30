@@ -4,10 +4,6 @@ import { Logo } from '../../../shared/logo/logo';
 import { HomeLink } from '../../../shared/home-link';
 import { SoundToggle } from '../../../shared/sound-toggle';
 
-/**
- * The header of the Lobby and the Writing phase (design Layout A): the room on the left, the screen's
- * name in the middle, then the Night / Day switch and Leave room. Same look as the game's header.
- */
 @Component({
     selector: 'app-room-top',
     imports: [SkySwitch, Logo, HomeLink, SoundToggle],
@@ -24,7 +20,6 @@ import { SoundToggle } from '../../../shared/sound-toggle';
         @if (subtitle) { <span class="subtitle">{{ subtitle }}</span> }
       </div>
       @if (connectionLost) { <span class="lost" role="status">Reconnecting…</span> }
-      <!-- Mute before the game starts, too. -->
       <app-sound-toggle class="sound" />
       <app-sky-switch class="sky" [compact]="true" />
       <button type="button" class="btn btn-ghost leave" (click)="leave.emit()">Leave room</button>

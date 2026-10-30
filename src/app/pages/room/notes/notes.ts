@@ -21,11 +21,9 @@ export class Notes implements OnInit {
 
     @Output() save = new EventEmitter<NoteDraft>();
 
-    /** Bound to the textarea and the checkbox with [(ngModel)] (two-way binding). */
     protected text = '';
     protected visible = true;
 
-    /** 'me' for your own note, or the id of the player whose note is open. */
     protected readonly tab = signal('me');
 
     private savedText = '';
@@ -41,7 +39,6 @@ export class Notes implements OnInit {
         this.savedVisible = this.visible;
     }
 
-    /** Other players' notes that are shared with the room and not empty. */
     protected shared(): Note[] {
         return this.notes.filter(n => n.player_id !== this.me.id && n.visible && n.text.trim() !== '');
     }
@@ -50,7 +47,6 @@ export class Notes implements OnInit {
         return this.shared().find(n => n.player_id === playerId) ?? null;
     }
 
-    /** The open tab, or your own note when the open one is no longer shared. */
     protected current(): string {
         return this.tab() === 'me' || this.noteOf(this.tab()) ? this.tab() : 'me';
     }

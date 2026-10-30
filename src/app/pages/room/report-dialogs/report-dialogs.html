@@ -1,5 +1,4 @@
 @if (decision(); as r) {
-<!-- 7.4 · Second strike: the Admin or a Helper decides -->
 <div class="dialog-layer">
   <div class="dialog-backdrop" aria-hidden="true"></div>
   <section #box class="dialog wide" role="alertdialog" aria-modal="true" aria-labelledby="report-title" [attr.data-key]="'decide-' + r.id">
@@ -23,7 +22,6 @@
   </section>
 </div>
 } @else if (toRewrite(); as r) {
-<!-- 7.3 · The writer writes a new character -->
 <div class="dialog-layer">
   <div class="dialog-backdrop" aria-hidden="true"></div>
   <section #box class="dialog wide" role="alertdialog" aria-modal="true" aria-labelledby="report-title" [attr.data-key]="'rewrite-' + r.id">
@@ -57,7 +55,6 @@
   </section>
 </div>
 } @else if (toVote(); as r) {
-<!-- 7.2 · The room votes -->
 <div class="dialog-layer">
   <div class="dialog-backdrop" aria-hidden="true"></div>
   <section #box class="dialog wide" role="alertdialog" aria-modal="true" aria-labelledby="report-title" [attr.data-key]="'vote-' + r.id">
@@ -102,7 +99,6 @@
 }
 
 @if (beingReplaced()) {
-<!-- 7.5 · The receiver: no name, no writer, no votes -->
 <div class="replacing" role="status">
   <span class="dialog-badge normal"><app-dialog-icon name="pen" /></span>
   <div>

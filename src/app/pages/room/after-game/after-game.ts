@@ -9,11 +9,6 @@ import { NextGame } from '../next-game/next-game';
 import { PlayersPanel } from '../players-panel/players-panel';
 import { RoomTop } from '../room-top/room-top';
 
-/**
- * The lobby after a game ("Back to lobby" on the results): the same room and code. Last game's cards
- * (characters and results) on the left, the code / QR code to invite more friends in the middle,
- * last game's History and the chat on the right. Only the Admin sees the Next game settings and Play again.
- */
 @Component({
   selector: 'app-after-game',
   imports: [RoomTop, PlayersPanel, Invite, NextGame, History, Chat, AvatarFace],
@@ -22,7 +17,6 @@ import { RoomTop } from '../room-top/room-top';
 })
 export class AfterGame {
   @Input({ required: true }) room!: Room;
-  /** Everyone in the room now (not kicked, not gone). */
   @Input({ required: true }) players: Player[] = [];
   @Input({ required: true }) me!: Player;
   @Input({ required: true }) characters: Character[] = [];
@@ -49,7 +43,6 @@ export class AfterGame {
     return this.players.find(p => p.role === 'admin') ?? null;
   }
 
-  /** Everyone here plays the next game, including those who joined to watch. */
   protected get nextPlayers(): number {
     return this.players.length;
   }

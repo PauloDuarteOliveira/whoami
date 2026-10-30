@@ -1,4 +1,3 @@
-/** 1 → "1 question", 3 → "3 questions". */
 export function plural(count: number, word: string): string {
     return `${count} ${word}${count === 1 ? '' : 's'}`;
 }

@@ -1,7 +1,3 @@
-/**
- * An email shown without giving it away: the first 2 and last 2 letters before the @, then the domain.
- * "example21@gmail.com" → "ex*****21@gmail.com". Always 5 stars, so it doesn't reveal the length either.
- */
 export function maskEmail(email: string | null | undefined): string | null {
     if (!email) return null;
     const at = email.lastIndexOf('@');

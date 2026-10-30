@@ -4,12 +4,10 @@ import { cleanName } from '../shared/validators';
 import { Character, Report, ReportVote, ReportVoteValue } from './models';
 import { SupabaseApiService } from './supabase-api.service';
 
-/** Reports of troll characters, their votes, and the rewrite (see supabase/migrations/005). */
 @Injectable({ providedIn: 'root' })
 export class ReportService {
   private readonly api = inject(SupabaseApiService);
 
-  /** An empty list if the reports table isn't there yet, so the game still loads without migration 005. */
   getReports(roomId: string): Observable<Report[]> {
     return this.api.select<Report>('reports', { room_id: `eq.${roomId}`, order: 'created_at.asc' }).pipe(catchError(() => of([])));
   }
@@ -44,12 +42,10 @@ export class ReportService {
     return this.api.update<Report>('reports', { id: `eq.${report.id}` }, { admin_decision: decision }).pipe(map(rows => rows[0] ?? null));
   }
 
-  /** The writer's new character (allowed by Row Level Security only after a replace vote). */
   rename(characterId: string, name: string): Observable<Character | null> {
     return this.api.update<Character>('characters', { id: `eq.${characterId}` }, { name: cleanName(name) }).pipe(map(rows => rows[0] ?? null));
   }
 
-  /** Hands the rewrite to another player (the Admin kicked the writer). */
   setWriter(characterId: string, playerId: string): Observable<unknown> {
     return this.api.update<Character>('characters', { id: `eq.${characterId}` }, { written_by: playerId });
   }

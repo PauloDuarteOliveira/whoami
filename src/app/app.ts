@@ -13,6 +13,5 @@ import { ConfirmDialog } from './shared/confirm-dialog/confirm-dialog';
 })
 export class App {
   protected readonly auth = inject(AuthService);
-  // Created here so the saved Day / Night choice is applied before the first screen shows.
   private readonly prefs = inject(PreferencesService);
 }

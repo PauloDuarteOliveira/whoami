@@ -5,10 +5,6 @@ import { CHAT_MAX_LENGTH } from '../../../core/chat.service';
 import { ChatMessage, Player } from '../../../core/models';
 import { AvatarFace } from '../../../shared/avatar-face';
 
-/**
- * The room chat (Lobby and game): the last 100 messages and a box to write. New messages scroll into
- * view unless you scrolled up to read older ones. Muted players can read but not write.
- */
 @Component({
     selector: 'app-chat',
     imports: [ReactiveFormsModule, DatePipe, AvatarFace],
@@ -17,7 +13,6 @@ import { AvatarFace } from '../../../shared/avatar-face';
 })
 export class Chat implements OnChanges {
     @Input({ required: true }) messages: ChatMessage[] = [];
-    /** Everyone who has been in the room, so old messages keep their author's name. */
     @Input({ required: true }) players: Player[] = [];
     @Input({ required: true }) me!: Player;
     @Input() busy = false;
@@ -34,7 +29,6 @@ export class Chat implements OnChanges {
         const last = this.messages[this.messages.length - 1];
         const mine = last?.player_id === this.me?.id;
         const el = this.list()?.nativeElement;
-        // Follow the conversation if you were at the bottom (or just sent something); otherwise leave you reading.
         const atBottom = !el || el.scrollHeight - el.scrollTop - el.clientHeight < 60;
         if (!before?.length || atBottom || mine) setTimeout(() => this.scrollToEnd());
     }

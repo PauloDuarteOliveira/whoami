@@ -23,7 +23,6 @@ export class PlayerService {
         const color = PLAYER_COLORS.find(c => !takenColors.includes(c)) ?? PLAYER_COLORS[takenColors.length % PLAYER_COLORS.length];
         const row = { room_id: roomId, name: name.trim(), role, color };
         if (!avatar) return this.api.insertOne<Player>('players', row);
-        // Before migration 006 the avatar column doesn't exist (PGRST204): join without it.
         return this.api.insertOne<Player>('players', { ...row, avatar }).pipe(
             catchError((err: HttpErrorResponse) =>
                 err.error?.code === 'PGRST204' ? this.api.insertOne<Player>('players', row) : throwError(() => err),
@@ -31,7 +30,6 @@ export class PlayerService {
         );
     }
 
-    /** You change your own animal (in the lobby). */
     setAvatar(playerId: string, avatar: string): Observable<Player> {
         return this.api.update<Player>('players', { id: `eq.${playerId}` }, { avatar }).pipe(map(rows => rows[0]));
     }
@@ -44,7 +42,6 @@ export class PlayerService {
         return this.api.update<Player>('players', { id: `eq.${playerId}` }, { role }).pipe(map(rows => rows[0]));
     }
 
-    /** Mutes or unmutes a player in the chat (only the Admin and Helpers may, see migration 006). */
     setMuted(playerId: string, muted: boolean): Observable<Player> {
         return this.api.update<Player>('players', { id: `eq.${playerId}` }, { muted }).pipe(map(rows => rows[0]));
     }

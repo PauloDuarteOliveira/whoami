@@ -3,11 +3,6 @@ import { Player } from '../core/models';
 import { avatarUrl, isAvatar } from './avatars';
 import { initials } from './initials';
 
-/**
- * What goes inside an avatar circle: the player's animal, or their initials if they have none
- * (players from before avatars existed). The circle itself (size, colour, online dot) stays with
- * each screen, so this fits every avatar in the app.
- */
 @Component({
     selector: 'app-face',
     template: `
@@ -24,7 +19,6 @@ import { initials } from './initials';
 })
 export class AvatarFace {
     @Input({ required: true }) player!: Pick<Player, 'id' | 'name' | 'joined_at' | 'status'> & { avatar?: string | null };
-    /** The room's players, for initials that tell people apart. */
     @Input() players: Pick<Player, 'id' | 'name' | 'joined_at' | 'status'>[] = [];
 
     protected picture(): string | null {

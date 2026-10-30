@@ -49,14 +49,11 @@ export class JoinRoom implements OnInit {
         this.players().filter(p => p.status !== 'kicked' && p.status !== 'left'),
     );
 
-    /** Animals already taken in this room; yours moves to a free one if it's among them. */
-    /** "Ana, Rui and Sofia", read by screen readers instead of the faces. */
     protected readonly waitingNames = computed(() => this.present().map(p => p.name).join(', '));
 
     protected readonly takenAvatars = computed(() => this.present().map(p => p.avatar ?? null).filter(a => a !== null));
     private readonly chosenAvatar = signal<string | null>(null);
     protected readonly avatar = computed(() => this.chosenAvatar() ?? freeAvatar(this.profile.avatar(), this.takenAvatars()));
-    /** The animal you had, when it's taken here (null when you got your own). */
     protected readonly avatarMoved = computed(() =>
         !this.chosenAvatar() && this.avatar() !== this.profile.avatar() ? avatarLabel(this.profile.avatar()).toLowerCase() : null,
     );
@@ -90,7 +87,6 @@ export class JoinRoom implements OnInit {
             )
             .subscribe();
 
-        // From an invite link or QR code the code is already filled in, so only the name may be left to type.
         const fromLink = this.route.snapshot.paramMap.get('code');
         if (fromLink) {
             this.code.setValue(fromLink.toUpperCase());
@@ -122,7 +118,6 @@ export class JoinRoom implements OnInit {
         this.joining.set(true);
         this.joinError.set(null);
         this.profile.setName(this.name.value);
-        // In the lobby, or after a game (the next one starts from the same room): a player. Mid-game: watching.
         const role = room.status === 'lobby' || room.status === 'finished' ? 'player' : 'spectator';
         const takenColors = this.players().map(p => p.color);
 

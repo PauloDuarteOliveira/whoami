@@ -9,9 +9,6 @@ import { Invite } from '../invite/invite';
 
 export const MIN_PLAYERS = 2;
 
-/**
- * The lobby (design Layout A): the Players rail, the code to share (app-invite), the settings and Start.
- */
 @Component({
   selector: 'app-lobby',
   imports: [DatePipe, RoomTop, Roster, SettingsSummary, Chat, Invite],
@@ -26,7 +23,6 @@ export class Lobby {
   @Input() connectionLost = false;
   @Input({ required: true }) isOnline!: (player: Player) => boolean;
   @Input() starting = false;
-  /** The room chat, and everyone who has been in the room (so old messages keep their author). */
   @Input() messages: ChatMessage[] = [];
   @Input() everyone: Player[] = [];
 

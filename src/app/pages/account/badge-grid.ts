@@ -2,10 +2,6 @@ import { Component, Input, computed, signal } from '@angular/core';
 import { GameRecord } from '../../core/history.service';
 import { BadgeState, badgesFor } from '../../shared/badges';
 
-/**
- * Account → Badges: every badge, earned ones in yellow. Each one says what to do to unlock it,
- * and locked ones show how far you are ("3 / 10").
- */
 @Component({
     selector: 'app-badge-grid',
     template: `
@@ -76,7 +72,6 @@ export class BadgeGrid {
     protected readonly earnedCount = computed(() => this.all().filter(b => b.earned).length);
     protected readonly filters = [{ id: 'all', label: 'All' }, { id: 'earned', label: 'Earned' }, { id: 'locked', label: 'To unlock' }] as const;
     protected readonly filter = signal<'all' | 'earned' | 'locked'>('all');
-    /** Earned first, then the ones you're closest to. */
     protected readonly shown = computed(() => {
         const f = this.filter();
         const list = this.all().filter(b => f === 'all' || (f === 'earned' ? b.earned : !b.earned));

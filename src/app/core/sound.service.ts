@@ -2,7 +2,6 @@ import { Injectable, signal } from '@angular/core';
 
 const SOUND_KEY = 'whoami.sound';
 
-/** One note: frequency (Hz), when it starts and how long it lasts (seconds), and how loud (0–1). */
 interface Note {
     freq: number;
     at: number;
@@ -11,14 +10,8 @@ interface Note {
     type?: OscillatorType;
 }
 
-/**
- * The game's sound cues, made in the browser with the Web Audio API (no audio files to download or credit).
- * Short and soft: vote now, your turn, the last seconds of a timer, a right guess.
- * On by default; the choice is remembered on this device. Phones that can also vibrate for "vote now" and "your turn".
- */
 @Injectable({ providedIn: 'root' })
 export class SoundService {
-    /** Sound on (the default) or muted on this device. */
     readonly on = signal(read() !== 'off');
 
     private context: AudioContext | null = null;
@@ -38,24 +31,20 @@ export class SoundService {
         if (this.on()) this.ready();
     }
 
-    /** Someone asked: your vote is needed (two quick rising notes). */
     voteNow(): void {
         this.play([{ freq: 660, at: 0, length: 0.12 }, { freq: 880, at: 0.13, length: 0.16 }]);
         this.vibrate([60, 40, 60]);
     }
 
-    /** It's your turn to ask (a brighter three-note chime). */
     yourTurn(): void {
         this.play([{ freq: 523, at: 0, length: 0.14 }, { freq: 659, at: 0.14, length: 0.14 }, { freq: 784, at: 0.28, length: 0.26 }]);
         this.vibrate([120]);
     }
 
-    /** One of the last 10 seconds (a quiet tick; a little higher for the last 3). */
     tick(secondsLeft: number): void {
         this.play([{ freq: secondsLeft <= 3 ? 1200 : 950, at: 0, length: 0.05, volume: 0.12, type: 'square' }]);
     }
 
-    /** A guess was judged right (a small celebration). */
     correct(): void {
         this.play([523, 659, 784, 1047].map((freq, i) => ({ freq, at: i * 0.09, length: i === 3 ? 0.35 : 0.12 })));
     }
@@ -70,7 +59,6 @@ export class SoundService {
             const gain = ctx.createGain();
             osc.type = n.type ?? 'sine';
             osc.frequency.value = n.freq;
-            // A quick fade in and out, so the notes don't click.
             const t = start + n.at;
             const peak = (n.volume ?? 0.22);
             gain.gain.setValueAtTime(0.0001, t);
@@ -82,7 +70,6 @@ export class SoundService {
         }
     }
 
-    /** The audio context, created (or woken up) the first time it's needed. */
     private ready(): AudioContext | null {
         try {
             const Ctx = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
@@ -97,7 +84,7 @@ export class SoundService {
 
     private vibrate(pattern: number[]): void {
         if (this.on() && typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
-            try { navigator.vibrate(pattern); } catch { /* not allowed here */ }
+            try { navigator.vibrate(pattern); } catch { /* vibration not allowed */ }
         }
     }
 }
@@ -107,5 +94,5 @@ function read(): string | null {
 }
 
 function write(value: string): void {
-    try { localStorage.setItem(SOUND_KEY, value); } catch { /* storage blocked: lasts until the page reloads */ }
+    try { localStorage.setItem(SOUND_KEY, value); } catch { /* storage blocked */ }
 }

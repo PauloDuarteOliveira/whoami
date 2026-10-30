@@ -1,10 +1,6 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { AVATARS, avatarLabel, avatarUrl } from './avatars';
 
-/**
- * The 30 animals to choose from. The one you have is highlighted; animals other players in the room
- * already have are greyed out, so nobody looks the same.
- */
 @Component({
     selector: 'app-avatar-picker',
     template: `
@@ -41,7 +37,6 @@ import { AVATARS, avatarLabel, avatarUrl } from './avatars';
 })
 export class AvatarPicker {
     @Input() selected: string | null = null;
-    /** Avatars other players in the room already have. */
     @Input() taken: (string | null)[] = [];
     @Output() pick = new EventEmitter<string>();
 

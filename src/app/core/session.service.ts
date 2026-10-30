@@ -20,7 +20,6 @@ export class SessionService {
     this.write(sessions);
   }
 
-  /** Forgets every room in this tab (used when the tab signs in as a different user, who doesn't own those players). */
   forgetAll(): void {
     this.write({});
   }
@@ -37,7 +36,7 @@ export class SessionService {
     try {
       sessionStorage.setItem(STORAGE_KEY, JSON.stringify(sessions));
     } catch {
-      // Storage blocked (e.g. private mode): the session only lasts until the page reloads.
+        /* storage blocked */
     }
   }
 }

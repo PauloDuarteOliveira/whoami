@@ -2,11 +2,6 @@ import { Component, ElementRef, HostListener, Input, OnChanges, signal, viewChil
 import QRCode from 'qrcode';
 import { trapFocus } from '../../../shared/focus';
 
-/**
- * The room's code to share: the big code, Share / QR code / Copy buttons and the QR code of the invite link
- * (on a phone, the QR code opens full screen instead). Used by the Lobby and the lobby after a game;
- * whatever is put inside <app-invite> shows under the QR code (the Admin's Next game settings, a note…).
- */
 @Component({
   selector: 'app-invite',
   templateUrl: './invite.html',
@@ -15,17 +10,12 @@ import { trapFocus } from '../../../shared/focus';
 })
 export class Invite implements OnChanges {
   @Input({ required: true }) code = '';
-  /** The line under the buttons. */
   @Input() hint = '';
-  /** Compact: the QR code sits next to the code, leaving room for what's under it. */
   @Input() compact = false;
 
   protected readonly copied = signal<'code' | 'link' | null>(null);
-  /** The QR code of the invite link, as an image. */
   protected readonly qr = signal<string | null>(null);
-  /** Phones and tablets can hand the link to WhatsApp, Messages… with the system's share sheet. */
   protected readonly canShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function';
-  /** The full-screen QR code (phones). */
   protected readonly qrOpen = signal(false);
   private readonly qrBox = viewChild<ElementRef<HTMLElement>>('qrBox');
   private returnFocus: HTMLElement | null = null;
@@ -42,7 +32,6 @@ export class Invite implements OnChanges {
   protected openQr(): void {
     this.returnFocus = document.activeElement as HTMLElement | null;
     this.qrOpen.set(true);
-    // Focus Done once the dialog is on screen, so Enter or Escape closes it.
     setTimeout(() => this.qrBox()?.nativeElement.querySelector<HTMLElement>('.qr-done')?.focus());
   }
 

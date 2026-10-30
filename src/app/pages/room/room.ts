@@ -30,10 +30,8 @@ import { SoundService } from '../../core/sound.service';
 import { initials } from '../../shared/initials';
 import { avatarUrl, isAvatar } from '../../shared/avatars';
 
-/** Voting on a question and judging a guess get 30 seconds each in rooms with a turn timer; guessing gets at least that. */
 const STEP_SECONDS = 30;
 
-/** Where "Back to lobby" is remembered for this tab: the room and game it was pressed in. */
 const AFTER_GAME_KEY = 'whoami.afterGame';
 function readAfterGame(): string | null {
     try { return sessionStorage.getItem(AFTER_GAME_KEY); } catch { return null; }
@@ -66,12 +64,9 @@ export class RoomPage implements OnInit, OnDestroy {
     private readonly profile = inject(ProfileService);
     private readonly myGames = inject(MyGames);
     private readonly sound = inject(SoundService);
-    /** Sound cues already played (each one plays once). */
     private readonly heard = new Set<string>();
-    /** Right guesses already seen (null until the room first loads, so old ones stay quiet). */
     private correctSeen: Set<string> | null = null;
 
-    /** My vote is needed right now: a question or a guess is being voted on, I'm a voter and haven't voted. */
     private readonly myVoteNeeded = computed(() => {
         const room = this.store.room();
         const me = this.store.me();
@@ -82,7 +77,6 @@ export class RoomPage implements OnInit, OnDestroy {
         return !votes.some(v => v.voter_id === me.id);
     });
 
-    /** It's my move: asking or guessing on my turn. */
     private readonly myMove = computed(() => {
         const room = this.store.room();
         const me = this.store.me();
@@ -95,7 +89,6 @@ export class RoomPage implements OnInit, OnDestroy {
         this.heard.add(key);
         play();
     }
-    /** The game whose end was already counted in your History and badges. */
     private countedGame: string | null = null;
 
     protected code = '';
@@ -110,7 +103,6 @@ export class RoomPage implements OnInit, OnDestroy {
 
     protected readonly isOnline = (player: Player) => this.playerService.isOnline(player, this.store.now());
     protected readonly playing = computed(() => this.present().filter(p => p.role !== 'spectator'));
-    /** Joined during the game: Spectators (they watch and chat, and play the next game). */
     protected readonly spectators = computed(() => this.present().filter(p => p.role === 'spectator'));
     protected readonly inPlay = computed(() =>
         this.store.players().filter(p => p.status === 'playing' && p.role !== 'spectator'),
@@ -166,25 +158,17 @@ export class RoomPage implements OnInit, OnDestroy {
         if (!room || room.status !== 'playing' || !room.turn_timer_sec) return null;
         return room.turn_phase === 'question' || room.turn_phase === 'guess' ? room.turn_timer_sec : STEP_SECONDS;
     });
-    /** When this turn's asking started (seen while it was the asking step), to know the time left for the guess. */
     private readonly askStart = signal<{ turn: number; at: number } | null>(null);
-    /** When this device first saw the question vote start (the asker's clock stopped there). */
     private readonly voteStart = signal<{ turn: number; at: number } | null>(null);
 
-    /**
-     * The guess step: it resumes the asking clock where the question was sent, but never with less than 30 s.
-     * Asked in 20 s of 1 min → 40 s to guess; asked in 50 s → 30 s. The bar picks up where it stopped.
-     */
     private guessStep(room: Room): Partial<Room> {
         const now = Date.now();
         const total = room.turn_timer_sec;
         const left = this.timeAfterVote(room);
         if (!total || left === null) return { turn_phase: 'guess', turn_started_at: new Date(now).toISOString() };
-        // The clock counts down from the room's time, so start it as if (total − left) seconds had already gone.
         return { turn_phase: 'guess', turn_started_at: new Date(now - (total - left) * 1000).toISOString() };
     }
 
-    /** The asker's time waiting for them after the vote: what was left when they asked, at least 30 s. */
     private timeAfterVote(room: Room): number | null {
         const total = room.turn_timer_sec;
         if (!total) return null;
@@ -195,14 +179,12 @@ export class RoomPage implements OnInit, OnDestroy {
         return Math.round(Math.min(total, Math.max(STEP_SECONDS, total - used)));
     }
 
-    /** During the question vote: the asker's paused time, shown next to the vote's own clock. */
     protected readonly pausedTime = computed(() => {
         const room = this.store.room();
         const question = this.currentQuestion();
         if (!room || room.status !== 'playing' || room.turn_phase !== 'answer_vote' || !question) return null;
         return this.timeAfterVote(room);
     });
-    /** Seconds left in this step, or null when the room has no timer. */
     protected readonly timeLeft = computed(() => {
         const room = this.store.room();
         const total = this.timeTotal();
@@ -210,25 +192,17 @@ export class RoomPage implements OnInit, OnDestroy {
         const used = (this.store.now() - new Date(room.turn_started_at).getTime()) / 1000;
         return Math.max(0, Math.ceil(total - used));
     });
-    /** The step whose time already ran out (so it's only handled once). */
     private timedOutStep: string | null = null;
 
-    /** The Admin and Helpers can close a question vote that's stuck. */
     protected readonly canCloseVote = computed(() => {
         const role = this.store.me()?.role;
         return role === 'admin' || role === 'helper';
     });
 
-    // Troll characters (game design, section 4) -------------------------------------------------------------
-
     private characterOf(playerId: string) {
         return this.store.characters().find(c => c.assigned_to === playerId) ?? null;
     }
 
-    /**
-     * Players whose character I may report: written by another player (not a deck card), not by me,
-     * not already being dealt with, and not one the room already voted to keep.
-     */
     protected readonly reportable = computed(() => {
         const me = this.store.me();
         if (!me || me.role === 'spectator') return [];
@@ -244,7 +218,6 @@ export class RoomPage implements OnInit, OnDestroy {
             .map(p => p.id);
     });
 
-    /** My character is being rewritten, so my turn waits. */
     protected readonly waitingForCharacter = computed(() => {
         const me = this.store.me();
         return !!me && this.store.reports().some(r => r.receiver_id === me.id && r.status === 'replaced');
@@ -265,7 +238,6 @@ export class RoomPage implements OnInit, OnDestroy {
             confirmLabel: 'Report it',
         });
         if (!yes) return;
-        // Reporting counts as your vote to replace it.
         this.run(
             this.reportService.create(character, me.id).pipe(
                 tap(report => this.store.putReport(report)),
@@ -298,7 +270,6 @@ export class RoomPage implements OnInit, OnDestroy {
         );
     }
 
-    /** Second strike: give the writer one more chance, or kick them and let a random player write it. */
     protected decideReport(event: DecisionEvent): void {
         const report = event.report;
         if (event.choice === 'chance') {
@@ -326,19 +297,13 @@ export class RoomPage implements OnInit, OnDestroy {
     protected readonly writeNotice = signal<string | null>(null);
     private starting = false;
 
-    // After a game ----------------------------------------------------------------------------------------
-
-    /** "Back to lobby" on the results, remembered for this game (a reload stays in the lobby). */
     private readonly backInLobby = signal<string | null>(readAfterGame());
-    /** The Admin pressed Play again: start the next game once the room is back in the lobby. */
     private startWhenReady = false;
 
-    /** The room's finished game, told apart from the next one in the same room. */
     private gameKey(room: Room): string {
         return `${room.id}@${room.created_at}`;
     }
 
-    /** The lobby after a game: after "Back to lobby", or straight away for someone who joined after the game. */
     protected readonly showAfterGame = computed(() => {
         const room = this.store.room();
         const me = this.store.me();
@@ -351,10 +316,9 @@ export class RoomPage implements OnInit, OnDestroy {
         if (!room) return;
         const key = this.gameKey(room);
         this.backInLobby.set(key);
-        try { sessionStorage.setItem(AFTER_GAME_KEY, key); } catch { /* private mode: just this visit */ }
+        try { sessionStorage.setItem(AFTER_GAME_KEY, key); } catch { /* storage blocked */ }
     }
 
-    /** The Admin starts the next game in the same room, with the settings they picked. */
     protected playAgain(settings: RoomSettings): void {
         const room = this.store.room();
         if (!room || room.status !== 'finished' || this.store.me()?.role !== 'admin') return;
@@ -396,7 +360,6 @@ export class RoomPage implements OnInit, OnDestroy {
             const players = this.playing();
             const characters = this.store.characters();
             if (!room || room.status !== 'writing' || me?.role !== 'admin' || this.starting) return;
-            // Everyone else left while writing: back to the lobby (characters cleared), so the Admin can invite more friends.
             if (players.length < 2) {
                 this.starting = true;
                 this.run(concat(
@@ -431,7 +394,6 @@ export class RoomPage implements OnInit, OnDestroy {
             }
         });
 
-        // Sound cues: your turn to ask, your vote is needed, the last 10 seconds of your time, a right guess.
         effect(() => {
             const room = this.store.room();
             if (!room || room.status !== 'playing') return;
@@ -456,15 +418,12 @@ export class RoomPage implements OnInit, OnDestroy {
             untracked(() => this.sound.correct());
         });
 
-        // Rejoined from "Continue playing" (?lobby=1): a finished game opens in the lobby after it.
         effect(() => {
             const room = this.store.room();
             if (room?.status !== 'finished' || !this.route.snapshot.queryParamMap.has('lobby')) return;
             if (untracked(() => this.backInLobby()) !== this.gameKey(room)) untracked(() => this.backToLobby());
         });
 
-        // The game just ended: it's in your History from now on (a finished room), so your games and
-        // badges load again the next time Your account opens, with this game counted.
         effect(() => {
             const room = this.store.room();
             if (!room || room.status !== 'finished' || this.countedGame === this.gameKey(room)) return;
@@ -472,8 +431,6 @@ export class RoomPage implements OnInit, OnDestroy {
             untracked(() => this.myGames.reset());
         });
 
-        // A new game in this room (Play again): the one-off flags of the last game start over,
-        // and the Admin starts it as soon as everyone is back in the lobby.
         effect(() => {
             const room = this.store.room();
             if (!room || room.status !== 'lobby') return;
@@ -487,7 +444,6 @@ export class RoomPage implements OnInit, OnDestroy {
             }
         });
 
-        // Remembers when this device saw the asking and the vote start, for the time left to guess.
         effect(() => {
             const room = this.store.room();
             if (room?.status !== 'playing') return;
@@ -496,9 +452,6 @@ export class RoomPage implements OnInit, OnDestroy {
             if (room.turn_phase === 'answer_vote' && untracked(() => this.voteStart())?.turn !== turn) this.voteStart.set({ turn, at: Date.now() });
         });
 
-        // Time's up for this step. The player whose turn it is handles it, or the Admin if they're away:
-        // asking or guessing → the turn passes on; a vote → it closes with the votes in so far
-        // (no votes: Unsure for a question, Wrong for a guess), the same as Close the vote.
         effect(() => {
             const left = this.timeLeft();
             const room = this.store.room();
@@ -520,7 +473,6 @@ export class RoomPage implements OnInit, OnDestroy {
                 } else if (room.turn_phase === 'guess_vote' && guess && guess.result === null) {
                     this.resolveGuess(room, guess, verdict(this.guessVotes()));
                 } else if (room.mode === 'voice' && room.turn_phase === 'question' && room.current_player_id === me.id) {
-                    // Voice: they asked out loud while the clock ran, so the question counts.
                     this.run(concat(this.recordSpokenQuestion(room, me.id), defer(() => this.game.nextTurn(room, this.store.players()))));
                 } else if (room.turn_phase === 'question' || room.turn_phase === 'guess') {
                     this.run(this.game.nextTurn(room, this.store.players()));
@@ -562,7 +514,6 @@ export class RoomPage implements OnInit, OnDestroy {
     }
 
     ngOnInit(): void {
-        // roomSessionGuard already checked that this tab joined the room.
         this.code = (this.route.snapshot.paramMap.get('code') ?? '').toUpperCase();
         this.store.start(this.code);
 
@@ -680,17 +631,11 @@ export class RoomPage implements OnInit, OnDestroy {
         });
     }
 
-    // Voice mode ------------------------------------------------------------------------------------------
-    // The question and the answers are spoken; the app counts the question (Round, Give up, results)
-    // and runs the guess vote, exactly as in No-Voice.
-
-    /** This turn's spoken question, recorded once (the player who asked records it). */
     private recordSpokenQuestion(room: Room, playerId: string): Observable<unknown> {
         if (this.currentQuestion()) return of(null);
         return this.questionService.ask(room, playerId, VOICE_QUESTION).pipe(tap(q => this.store.addQuestion(q)));
     }
 
-    /** Voice: asked out loud, answered out loud; the turn passes on. */
     protected voiceNextTurn(): void {
         const room = this.store.room();
         const me = this.store.me();
@@ -698,7 +643,6 @@ export class RoomPage implements OnInit, OnDestroy {
         this.run(concat(this.recordSpokenQuestion(room, me.id), defer(() => this.game.nextTurn(room, this.store.players()))));
     }
 
-    /** Voice: the guess was said out loud; the others vote Correct or Wrong. */
     protected voiceGuess(): void {
         const room = this.store.room();
         const me = this.store.me();
@@ -757,7 +701,6 @@ export class RoomPage implements OnInit, OnDestroy {
         if (room && guess) this.resolveGuess(room, guess, value);
     }
 
-    /** The Admin or a Helper closes a question vote that's stuck (someone away or not answering): the votes in so far decide it. */
     protected async closeVote(): Promise<void> {
         const room = this.store.room();
         const question = this.currentQuestion();
@@ -787,7 +730,6 @@ export class RoomPage implements OnInit, OnDestroy {
         this.run(concat(this.game.nextTurn(room, players), this.game.giveUp(room, me)));
     }
 
-    /** Saves quietly in the background (no busy state), so typing never blocks the game buttons. */
     protected saveNote(draft: NoteDraft): void {
         const room = this.store.room();
         const me = this.store.me();
@@ -798,7 +740,6 @@ export class RoomPage implements OnInit, OnDestroy {
         });
     }
 
-    /** Like notes, the board saves in the background while you keep drawing. */
     protected saveBoard(draft: BoardDraft): void {
         const room = this.store.room();
         const me = this.store.me();
@@ -831,11 +772,9 @@ export class RoomPage implements OnInit, OnDestroy {
         if (yes) this.removePlayer(player);
     }
 
-    /** Kicks without asking (the caller already asked). */
     private removePlayer(player: Player): void {
         const room = this.store.room();
         const steps: Observable<unknown>[] = [];
-        // Kicking the player whose turn it is: pass the turn first, so nobody waits for someone who's gone.
         if (room?.status === 'playing' && room.current_player_id === player.id) {
             const players = this.store.players().map(p => (p.id === player.id ? { ...p, status: 'kicked' as const } : p));
             if (players.filter(p => p.status === 'playing' && p.role !== 'spectator').length >= 2) {
@@ -847,7 +786,6 @@ export class RoomPage implements OnInit, OnDestroy {
         this.run(concat(...steps));
     }
 
-    /** The Admin or a Helper passes the turn of a player who's away or stuck. */
     protected async skipTurn(): Promise<void> {
         const room = this.store.room();
         if (!room || room.status !== 'playing') return;
@@ -861,12 +799,10 @@ export class RoomPage implements OnInit, OnDestroy {
             text: `${away}The turn passes to ${next && next.id !== current?.id ? next.name : 'the next player'}, and ${name} keeps their place in the queue.`,
             confirmLabel: 'Skip turn',
         });
-        // The turn may have moved on while the box was open: only skip the turn that was asked about.
         const now = this.store.room();
         if (yes && now && now.turn_number === room.turn_number) this.run(this.game.nextTurn(now, this.store.players()));
     }
 
-    /** The Admin makes someone else Admin and becomes a Helper, so they can still help run the room. */
     protected async handOver(player: Player): Promise<void> {
         const me = this.store.me();
         if (!me || me.role !== 'admin') return;
@@ -881,7 +817,6 @@ export class RoomPage implements OnInit, OnDestroy {
         this.run(concat(this.playerService.setRole(player.id, 'admin'), this.playerService.setRole(me.id, 'helper')));
     }
 
-    /** Sends a chat message; it shows straight away, and again (once) when the live update arrives. */
     protected sendMessage(text: string): void {
         const room = this.store.room();
         const me = this.store.me();
@@ -892,7 +827,6 @@ export class RoomPage implements OnInit, OnDestroy {
         });
     }
 
-    /** Lobby: you pick another animal (remembered for your next rooms too). */
     protected changeAvatar(avatar: string): void {
         const me = this.store.me();
         if (!me || !isAvatar(avatar)) return;
@@ -901,7 +835,6 @@ export class RoomPage implements OnInit, OnDestroy {
         this.run(this.playerService.setAvatar(me.id, avatar));
     }
 
-    /** The Admin or a Helper mutes or unmutes someone in the chat. */
     protected async toggleMute(player: Player): Promise<void> {
         if (!player.muted) {
             const yes = await this.confirm.ask({
@@ -950,7 +883,6 @@ export class RoomPage implements OnInit, OnDestroy {
         this.router.navigate(['/']);
     }
 
-    /** Runs an action with the busy state; `explain` can turn a known error into a clearer message. */
     private run(action: Observable<unknown>, explain?: (error: Error) => string | null): void {
         this.busy.set(true);
         this.actionError.set(null);

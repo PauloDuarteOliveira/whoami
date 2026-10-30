@@ -1,10 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { SoundService } from '../core/sound.service';
 
-/**
- * The sound button in the room headers (lobby, writing, game): sound on (the default) or muted on this device.
- * The speaker shows sound waves when on and a cross when muted.
- */
 @Component({
     selector: 'app-sound-toggle',
     template: `

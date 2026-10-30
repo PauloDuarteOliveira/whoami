@@ -1,4 +1,3 @@
-/* Same glass panel as the chat, filling the column; the note box grows with it. */
 :host { display: flex; flex-direction: column; min-height: 0; }
 .notes { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 12px; padding: 16px; border-radius: 22px; background: var(--glass); border: 1px solid var(--border); box-shadow: none; }
 .notes-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }

@@ -38,12 +38,10 @@
         </div>
       }
       <p class="muted small">{{ averageQuestions() | number: '1.0-1' }} {{ averageQuestions() === 1 ? 'question' : 'questions' }} per player on average</p>
-      <!-- Same room, same code: the lobby keeps this game's cards and history until the Admin starts the next one. -->
       <button type="button" class="btn btn-primary back" (click)="backToLobby.emit()">Back to lobby</button>
       <span class="or">or <button type="button" class="link-leave" (click)="leave.emit()">Leave the room</button></span>
     </section>
 
-    <!-- Voice mode: guesses were spoken, so there are no stories to tell. -->
     @if (room.mode !== 'voice') {
     <section class="card stories">
       <h2>The guess stories</h2>

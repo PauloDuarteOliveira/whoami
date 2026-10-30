@@ -9,7 +9,6 @@
   align-items: center;
 }
 
-/* Your games: under the intro and the account card, across both columns. */
 .full { grid-column: 1 / -1; min-width: 0; }
 
 .pill { display: inline-block; padding: 6px 14px; border-radius: 20px; background: var(--surface-2); font-weight: 600; font-size: 13px; color: var(--text-2); }
@@ -24,7 +23,6 @@
 
 .accent { color: var(--accent-text); }
 
-/* Continue with Google / Discord: the providers' own colours, as their brand guides ask. */
 .quick {
   height: 52px;
   border-radius: 16px;
@@ -47,7 +45,6 @@
 .or { display: flex; align-items: center; gap: 12px; color: var(--muted); font-size: 13px; font-weight: 600; }
 .or::before, .or::after { content: ''; flex: 1; height: 1px; background: var(--border-strong); }
 
-/* Signed in: how this account can sign in. */
 .methods { display: flex; flex-direction: column; gap: 10px; }
 .methods .label { font-size: 12px; font-weight: 700; letter-spacing: .5px; color: var(--muted); }
 .method { display: flex; align-items: center; gap: 10px; min-height: 36px; }
@@ -75,7 +72,6 @@
   .intro h1 { font-size: 34px; }
 }
 
-/* Delete my account: set apart at the bottom of the account card, in red. */
 .danger { display: flex; align-items: center; gap: 12px; padding-top: 14px; border-top: 1px solid var(--border); }
 .danger div { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .danger span { font-size: 13px; color: var(--muted); }
@@ -87,7 +83,6 @@
 
 .dialog-badge.danger { font: 800 24px var(--font); }
 
-/* Signed in: "Hi, Maya" and the four tabs, then the tab's content. */
 .hub { max-width: 1280px; margin: 0 auto; padding: 24px 40px 48px; display: flex; flex-direction: column; gap: 18px; }
 .hub-head { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
 .hub-head h1 { margin: 0; font-size: 34px; overflow-wrap: anywhere; }
@@ -101,13 +96,11 @@
 @media (max-width: 700px) {
   .hub { padding: 16px 16px 40px; }
   .hub-head h1 { font-size: 28px; }
-  /* Four tabs in one row that scrolls sideways if needed. */
   .hub-tabs { width: 100%; flex-wrap: nowrap; overflow-x: auto; padding: 4px; border-radius: 14px; background: var(--surface-2); }
   .hub-tabs a { flex: 1 0 auto; justify-content: center; height: 36px; padding: 0 12px; font-size: 13px; }
   .achievements { padding: 16px; }
 }
 
-/* The smallest phones (320 px): the four tabs still fit in one row. */
 @media (max-width: 360px) {
   .hub-tabs { gap: 2px; padding: 3px; }
   .hub-tabs a { padding: 0 6px; font-size: 12px; }
