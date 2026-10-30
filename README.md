@@ -2,9 +2,9 @@
 
 <a href="https://pauloduarteoliveira.github.io/whoami/">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/banner-night.svg">
-    <source media="(prefers-color-scheme: light)" srcset="docs/banner-day.svg">
-    <img src="docs/banner-night.svg" alt="WhoAmI. Everyone knows who you are. Except you." width="100%">
+    <source media="(prefers-color-scheme: dark)" srcset="docs/banner-night.png">
+    <source media="(prefers-color-scheme: light)" srcset="docs/banner-day.png">
+    <img src="docs/banner-night.png" alt="WhoAmI. Everyone knows who you are. Except you." width="100%">
   </picture>
 </a>
 
