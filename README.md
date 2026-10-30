@@ -71,8 +71,8 @@ So Yes + Unsure gives **Yes** (someone knew), but 5 Unsure + 1 Yes gives **Unsur
 ## 📸 Screenshots
 
 <p align="center">
-  <img src="docs/screenshots/game-vote.jpg" alt="The game screen: the Players and clues rail, a question to vote on, and the History panel" width="100%">
-  <br><sub><b>The game.</b> Players &amp; clues on the left, the question to vote on in the middle, Notes, History or Chat on the right.</sub>
+  <img src="docs/screenshots/game-vote.jpg" alt="The game screen: the Players and clues rail, a question being voted on with its timer and who has voted, and the History panel" width="100%">
+  <br><sub><b>The game.</b> Players &amp; clues on the left; in the middle, the vote with its 30-second timer and who has voted; History on the right. Below, your next question, ready for your turn.</sub>
 </p>
 
 <table>
@@ -81,14 +81,19 @@ So Yes + Unsure gives **Yes** (someone knew), but 5 Unsure + 1 Yes gives **Unsur
     <td width="50%"><img src="docs/screenshots/home-day.jpg" alt="Home page by day"><br><sub>…and by day.</sub></td>
   </tr>
   <tr>
-    <td><img src="docs/screenshots/lobby.jpg" alt="The lobby with the room code and the Players rail"><br><sub><b>Lobby.</b> Share the code, the link or the QR code; the Admin names Helpers.</sub></td>
-    <td><img src="docs/screenshots/writing.jpg" alt="The writing phase"><br><sub><b>Writing.</b> Everyone adds a character to the pool; the rail shows who's done.</sub></td>
+    <td><img src="docs/screenshots/lobby.jpg" alt="The lobby with the room code, the QR code, the Players rail and the chat"><br><sub><b>Lobby.</b> Share the code, the link or the QR code, and chat while friends arrive.</sub></td>
+    <td><img src="docs/screenshots/writing.jpg" alt="The writing phase"><br><sub><b>Writing.</b> Everyone adds a character; the Admin can start without late players.</sub></td>
   </tr>
   <tr>
-    <td><img src="docs/screenshots/game-guess.jpg" alt="Judging a guess"><br><sub><b>Guessing.</b> The others judge if the guess is right.</sub></td>
+    <td><img src="docs/screenshots/game-guess.jpg" alt="Judging a guess"><br><sub><b>Guessing.</b> The others judge the guess; open a card to see a player's clues.</sub></td>
     <td><img src="docs/screenshots/results.jpg" alt="The results screen"><br><sub><b>Results.</b> Final ranking and the story of every guess, then Back to lobby.</sub></td>
   </tr>
 </table>
+
+<p align="center">
+  <img src="docs/screenshots/lobby-after.jpg" alt="The lobby after a game: last game's cards and history, the code, and the Admin's Next game settings" width="100%">
+  <br><sub><b>Back in the lobby.</b> Last game's characters, results and history stay; new friends can join; the Admin picks the next settings and presses Play again.</sub>
+</p>
 
 <p align="center">
   <img src="docs/screenshots/board.jpg" alt="The drawing Board open next to the Players and clues rail" width="100%">
